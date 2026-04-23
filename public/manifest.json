@@ -42,6 +42,16 @@
         "in_game_only": true,
         "draw_click_through_on_transparent_area": true,
         "use_os_windowing": false
+      },
+      "lobby": {
+        "file": "lobby.html",
+        "show_in_taskbar": false,
+        "transparent": false,
+        "resizable": false,
+        "size": { "width": 320, "height": 480 },
+        "start_position": { "top": 100, "left": 100 },
+        "topmost": true,
+        "in_game_only": true
       }
     },
     "game_targeting": {
@@ -56,6 +66,13 @@
           "game_info", "match_info", "active_player", "board", "shop", "roster", "items"
         ]
       }
-    ]
+    ],
+    "hotkeys": {
+      "toggle_overlay": {
+        "title": "Toggle Overlay",
+        "action-type": "custom",
+        "default": "Ctrl+T"
+      }
+    }
   }
 }

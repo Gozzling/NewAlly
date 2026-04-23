@@ -22,6 +22,7 @@ let gepRetries = 0;
 let metaComps: MetaComp[] = [];
 let itemRecipes: ItemRecipes = {};
 let overlayId: string | null = null;
+let lobbyId: string | null = null;
 let desktopId: string | null = null;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -33,6 +34,9 @@ function isTft(id: number): boolean {
 function notify(state: TftGameState): void {
   if (overlayId) {
     overwolf.windows.sendMessage(overlayId, "tft-overlay-live", { kind: "state", state }, () => void 0);
+  }
+  if (lobbyId) {
+    overwolf.windows.sendMessage(lobbyId, "tft-overlay-live", { kind: "state", state }, () => void 0);
   }
   if (desktopId) {
     overwolf.windows.sendMessage(desktopId, "tft-overlay-live", { kind: "state", state }, () => void 0);
@@ -136,12 +140,13 @@ function onNewEvents(payload: any): void {
     switch (event.name) {
       case "match_start":
         setState({ isInGame: true });
+        hideLobby();
         showOverlay();
         break;
       case "match_end":
         hideOverlay();
         resetState();
-        showDesktop();
+        showLobby();
         break;
     }
   }
@@ -156,11 +161,18 @@ function onGameInfoUpdated(e: any): void {
   if (gameIsTft && isRunning) {
     console.log("[BG] TFT running");
     setState({ isInGame: true });
-    showOverlay();
+    if (gs.isInGame) {
+      hideLobby();
+      showOverlay();
+    } else {
+      hideOverlay();
+      showLobby();
+    }
     setupGep();
   } else if (!isRunning && gs.isInGame) {
     console.log("[BG] TFT closed");
     hideOverlay();
+    hideLobby();
     resetState();
     showDesktop();
   }
@@ -180,11 +192,40 @@ function hideOverlay(): void {
   hideWindow("overlay");
 }
 
+async function showLobby(): Promise<void> {
+  lobbyId = getWindowId("lobby");
+  if (!lobbyId) {
+    await openWindow("lobby");
+    lobbyId = getWindowId("lobby");
+  }
+}
+
+function hideLobby(): void {
+  hideWindow("lobby");
+}
+
 async function showDesktop(): Promise<void> {
   desktopId = getWindowId("desktop");
   if (!desktopId) {
     await openWindow("desktop");
     desktopId = getWindowId("desktop");
+  }
+}
+
+let overlayVisible = true;
+
+function toggleOverlay(): void {
+  overlayVisible = !overlayVisible;
+  if (overlayVisible) {
+    void showOverlay();
+  } else {
+    hideOverlay();
+  }
+}
+
+function onHotkeyPressed(e: any): void {
+  if (e?.name === "toggle_overlay") {
+    toggleOverlay();
   }
 }
 
@@ -208,11 +249,17 @@ export async function initBackgroundController(): Promise<void> {
   overwolf.games.events.onInfoUpdates2.addListener(onInfoUpdates);
   overwolf.games.events.onNewEvents.addListener(onNewEvents);
   overwolf.games.onGameInfoUpdated.addListener(onGameInfoUpdated);
+  overwolf.settings.hotkeys.onPressed.addListener(onHotkeyPressed);
 
   // Pre-obtain window ids
   const overlay = getWindowId("overlay");
   if (!overlay) await openWindow("overlay");
   overlayId = getWindowId("overlay");
+
+  const lobby = getWindowId("lobby");
+  if (!lobby) await openWindow("lobby");
+  lobbyId = getWindowId("lobby");
+  hideLobby();
 
   const desktop = getWindowId("desktop");
   if (!desktop) await openWindow("desktop");
@@ -222,7 +269,7 @@ export async function initBackgroundController(): Promise<void> {
     if (gameInfo && isTft(gameInfo.id)) {
       console.log("[BG] TFT already running");
       setState({ isInGame: true });
-      showOverlay();
+      showLobby();
       setupGep();
     } else {
       showDesktop();
