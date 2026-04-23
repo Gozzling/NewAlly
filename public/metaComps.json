@@ -1,0 +1,26 @@
+[
+  {
+    "compName": "Sorcerer Syndicate",
+    "requiredUnits": ["Ahri", "Lux", "Syndra", "Veigar", "Zoe", "Orianna", "Twisted Fate", "Yuumi"],
+    "carries": [
+      { "name": "Ahri", "bisItems": ["Rabadon's Deathcap", "Jeweled Gauntlet", "Blue Buff"] },
+      { "name": "Lux",  "bisItems": ["Spear of Shojin", "Shadowflame", "Jeweled Gauntlet"] }
+    ]
+  },
+  {
+    "compName": "Bruiser Brawl",
+    "requiredUnits": ["Malphite", "Nasus", "Volibear", "Sejuani", "Cho'Gath", "Rek'Sai", "Illaoi", "Gragas"],
+    "carries": [
+      { "name": "Volibear", "bisItems": ["Warmog's Armor", "Sunfire Cape", "Titan's Resolve"] },
+      { "name": "Malphite", "bisItems": ["Bramble Vest", "Dragon's Claw", "Gargoyle Stoneplate"] }
+    ]
+  },
+  {
+    "compName": "Swift Assassins",
+    "requiredUnits": ["Zed", "Akali", "Katarina", "Talon", "Ekko", "Evelynn", "Qiyana", "Shaco"],
+    "carries": [
+      { "name": "Zed",      "bisItems": ["Infinity Edge", "Last Whisper", "Rapid Firecannon"] },
+      { "name": "Katarina", "bisItems": ["Hextech Gunblade", "Jeweled Gauntlet", "Morellonomicon"] }
+    ]
+  }
+]
