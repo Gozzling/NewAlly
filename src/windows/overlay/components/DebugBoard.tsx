@@ -1,4 +1,4 @@
-import type { BoardState } from '../../types/tft'
+import type { BoardState } from '@/types/tft'
 
 const STARS = ['', '★', '★★', '★★★'] as const
 const COLS  = 7
@@ -8,8 +8,8 @@ interface Props { board: BoardState }
 
 export function DebugBoard({ board }: Props) {
   return (
-    <div className="bg-black/70 border border-neutral-700 p-2">
-      <h3 className="text-[10px] uppercase tracking-widest text-neutral-500 mb-1.5">Board</h3>
+    <div className="bg-ally-bg/70 border border-ally-border p-2">
+      <h3 className="text-[10px] uppercase tracking-widest text-ally-muted mb-1.5">Board</h3>
       <div
         className="grid gap-0.5"
         style={{ gridTemplateColumns: `repeat(${COLS}, 64px)`, gridTemplateRows: `repeat(${ROWS}, 44px)` }}
@@ -22,8 +22,8 @@ export function DebugBoard({ board }: Props) {
                 key={`${x}-${y}`}
                 className={`border p-0.5 text-[10px] overflow-hidden flex flex-col justify-center ${
                   unit
-                    ? 'bg-blue-950/40 border-blue-900/50'
-                    : 'bg-white/[0.03] border-neutral-800'
+                    ? 'bg-ally-accent/10 border-ally-accent/30'
+                    : 'bg-ally-text/[0.03] border-ally-border'
                 }`}
               >
                 {unit && (
