@@ -15,8 +15,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         background: resolve(__dirname, 'background.html'),
-        desktop: resolve(__dirname, 'desktop.html'),
-        overlay: resolve(__dirname, 'overlay.html'),
+        overlay:    resolve(__dirname, 'overlay.html'),
+        desktop:    resolve(__dirname, 'desktop.html'),
       },
     },
   },
