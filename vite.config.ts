@@ -17,6 +17,7 @@ export default defineConfig({
         background: resolve(__dirname, 'background.html'),
         overlay:    resolve(__dirname, 'overlay.html'),
         desktop:    resolve(__dirname, 'desktop.html'),
+        lobby:      resolve(__dirname, 'lobby.html'),
       },
     },
   },

@@ -25,20 +25,6 @@ export interface LiveState {
   godFavor: GodFavor[];
 }
 
-export interface TftGameState {
-  isInGame: boolean;
-  currentStage: string;
-  playerHealth: number;
-  offeredAugments: string[];
-  localPlayer: {
-    summonerName: string;
-    tagline?: string;
-    region?: string;
-  } | null;
-  isLoading: boolean;
-  error: string | null;
-}
-
 // Messages broadcast between windows via overwolf.windows.sendMessage
 export type BridgeMessage =
   | { kind: "info"; feature: string; info: Record<string, unknown> }
@@ -47,4 +33,4 @@ export type BridgeMessage =
   | { kind: "window-control"; action: "show" | "hide" | "close" | "minimize" | "restore"; windowName: string };
 
 // Overwolf window descriptor helpers
-export type WindowName = "background" | "overlay" | "desktop";
+export type WindowName = "background" | "overlay" | "desktop" | "lobby";
