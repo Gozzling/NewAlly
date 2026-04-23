@@ -21,5 +21,5 @@
     "types": ["@overwolf/types", "node"]
   },
   "include": ["src", "vite.config.ts"],
-  "exclude": ["src/server.ts", "src/lib"]
+  "exclude": ["src/server.ts", "src/lib", "supabase/functions"]
 }
