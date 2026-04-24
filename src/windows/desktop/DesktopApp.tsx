@@ -121,7 +121,7 @@ export function DesktopApp() {
         {activePage === 'In Game' ? (
             <>
 <aside className="hidden lg:flex flex-1 items-center justify-center">
-    <div className="bg-ally-card border border-ally-border rounded-lg p-4 aspect-square flex items-center justify-center text-ally-muted">Tips</div>
+    <div className="bg-ally-card border border-ally-border rounded-lg p-4 aspect-square flex items-center justify-center text-ally-muted max-w-[200px]">Tips</div>
   </aside>
    <section className="w-full max-w-[850px] flex flex-col border-x border-ally-border/50">
     <div className="text-[11px] uppercase tracking-widest text-ally-muted mb-4">Live Lobby</div>
