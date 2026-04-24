@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TFT Ally — TFT Companion App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f0f1a;
+      color: #e0e0e0;
+      line-height: 1.6;
+    }
+    .container { max-width: 900px; margin: 0 auto; padding: 60px 20px; }
+    h1 { font-size: 3rem; font-weight: 800; color: #c9a96e; margin-bottom: 0.5rem; }
+    .subtitle { font-size: 1.2rem; color: #8892b0; margin-bottom: 2rem; }
+    .tagline {
+      font-size: 1.5rem;
+      color: #64ffda;
+      margin-bottom: 3rem;
+      font-weight: 600;
+    }
+    .section { margin-bottom: 3rem; }
+    h2 { color: #c9a96e; font-size: 1.5rem; margin-bottom: 1rem; }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .feature-card {
+      background: #16162a;
+      border: 1px solid #2a2a4a;
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .feature-card h3 { color: #64ffda; margin-bottom: 0.5rem; }
+    .feature-card p { color: #a0a8c0; font-size: 0.95rem; }
+    .cta {
+      margin-top: 3rem;
+      padding: 2rem;
+      background: #16162a;
+      border: 1px solid #2a2a4a;
+      border-radius: 12px;
+      text-align: center;
+    }
+    .cta a {
+      display: inline-block;
+      background: #c9a96e;
+      color: #0f0f1a;
+      padding: 14px 32px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 700;
+      margin-top: 1rem;
+    }
+    .footer {
+      margin-top: 4rem;
+      text-align: center;
+      color: #8892b0;
+      font-size: 0.9rem;
+    }
+    .status {
+      display: inline-block;
+      background: #1a3a1a;
+      color: #4ade80;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>TFT Ally</h1>
+    <p class="subtitle">A data-driven companion app for Teamfight Tactics</p>
+    <p class="tagline">
+      Meta tracking · Player scouting · Match analytics · In-game overlay
+      <span class="status">In Development</span>
+    </p>
+
+    <div class="section">
+      <h2>What is TFT Ally?</h2>
+      <p>
+        TFT Ally is an Overwolf-based desktop companion that helps you improve at Teamfight Tactics.
+        It surfaces publicly available Riot API data — meta compositions, player stats, match history,
+        and item recipes — in a clean, accessible interface. No hidden information. No automation.
+        Just better data for better decisions.
+      </p>
+    </div>
+
+    <div class="section">
+      <h2>Key Features</h2>
+      <div class="features">
+        <div class="feature-card">
+          <h3>Meta Tracker</h3>
+          <p>Live S/A/B/C tier lists showing which compositions are performing across the ranked ladder.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Player Scouting</h3>
+          <p>Search any summoner, view 20-match history, analyze comp preferences, top-4 rate, and placement trends.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Analytics Dashboard</h3>
+          <p>Visualize your performance with win-rate-by-comp charts, placement timelines, and augment heatmaps.</p>
+        </div>
+        <div class="feature-card">
+          <h3>In-Game Overlay</h3>
+          <p>Lightweight toggleable overlay (Ctrl+T) with live meta recommendations and an item cheat sheet.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Tech Stack</h2>
+      <p>
+        Built with <strong>React + TypeScript + Tailwind CSS</strong> on the <strong>Overwolf</strong> platform.
+        Riot API calls are proxied through <strong>Supabase Edge Functions</strong> for secure key management.
+        All match data comes directly from Riot's official TFT API.
+      </p>
+    </div>
+
+    <div class="cta">
+      <h2>Open Source</h2>
+      <p>TFT Ally is being developed in the open. Track progress, report issues, or contribute on GitHub.</p>
+      <a href="https://github.com/elecb3/TFTAllyMain" target="_blank">View on GitHub</a>
+    </div>
+
+    <div class="footer">
+      <p>TFT Ally is not endorsed by Riot Games. TFT and Teamfight Tactics are trademarks of Riot Games, Inc.</p>
+      <p style="margin-top: 0.5rem;">Built by Vincent · Registered on Riot Developer Portal</p>
+    </div>
+  </div>
+</body>
+</html>

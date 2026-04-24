@@ -7,7 +7,8 @@
     "author": "TFT Ally",
     "version": "1.0.0",
     "minimum-overwolf-version": "0.220.0",
-    "description": "TFT in-game overlay and desktop companion"
+    "description": "TFT in-game overlay and desktop companion",
+    "icon": "icon.png"
   },
   "permissions": ["GameEvents", "GameInfo", "Hotkeys"],
   "data": {
@@ -56,25 +57,6 @@
         "in_game_only": true
       }
     },
-    "game_targeting": {
-      "type": "dedicated",
-      "game_ids": [5426]
-    },
-    "game_events": [
-      {
-        "game_ids": [5426],
-        "events": ["match_start", "match_end"],
-        "info_updates": [
-          "game_info",
-          "match_info",
-          "active_player",
-          "board",
-          "shop",
-          "roster",
-          "items"
-        ]
-      }
-    ],
     "hotkeys": {
       "toggle_overlay": {
         "title": "Toggle Overlay",
