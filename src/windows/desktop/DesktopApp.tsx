@@ -117,13 +117,13 @@ export function DesktopApp() {
       </div>
 
       {/* Page area */}
-      <div className="w-full flex-1 overflow-y-auto bg-ally-bg">
+      <div className="w-full flex-1 overflow-y-auto bg-ally-bg px-8 py-6">
         {activePage === 'In Game' ? (
-            <div className="w-full px-[10%] py-6"><div className="text-[11px] uppercase tracking-widest text-ally-muted mb-4">Live Lobby</div><div className="grid grid-cols-4 gap-4">
+            <><div className="text-[11px] uppercase tracking-widest text-ally-muted mb-4">Live Lobby</div><div className="grid grid-cols-4 gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <SkeletonPlayerCard key={i} />
             ))}
-            </div></div>
+            </div></>
           ) : (
           <div className="flex items-center justify-center h-full">
             <span className="text-ally-muted text-sm">{activePage}</span>
