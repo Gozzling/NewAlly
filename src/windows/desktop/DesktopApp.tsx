@@ -51,7 +51,7 @@ export function DesktopApp() {
   {/* Navbar */}
   {/* Titlebar */}
   <div
-    className="w-full h-9 flex-shrink-0 bg-ally-card border-b border-ally-border flex items-center"
+    className="w-full h-10 flex-shrink-0 bg-ally-card border-b border-ally-border flex items-center"
     style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
   >
     {/* Left: Logo */}
@@ -59,7 +59,7 @@ export function DesktopApp() {
       className="flex items-center px-4 flex-shrink-0"
       style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
     >
-      <svg viewBox="0 0 240 66" fill="none" className="h-5 w-auto">
+      <svg viewBox="0 0 220 66" fill="none" className="h-6 w-auto">
         <path d="M35.75 0L67 62.5H49.5L37 30L17 62.5H2" stroke="#35c3e7" strokeWidth="8" strokeLinejoin="round" strokeLinecap="round"/>
         <line x1="12" y1="43.75" x2="49.5" y2="43.75" stroke="#35c3e7" strokeWidth="7"/>
         <path d="M82 4L82 62.5L112 62.5" stroke="white" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/>
@@ -94,14 +94,15 @@ export function DesktopApp() {
 
   {/* Nav bar */}
   <div
-    className="w-full h-10 bg-ally-card border-b border-ally-border flex items-center px-4"
+    className="w-full h-9 bg-ally-card border-b border-ally-border"
     style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
   >
-    {['In Game','Comps','Items','Units','Traits','Augments','Team Builder','Match History'].map((tab) => (
+    <div className="flex items-center h-full px-2 gap-1">
+      {['In Game','Comps','Items','Units','Traits','Augments','Team Builder','Match History'].map((tab) => (
       <button
         key={tab}
         onClick={() => setActivePage(tab)}
-        className={`h-full text-[13px] px-4 ${activePage === tab ? 'text-ally-accent border-b-2 border-ally-accent' : 'text-ally-muted hover:text-ally-text'}`}
+        className={`px-3 h-full text-[13px] whitespace-nowrap ${activePage === tab ? 'text-ally-accent border-b-2 border-ally-accent' : 'text-ally-muted hover:text-ally-text'}`}
         style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
       >
         {tab}
@@ -155,7 +156,8 @@ export function DesktopApp() {
         <span className="text-ally-muted text-sm">{activePage}</span>
       </div>
     )}
-  </div>
+      </div>
+    </div>
 </div>
   )
 }
