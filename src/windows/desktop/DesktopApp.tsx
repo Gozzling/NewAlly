@@ -68,8 +68,8 @@ export function DesktopApp() {
         <path d="M172 4L194 33L216 4" stroke="white" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M194 33L194 62.5" stroke="white" strokeWidth="7" strokeLinecap="round"/>
         <line x1="188" y1="48" x2="207" y2="40" stroke="#35c3e7" strokeWidth="5" strokeLinecap="round"/>
-      </svg>
-    </div>
+</svg>
+      </div></div>
 
     {/* Center: Nav tabs */}
     <div
