@@ -49,16 +49,17 @@ export function DesktopApp() {
   return (
     <div className="w-full h-full flex flex-col bg-ally-bg text-ally-text font-sans">
   {/* Navbar */}
+  {/* Titlebar */}
   <div
-    className="w-full h-11 flex-shrink-0 bg-ally-card border-b border-ally-border flex items-center"
+    className="w-full h-9 flex-shrink-0 bg-ally-card border-b border-ally-border flex items-center"
     style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
   >
     {/* Left: Logo */}
     <div
-      className="flex items-center pl-3"
+      className="flex items-center px-4 flex-shrink-0"
       style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
     >
-      <div className="flex items-center gap-2 px-4 flex-shrink-0"><svg viewBox="0 0 240 66" fill="none" className="h-5 w-auto">
+      <svg viewBox="0 0 240 66" fill="none" className="h-5 w-auto">
         <path d="M35.75 0L67 62.5H49.5L37 30L17 62.5H2" stroke="#35c3e7" strokeWidth="8" strokeLinejoin="round" strokeLinecap="round"/>
         <line x1="12" y1="43.75" x2="49.5" y2="43.75" stroke="#35c3e7" strokeWidth="7"/>
         <path d="M82 4L82 62.5L112 62.5" stroke="white" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/>
@@ -68,29 +69,12 @@ export function DesktopApp() {
         <path d="M172 4L194 33L216 4" stroke="white" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M194 33L194 62.5" stroke="white" strokeWidth="7" strokeLinecap="round"/>
         <line x1="188" y1="48" x2="207" y2="40" stroke="#35c3e7" strokeWidth="5" strokeLinecap="round"/>
-</svg>
-      </div></div>
-
-    {/* Center: Nav tabs */}
-    <div
-      className="flex items-center gap-1 h-full"
-      style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-    >
-      {['In Game','Comps','Items','Units','Traits','Augments','Team Builder','Match History'].map((tab) => (
-        <button
-          key={tab}
-          onClick={() => setActivePage(tab)}
-          className={`h-full text-[13px] px-4 ${activePage === tab ? 'text-ally-accent border-b-2 border-ally-accent' : 'text-ally-muted hover:text-ally-text'}`}
-          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-        >
-          {tab}
-        </button>
-      ))}
+      </svg>
     </div>
 
     {/* Right: Window controls */}
     <div
-      className="flex items-center pr-3"
+      className="flex items-center ml-auto px-2"
       style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
     >
       <button
@@ -106,6 +90,23 @@ export function DesktopApp() {
         ✕
       </button>
     </div>
+  </div>
+
+  {/* Nav bar */}
+  <div
+    className="w-full h-10 bg-ally-card border-b border-ally-border flex items-center px-4"
+    style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+  >
+    {['In Game','Comps','Items','Units','Traits','Augments','Team Builder','Match History'].map((tab) => (
+      <button
+        key={tab}
+        onClick={() => setActivePage(tab)}
+        className={`h-full text-[13px] px-4 ${activePage === tab ? 'text-ally-accent border-b-2 border-ally-accent' : 'text-ally-muted hover:text-ally-text'}`}
+        style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+      >
+        {tab}
+      </button>
+    ))}
   </div>
 
   {/* Page area */}
