@@ -2,6 +2,7 @@
   "manifest_version": 1,
   "type": "WebApp",
   "meta": {
+    "uid": "tft-ally-dev-001",
     "name": "TFT Companion",
     "author": "TFT Ally",
     "version": "1.0.0",
@@ -57,11 +58,11 @@
     },
     "game_targeting": {
       "type": "dedicated",
-      "game_ids": [21570]
+      "game_ids": [5426]
     },
     "game_events": [
       {
-        "game_ids": [21570],
+        "game_ids": [5426],
         "events": ["match_start", "match_end"],
         "info_updates": [
           "game_info",
