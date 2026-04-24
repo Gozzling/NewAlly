@@ -13,7 +13,7 @@ function getCurrentWindowId(): Promise<string> {
 // Skeleton placeholder component for lobby player cards
 function SkeletonPlayerCard() {
   return (
-    <div className="bg-ally-card border border-ally-border rounded-xl p-5 flex flex-col items-center gap-3 animate-pulse">
+    <div className="bg-ally-card border border-ally-border rounded-xl p-5 flex flex-row items-center gap-3 animate-pulse">
       {/* Avatar circle */}
       <div className="w-16 h-16 rounded-full bg-ally-hover" />
       {/* Name line */}
@@ -117,13 +117,24 @@ export function DesktopApp() {
       </div>
 
       {/* Page area */}
-      <div className="w-full flex-1 overflow-y-auto bg-ally-bg px-8 py-6">
+      <div className="w-full flex-1 flex flex-row bg-ally-bg px-8 py-6">
         {activePage === 'In Game' ? (
-            <><div className="text-[11px] uppercase tracking-widest text-ally-muted mb-4">Live Lobby</div><div className="grid grid-cols-4 gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <SkeletonPlayerCard key={i} />
-            ))}
-            </div></>
+            <>
+  <aside className="hidden lg:flex flex-1 items-center justify-center">
+    <div className="border border-ally-border rounded-lg p-4 w-full h-full text-ally-muted">Ads</div>
+  </aside>
+  <section className="w-full max-w-[850px] flex flex-col">
+    <div className="text-[11px] uppercase tracking-widest text-ally-muted mb-4">Live Lobby</div>
+    <div className="flex flex-col gap-3 overflow-y-auto">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <SkeletonPlayerCard key={i} />
+      ))}
+    </div>
+  </section>
+  <aside className="hidden lg:flex flex-1 items-center justify-center">
+    <div className="border border-ally-border rounded-lg p-4 w-full h-full text-ally-muted">Ads</div>
+  </aside>
+</>
           ) : (
           <div className="flex items-center justify-center h-full">
             <span className="text-ally-muted text-sm">{activePage}</span>
