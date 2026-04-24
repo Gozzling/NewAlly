@@ -84,7 +84,7 @@ async function handleMaximize() {
           <button
             key={tab}
             onClick={() => setActivePage(tab)}
-            className={`px-4 h-full text-[13px] whitespace-nowrap transition-colors ${activePage === tab ? 'text-ally-accent border-b-2 border-ally-accent' : 'text-ally-muted hover:text-ally-text'}`}
+            className={`min-w-[80px] px-4 h-full text-[13px] whitespace-nowrap transition-colors ${activePage === tab ? 'text-ally-accent border-b-2 border-ally-accent' : 'text-ally-muted hover:text-ally-text'}`}
           >
             {tab}
           </button>
