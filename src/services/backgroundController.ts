@@ -1,14 +1,14 @@
 /// <reference types="@overwolf/types" />
 
-import { useAppStore, EMPTY_STATE } from "../store/useAppStore";
+import { useAppStore, EMPTY_STATE } from "@/store/useAppStore";
 import {
   parseRoster,
   parseBoard,
   parseBenchComponents,
   calculateBestCompMatch,
   calculateItemCrafting,
-} from "../shared/gameEngine";
-import type { MetaComp, ItemRecipes, TftGameState } from "../types/tft";
+} from "@/shared/gameEngine";
+import type { MetaComp, ItemRecipes, TftGameState } from "@/types/tft";
 import { openWindow, hideWindow, getWindowId } from "./overwolfWindowService";
 
 const TFT_CLASS_ID = 21570;

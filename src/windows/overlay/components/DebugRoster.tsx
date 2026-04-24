@@ -1,17 +1,17 @@
-import type { RosterPlayer } from '../../types/tft'
+import type { RosterPlayer } from '@/types/tft'
 
 interface Props { roster: RosterPlayer[] }
 
 export function DebugRoster({ roster }: Props) {
   return (
-    <div className="bg-black/70 border border-neutral-700 p-2 min-w-[200px]">
-      <h3 className="text-[10px] uppercase tracking-widest text-neutral-500 mb-1.5">Players (HP)</h3>
+    <div className="bg-ally-bg/70 border border-ally-border p-2 min-w-[200px]">
+      <h3 className="text-[10px] uppercase tracking-widest text-ally-muted mb-1.5">Players (HP)</h3>
       {roster.map((p) => (
         <div
           key={p.name}
-          className={`flex justify-between border-b border-neutral-800 py-0.5 last:border-0 ${
+          className={`flex justify-between border-b border-ally-border py-0.5 last:border-0 ${
             p.isEliminated
-              ? 'text-neutral-600 line-through'
+              ? 'text-ally-muted line-through'
               : p.isLocalPlayer
                 ? 'text-yellow-300'
                 : ''

@@ -1,4 +1,4 @@
-import { initBackgroundController } from "../services/backgroundController";
+import { initBackgroundController } from "@/services/backgroundController";
 
 /**
  * Background entry point — TFT Overlay background controller.

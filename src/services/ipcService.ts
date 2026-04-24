@@ -1,7 +1,7 @@
 /// <reference types="@overwolf/types" />
 
-import { useAppStore } from "../store/useAppStore";
-import type { TftGameState } from "../types/tft";
+import { useAppStore } from "@/store/useAppStore";
+import type { TftGameState } from "@/types/tft";
 
 /**
  * Subscribe to full-state snapshots broadcast from the background controller.
