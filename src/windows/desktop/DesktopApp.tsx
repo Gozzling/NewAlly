@@ -50,7 +50,7 @@ export function DesktopApp() {
     <div className="w-full h-full flex flex-col bg-ally-bg text-ally-text font-sans">
   {/* Navbar */}
   <div
-    className="w-full h-12 flex-shrink-0 bg-ally-card border-b border-ally-border flex items-center"
+    className="w-full h-11 flex-shrink-0 bg-ally-card border-b border-ally-border flex items-center"
     style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
   >
     {/* Left: Logo */}
@@ -58,7 +58,7 @@ export function DesktopApp() {
       className="flex items-center pl-3"
       style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
     >
-      <svg viewBox="0 0 340 66" fill="none" className="h-5 w-auto">
+      <div className="flex items-center gap-2 px-4 flex-shrink-0"><svg viewBox="0 0 240 66" fill="none" className="h-5 w-auto">
         <path d="M35.75 0L67 62.5H49.5L37 30L17 62.5H2" stroke="#35c3e7" strokeWidth="8" strokeLinejoin="round" strokeLinecap="round"/>
         <line x1="12" y1="43.75" x2="49.5" y2="43.75" stroke="#35c3e7" strokeWidth="7"/>
         <path d="M82 4L82 62.5L112 62.5" stroke="white" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/>
@@ -73,7 +73,7 @@ export function DesktopApp() {
 
     {/* Center: Nav tabs */}
     <div
-      className="flex flex-1 items-center justify-center space-x-2"
+      className="flex items-center gap-1 h-full"
       style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
     >
       {['In Game','Comps','Items','Units','Traits','Augments','Team Builder','Match History'].map((tab) => (
