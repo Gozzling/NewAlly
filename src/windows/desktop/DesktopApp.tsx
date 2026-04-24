@@ -33,9 +33,13 @@ export function DesktopApp() {
   async function handleMinimize() {
     overwolf.windows.minimize(await getCurrentWindowId(), () => {})
   }
-  async function handleClose() {
-    overwolf.windows.close(await getCurrentWindowId(), () => {})
-  }
+async function handleClose() {
+  overwolf.windows.close(await getCurrentWindowId(), () => {})
+}
+
+async function handleMaximize() {
+  overwolf.windows.maximize(await getCurrentWindowId(), () => {})
+}
 
   const rawJson = state ? JSON.stringify(state.raw, null, 2) : 'Waiting for data...'
   if (rawJson !== lastRawRef.current) lastRawRef.current = rawJson
@@ -69,17 +73,18 @@ export function DesktopApp() {
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
           <button onClick={handleMinimize} className="w-7 h-7 text-ally-muted rounded text-[13px] hover:bg-ally-hover hover:text-ally-text transition-colors">─</button>
+          <button onClick={handleMaximize} className="w-7 h-7 text-ally-muted rounded text-[13px] hover:bg-ally-hover hover:text-ally-text transition-colors">□</button>
           <button onClick={handleClose} className="w-7 h-7 text-ally-muted rounded text-[13px] hover:bg-red-900 hover:text-ally-text transition-colors">✕</button>
         </div>
       </div>
 
       {/* Bar 2 — Nav tabs */}
-      <div className="w-full h-9 flex-shrink-0 bg-ally-card border-b border-ally-border flex items-center px-2 gap-1">
+      <div className="w-full h-9 flex-shrink-0 bg-ally-card border-b border-ally-border flex items-center">
         {TABS.map((tab) => (
           <button
             key={tab}
             onClick={() => setActivePage(tab)}
-            className={`px-3 h-full text-[13px] whitespace-nowrap transition-colors ${activePage === tab ? 'text-ally-accent border-b-2 border-ally-accent' : 'text-ally-muted hover:text-ally-text'}`}
+            className={`px-4 h-full text-[13px] whitespace-nowrap transition-colors ${activePage === tab ? 'text-ally-accent border-b-2 border-ally-accent' : 'text-ally-muted hover:text-ally-text'}`}
           >
             {tab}
           </button>
