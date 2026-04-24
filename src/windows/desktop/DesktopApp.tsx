@@ -77,7 +77,7 @@ export function DesktopApp() {
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
       >
         <div
-          className="flex items-center ml-28 pr-4 flex-shrink-0"
+          className="flex items-center px-4 flex-shrink-0"
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
           <svg viewBox="0 0 220 66" fill="none" className="h-5 w-auto">
@@ -119,7 +119,7 @@ export function DesktopApp() {
       {/* Page area */}
       <div className="w-full flex-1 overflow-y-auto bg-ally-bg py-6">
         {activePage === 'In Game' ? (
-            <div className="w-full max-w-5xl mx-auto px-8"><div className="text-[11px] uppercase tracking-widest text-ally-muted mb-4">Live Lobby</div><div className="grid grid-cols-4 gap-4">
+            <div className="w-full max-w-4xl mx-auto px-10"><div className="text-[11px] uppercase tracking-widest text-ally-muted mb-4">Live Lobby</div><div className="grid grid-cols-4 gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <SkeletonPlayerCard key={i} />
             ))}
