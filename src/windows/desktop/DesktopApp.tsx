@@ -13,7 +13,7 @@ function getCurrentWindowId(): Promise<string> {
 // Skeleton placeholder component for lobby player cards
 function SkeletonPlayerCard() {
   return (
-    <div className="bg-ally-card rounded-xl p-5 flex flex-row items-center gap-3 animate-pulse aspect-square max-w-[120px]">
+    <div className="bg-ally-card rounded-xl p-5 flex flex-row items-center gap-3 animate-pulse aspect-square max-w-[200px]">
       {/* Avatar circle */}
       <div className="w-16 h-16 rounded-full bg-ally-hover" />
       {/* Name line */}
@@ -130,6 +130,7 @@ export function DesktopApp() {
         <SkeletonPlayerCard key={i} />
       ))}
     </div>
+    <div className="mt-4 bg-ally-card border border-ally-border rounded-lg p-4 text-ally-muted">Tips</div>
   </section>
   <aside className="hidden lg:flex flex-1 items-center justify-center">
     <div className="rounded-lg p-4 w-full h-full text-ally-muted"></div>
@@ -138,7 +139,8 @@ export function DesktopApp() {
           ) : (
           <div className="flex items-center justify-center h-full">
             <span className="text-ally-muted text-sm">{activePage}</span>
-          </div>
+</div>
+
         )}
       </div>
 
