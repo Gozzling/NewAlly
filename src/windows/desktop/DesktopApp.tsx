@@ -123,7 +123,7 @@ export function DesktopApp() {
   <aside className="hidden lg:flex flex-1 items-center justify-center">
     <div className="border border-ally-border rounded-lg p-4 w-full h-full text-ally-muted">Ads</div>
   </aside>
-  <section className="w-full max-w-[850px] flex flex-col">
+  <section className="w-full max-w-[850px] flex flex-col border-x border-ally-border/50">
     <div className="text-[11px] uppercase tracking-widest text-ally-muted mb-4">Live Lobby</div>
     <div className="flex flex-col gap-3 overflow-y-auto">
       {Array.from({ length: 8 }).map((_, i) => (
