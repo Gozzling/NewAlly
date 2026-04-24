@@ -7,7 +7,8 @@
     "author": "TFT Ally",
     "version": "1.0.0",
     "minimum-overwolf-version": "0.220.0",
-    "description": "TFT in-game overlay and desktop companion"
+    "description": "TFT in-game overlay and desktop companion",
+    "icon": "icon.png"
   },
   "permissions": ["GameEvents", "GameInfo", "Hotkeys"],
   "data": {
