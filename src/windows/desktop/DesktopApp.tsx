@@ -120,9 +120,11 @@ export function DesktopApp() {
       <div className="w-full flex-1 flex flex-row bg-ally-bg px-8 py-6">
         {activePage === 'In Game' ? (
             <>
-<aside className="hidden lg:flex flex-1 items-center justify-center">
-
-  </aside>
+<aside className="hidden lg:flex flex-1 flex-col items-center gap-4 justify-center">
+  <div className="bg-ally-card border border-ally-border rounded-lg p-4 aspect-square animate-pulse flex items-center justify-center text-ally-muted"></div>
+  <div className="bg-ally-card border border-ally-border rounded-lg p-4 aspect-square animate-pulse flex items-center justify-center text-ally-muted"></div>
+  <div className="bg-ally-card border border-ally-border rounded-lg p-4 aspect-square animate-pulse flex items-center justify-center text-ally-muted"></div>
+</aside>
    <section className="w-full max-w-[850px] flex flex-col border-x border-ally-border/50">
     <div className="text-[11px] uppercase tracking-widest text-ally-muted mb-4">Live Lobby</div>
     <div className="grid grid-cols-2 gap-3">
