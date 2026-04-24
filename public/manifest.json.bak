@@ -3,12 +3,11 @@
   "type": "WebApp",
   "meta": {
     "name": "TFT Companion",
-    "author": "TFT Ally",
     "version": "1.0.0",
     "minimum-overwolf-version": "0.220.0",
     "description": "TFT in-game overlay and desktop companion"
   },
-  "permissions": ["GameEvents", "GameInfo", "Hotkeys"],
+  "permissions": ["GameEvents", "GameInfo"],
   "data": {
     "start_window": "background",
     "windows": {
@@ -64,13 +63,7 @@
         "game_ids": [21570],
         "events": ["match_start", "match_end"],
         "info_updates": [
-          "game_info",
-          "match_info",
-          "active_player",
-          "board",
-          "shop",
-          "roster",
-          "items"
+          "game_info", "match_info", "active_player", "board", "shop", "roster", "items"
         ]
       }
     ],
