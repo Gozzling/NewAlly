@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import { subscribeToStateSnapshots } from '@/services/ipcService'
+import { Dashboard } from '@/pages/Dashboard'
+import { ItemsGuide } from '@/pages/ItemsGuide'
+import { UnitGuide } from '@/pages/UnitGuide'
+import { SynergyGuide } from '@/pages/SynergyGuide'
+import { AugmentGuide } from '@/pages/AugmentGuide'
+import { TeamBuilder } from '@/pages/TeamBuilder'
+import { PlayerSearch } from '@/pages/PlayerSearch'
 
 function getCurrentWindowId(): Promise<string> {
   return new Promise((resolve) => {
@@ -110,6 +117,20 @@ async function handleMaximize() {
               <pre className="mt-2 font-mono text-[11px] text-ally-muted whitespace-pre-wrap break-all max-h-48 overflow-y-auto">{lastRawRef.current}</pre>
             </details>
           </div>
+        ) : activePage === 'Comps' ? (
+          <Dashboard />
+        ) : activePage === 'Items' ? (
+          <ItemsGuide />
+        ) : activePage === 'Units' ? (
+          <UnitGuide />
+        ) : activePage === 'Traits' ? (
+          <SynergyGuide />
+        ) : activePage === 'Augments' ? (
+          <AugmentGuide />
+        ) : activePage === 'Team Builder' ? (
+          <TeamBuilder />
+        ) : activePage === 'Match History' ? (
+          <PlayerSearch />
         ) : (
           <div className="flex items-center justify-center h-full">
             <span className="text-ally-muted text-sm">{activePage}</span>
