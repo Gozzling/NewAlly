@@ -35,6 +35,14 @@ function SkeletonPlayerCard() {
   )
 }
 
+function SidebarBox({ children }: { children?: React.ReactNode }) {
+  return (
+    <div className="bg-ally-card border border-ally-border rounded-xl h-52 flex items-center justify-center overflow-hidden relative sidebar-box">
+      {children}
+    </div>
+  );
+}
+
 function StatCard({ label, value, valueClass = 'text-white' }: { label: string; value: string; valueClass?: string }) {
   return (
     <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3.5">
@@ -71,6 +79,27 @@ export function DesktopApp() {
 
   return (
     <div className="w-full h-full flex flex-col bg-ally-bg text-ally-text font-sans">
+<style>{`
+@keyframes breathe {
+  0%,100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.01); opacity: 1; }
+}
+.sidebar-box {
+  animation: breathe 3s infinite;
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.sidebar-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+`}</style>
       {/* Bar 1 — Titlebar */}
       <div
         className="w-full h-8 flex-shrink-0 bg-ally-bg flex items-center justify-between"
@@ -121,9 +150,9 @@ export function DesktopApp() {
         {activePage === 'In Game' ? (
             <>
 <aside className="flex flex-1 flex-col items-center gap-4 justify-center">
-  <div className="bg-ally-card border border-ally-border rounded-lg p-4 aspect-square animate-pulse flex items-center justify-center text-ally-muted"></div>
-  <div className="bg-ally-card border border-ally-border rounded-lg p-4 aspect-square animate-pulse flex items-center justify-center text-ally-muted"></div>
-  <div className="bg-ally-card border border-ally-border rounded-lg p-4 aspect-square animate-pulse flex items-center justify-center text-ally-muted"></div>
+  <SidebarBox>Box</SidebarBox>
+  <SidebarBox>Box</SidebarBox>
+  <SidebarBox>Box</SidebarBox>
 </aside>
    <section className="w-full max-w-[850px] flex flex-col border-x border-ally-border/50">
     <div className="text-[11px] uppercase tracking-widest text-ally-muted mb-4">Live Lobby</div>
@@ -134,8 +163,10 @@ export function DesktopApp() {
     </div>
     
   </section>
-  <aside className="hidden lg:flex flex-1 items-center justify-center">
-    <div className="rounded-lg p-4 w-full h-full text-ally-muted"></div>
+  <aside className="hidden lg:flex flex-1 flex-col items-center gap-4 justify-start">
+    <SidebarBox>Box A</SidebarBox>
+<SidebarBox>Box B</SidebarBox>
+<SidebarBox>Box C</SidebarBox>
   </aside>
 </>
           ) : (
