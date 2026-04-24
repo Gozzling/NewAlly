@@ -1,26 +1,312 @@
 [
   {
-    "compName": "Sorcerer Syndicate",
-    "requiredUnits": ["Ahri", "Lux", "Syndra", "Veigar", "Zoe", "Orianna", "Twisted Fate", "Yuumi"],
+    "compName": "Divine Duelists",
+    "requiredUnits": [
+      "Fiora",
+      "Karma",
+      "Leona",
+      "Bard",
+      "Diana",
+      "Urgot",
+      "Cho'Gath",
+      "Mordekaiser"
+    ],
     "carries": [
-      { "name": "Ahri", "bisItems": ["Rabadon's Deathcap", "Jeweled Gauntlet", "Blue Buff"] },
-      { "name": "Lux",  "bisItems": ["Spear of Shojin", "Shadowflame", "Jeweled Gauntlet"] }
+      {
+        "name": "Fiora",
+        "bisItems": [
+          "Bloodthirster",
+          "Infinity Edge",
+          "Guardian Angel"
+        ]
+      },
+      {
+        "name": "Karma",
+        "bisItems": [
+          "Spear of Shojin",
+          "Rabadon's Deathcap",
+          "Morellonomicon"
+        ]
+      }
     ]
   },
   {
-    "compName": "Bruiser Brawl",
-    "requiredUnits": ["Malphite", "Nasus", "Volibear", "Sejuani", "Cho'Gath", "Rek'Sai", "Illaoi", "Gragas"],
+    "compName": "N.O.V.A. Sniper",
+    "requiredUnits": [
+      "Jhin",
+      "Caitlyn",
+      "Corki",
+      "Kai'Sa",
+      "Samira",
+      "Miss Fortune",
+      "Veigar",
+      "Zoe"
+    ],
     "carries": [
-      { "name": "Volibear", "bisItems": ["Warmog's Armor", "Sunfire Cape", "Titan's Resolve"] },
-      { "name": "Malphite", "bisItems": ["Bramble Vest", "Dragon's Claw", "Gargoyle Stoneplate"] }
+      {
+        "name": "Jhin",
+        "bisItems": [
+          "Infinity Edge",
+          "Rapid Firecannon",
+          "Last Whisper"
+        ]
+      },
+      {
+        "name": "Corki",
+        "bisItems": [
+          "Infinity Edge",
+          "Last Whisper",
+          "Rapid Firecannon"
+        ]
+      }
     ]
   },
   {
-    "compName": "Swift Assassins",
-    "requiredUnits": ["Zed", "Akali", "Katarina", "Talon", "Ekko", "Evelynn", "Qiyana", "Shaco"],
+    "compName": "Dark Star Reborn",
+    "requiredUnits": [
+      "Aatrox",
+      "LeBlanc",
+      "Diana",
+      "Veigar",
+      "Mordekaiser",
+      "Lissandra",
+      "Fiora",
+      "Briar"
+    ],
     "carries": [
-      { "name": "Zed",      "bisItems": ["Infinity Edge", "Last Whisper", "Rapid Firecannon"] },
-      { "name": "Katarina", "bisItems": ["Hextech Gunblade", "Jeweled Gauntlet", "Morellonomicon"] }
+      {
+        "name": "Aatrox",
+        "bisItems": [
+          "Warmog's Armor",
+          "Bloodthirster",
+          "Titan's Resolve"
+        ]
+      },
+      {
+        "name": "LeBlanc",
+        "bisItems": [
+          "Blue Buff",
+          "Jeweled Gauntlet",
+          "Morellonomicon"
+        ]
+      }
+    ]
+  },
+  {
+    "compName": "Psion Overload",
+    "requiredUnits": [
+      "Vex",
+      "Ezreal",
+      "LeBlanc",
+      "Fizz",
+      "Meepsie",
+      "Zoe",
+      "Veigar",
+      "Lissandra"
+    ],
+    "carries": [
+      {
+        "name": "Vex",
+        "bisItems": [
+          "Rabadon's Deathcap",
+          "Jeweled Gauntlet",
+          "Spear of Shojin"
+        ]
+      },
+      {
+        "name": "Ezreal",
+        "bisItems": [
+          "Blue Buff",
+          "Jeweled Gauntlet",
+          "Rabadon's Deathcap"
+        ]
+      }
+    ]
+  },
+  {
+    "compName": "Groove Gang",
+    "requiredUnits": [
+      "Bard",
+      "Diana",
+      "Samira",
+      "Miss Fortune",
+      "Briar",
+      "Fiora",
+      "Karma",
+      "Urgot"
+    ],
+    "carries": [
+      {
+        "name": "Bard",
+        "bisItems": [
+          "Spear of Shojin",
+          "Rabadon's Deathcap",
+          "Guardian Angel"
+        ]
+      },
+      {
+        "name": "Samira",
+        "bisItems": [
+          "Infinity Edge",
+          "Bloodthirster",
+          "Last Whisper"
+        ]
+      }
+    ]
+  },
+  {
+    "compName": "Meeple Mayhem",
+    "requiredUnits": [
+      "Fiora",
+      "Meepsie",
+      "Poppy",
+      "Ezreal",
+      "Kai'Sa",
+      "Corki",
+      "Aurelion Sol",
+      "Karma"
+    ],
+    "carries": [
+      {
+        "name": "Fiora",
+        "bisItems": [
+          "Bloodthirster",
+          "Infinity Edge",
+          "Guardian Angel"
+        ]
+      },
+      {
+        "name": "Corki",
+        "bisItems": [
+          "Infinity Edge",
+          "Last Whisper",
+          "Rapid Firecannon"
+        ]
+      }
+    ]
+  },
+  {
+    "compName": "Mecha Frontline",
+    "requiredUnits": [
+      "Gnar",
+      "Mordekaiser",
+      "Urgot",
+      "Cho'Gath",
+      "Leona",
+      "Poppy",
+      "Aatrox",
+      "Diana"
+    ],
+    "carries": [
+      {
+        "name": "Gnar",
+        "bisItems": [
+          "Warmog's Armor",
+          "Sunfire Cape",
+          "Titan's Resolve"
+        ]
+      },
+      {
+        "name": "Urgot",
+        "bisItems": [
+          "Titan's Resolve",
+          "Sunfire Cape",
+          "Warmog's Armor"
+        ]
+      }
+    ]
+  },
+  {
+    "compName": "Primordian Swarm",
+    "requiredUnits": [
+      "Aatrox",
+      "Gnar",
+      "Urgot",
+      "Cho'Gath",
+      "Briar",
+      "LeBlanc",
+      "Caitlyn",
+      "Samira"
+    ],
+    "carries": [
+      {
+        "name": "Aatrox",
+        "bisItems": [
+          "Warmog's Armor",
+          "Bloodthirster",
+          "Titan's Resolve"
+        ]
+      },
+      {
+        "name": "Caitlyn",
+        "bisItems": [
+          "Infinity Edge",
+          "Rapid Firecannon",
+          "Guardian Angel"
+        ]
+      }
+    ]
+  },
+  {
+    "compName": "Stargazer Council",
+    "requiredUnits": [
+      "Aurelion Sol",
+      "Bard",
+      "Karma",
+      "Zoe",
+      "LeBlanc",
+      "Ezreal",
+      "Vex",
+      "Corki"
+    ],
+    "carries": [
+      {
+        "name": "Aurelion Sol",
+        "bisItems": [
+          "Rabadon's Deathcap",
+          "Jeweled Gauntlet",
+          "Blue Buff"
+        ]
+      },
+      {
+        "name": "Bard",
+        "bisItems": [
+          "Spear of Shojin",
+          "Rabadon's Deathcap",
+          "Guardian Angel"
+        ]
+      }
+    ]
+  },
+  {
+    "compName": "Arbiter Court",
+    "requiredUnits": [
+      "Jhin",
+      "Caitlyn",
+      "Aurelion Sol",
+      "Diana",
+      "Urgot",
+      "Mordekaiser",
+      "Kai'Sa",
+      "Samira"
+    ],
+    "carries": [
+      {
+        "name": "Jhin",
+        "bisItems": [
+          "Infinity Edge",
+          "Rapid Firecannon",
+          "Last Whisper"
+        ]
+      },
+      {
+        "name": "Caitlyn",
+        "bisItems": [
+          "Infinity Edge",
+          "Rapid Firecannon",
+          "Guardian Angel"
+        ]
+      }
     ]
   }
 ]
