@@ -37,7 +37,7 @@ function SkeletonPlayerCard() {
 
 function SidebarBox({ children }: { children?: React.ReactNode }) {
   return (
-    <div className="bg-ally-card border border-ally-border rounded-xl h-52 flex items-center justify-center overflow-hidden relative sidebar-box">
+    <div className="bg-ally-card border border-ally-border rounded-xl w-[240px] aspect-square flex-shrink-0 flex items-center justify-center overflow-hidden relative sidebar-box">
       {children}
     </div>
   );
@@ -149,12 +149,12 @@ export function DesktopApp() {
       <div className="w-full flex-1 flex flex-row bg-ally-bg px-8 py-6">
         {activePage === 'In Game' ? (
             <>
-<aside className="flex flex-1 flex-col items-center gap-4 justify-center">
-  <SidebarBox>Box</SidebarBox>
-  <SidebarBox>Box</SidebarBox>
-  <SidebarBox>Box</SidebarBox>
+<aside className="flex flex-1 flex-col items-end justify-center gap-6 px-6">
+  <SidebarBox><div className="text-right">Box</div></SidebarBox>
+  <SidebarBox><div className="text-right">Box</div></SidebarBox>
+  <SidebarBox><div className="text-right">Box</div></SidebarBox>
 </aside>
-   <section className="w-full max-w-[850px] flex flex-col border-x border-ally-border/50">
+   <section className="w-full max-w-[1000px] flex flex-col border-x border-ally-border/50">
     <div className="text-[11px] uppercase tracking-widest text-ally-muted mb-4">Live Lobby</div>
     <div className="grid grid-cols-2 gap-3">
       {Array.from({ length: 8 }).map((_, i) => (
@@ -163,10 +163,10 @@ export function DesktopApp() {
     </div>
     
   </section>
-  <aside className="hidden lg:flex flex-1 flex-col items-center gap-4 justify-start">
-    <SidebarBox>Box A</SidebarBox>
-<SidebarBox>Box B</SidebarBox>
-<SidebarBox>Box C</SidebarBox>
+  <aside className="hidden lg:flex flex-1 flex-col items-start justify-center gap-6 px-6">
+    <SidebarBox><div className="text-left">Box A</div></SidebarBox>
+<SidebarBox><div className="text-left">Box B</div></SidebarBox>
+<SidebarBox><div className="text-left">Box C</div></SidebarBox>
   </aside>
 </>
           ) : (
