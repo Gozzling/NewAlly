@@ -13,7 +13,7 @@ function getCurrentWindowId(): Promise<string> {
 // Skeleton placeholder component for lobby player cards
 function SkeletonPlayerCard() {
   return (
-    <div className="bg-ally-card border border-ally-border rounded-xl p-5 flex flex-row items-center gap-3 animate-pulse">
+    <div className="bg-ally-card rounded-xl p-5 flex flex-row items-center gap-3 animate-pulse">
       {/* Avatar circle */}
       <div className="w-16 h-16 rounded-full bg-ally-hover" />
       {/* Name line */}
@@ -73,7 +73,7 @@ export function DesktopApp() {
     <div className="w-full h-full flex flex-col bg-ally-bg text-ally-text font-sans">
       {/* Bar 1 — Titlebar */}
       <div
-        className="w-full h-8 flex-shrink-0 bg-ally-bg border-b border-ally-border flex items-center justify-between"
+        className="w-full h-8 flex-shrink-0 bg-ally-bg flex items-center justify-between"
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
       >
         <div
@@ -104,7 +104,7 @@ export function DesktopApp() {
       </div>
 
       {/* Bar 2 — Nav tabs */}
-      <div className="w-full h-8 flex-shrink-0 bg-ally-bg border-b border-ally-border flex items-center justify-center gap-4">
+      <div className="w-full h-8 flex-shrink-0 bg-ally-bg flex items-center justify-center gap-4">
         {TABS.map((tab) => (
           <button
             key={tab}
@@ -121,7 +121,7 @@ export function DesktopApp() {
         {activePage === 'In Game' ? (
             <>
   <aside className="hidden lg:flex flex-1 items-center justify-center">
-    <div className="border border-ally-border rounded-lg p-4 w-full h-full text-ally-muted">Ads</div>
+    <div className="rounded-lg p-4 w-full h-full text-ally-muted"></div>
   </aside>
   <section className="w-full max-w-[850px] flex flex-col border-x border-ally-border/50">
     <div className="text-[11px] uppercase tracking-widest text-ally-muted mb-4">Live Lobby</div>
@@ -132,7 +132,7 @@ export function DesktopApp() {
     </div>
   </section>
   <aside className="hidden lg:flex flex-1 items-center justify-center">
-    <div className="border border-ally-border rounded-lg p-4 w-full h-full text-ally-muted">Ads</div>
+    <div className="rounded-lg p-4 w-full h-full text-ally-muted"></div>
   </aside>
 </>
           ) : (
