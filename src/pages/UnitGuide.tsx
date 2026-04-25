@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { UNITS } from '../data/units'
-import { Search, Swords, Heart, Zap, Target, TrendingUp } from 'lucide-react'
+import { Search, Swords, TrendingUp } from 'lucide-react'
 
 const TIER_COLORS: Record<string, string> = {
   S: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30',

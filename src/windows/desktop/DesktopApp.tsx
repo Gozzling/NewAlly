@@ -1,6 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
-import { useAppStore } from '@/store/useAppStore';
-import { subscribeToStateSnapshots } from '@/services/ipcService';
+import { useEffect, useRef, useState } from 'react'
+import { useAppStore } from '@/store/useAppStore'
+import { subscribeToStateSnapshots } from '@/services/ipcService'
+import { Dashboard } from '@/pages/Dashboard'
+import { ItemsGuide } from '@/pages/ItemsGuide'
+import { UnitGuide } from '@/pages/UnitGuide'
+import { SynergyGuide } from '@/pages/SynergyGuide'
+import { AugmentGuide } from '@/pages/AugmentGuide'
+import { TeamBuilder } from '@/pages/TeamBuilder'
+import { PlayerSearch } from '@/pages/PlayerSearch'
 
 function getCurrentWindowId(): Promise<string> {
   return new Promise((resolve) => {
@@ -347,40 +354,74 @@ export function DesktopApp() {
         ))}
       </div>
 
-      {/* Page area */}
-      <div className="w-full flex-1 flex flex-row bg-ally-bg px-8 py-6 gap-6">
-        {activePage === 'In Game' ? (
-          <>
-            <aside className="flex flex-1 flex-col items-end justify-center gap-6 px-6 mr-4">
-              <SidebarBox>
-                <div className="text-right">Box</div>
-              </SidebarBox>
-              <SidebarBox>
-                <div className="text-right">Box</div>
-              </SidebarBox>
-              <SidebarBox>
-                <div className="text-right">Box</div>
-              </SidebarBox>
-            </aside>
-            <section className="w-full max-w-[1000px] flex flex-col">
-              <div className="text-[11px] uppercase tracking-widest text-white mb-4">
-                Live Lobby
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+       {/* Page area */}
+       <div className="w-full flex-1 flex flex-row bg-ally-bg px-8 py-6 gap-6">
+         {activePage === 'In Game' ? (
+           <>
+             <aside className="flex flex-1 flex-col items-end justify-center gap-6 px-6 mr-4">
+               <SidebarBox>
+                 <div className="text-right">Box</div>
+               </SidebarBox>
+               <SidebarBox>
+                 <div className="text-right">Box</div>
+               </SidebarBox>
+               <SidebarBox>
+                 <div className="text-right">Box</div>
+               </SidebarBox>
+             </aside>
+             <section className="w-full max-w-[1000px] flex flex-col">
+               <div className="text-[11px] uppercase tracking-widest text-white mb-4">
+                 (Mockups)
+               </div>
+               <div className="grid grid-cols-2 gap-3">
+                 {Array.from({ length: 8 }).map((_, i) => (
+                   <SkeletonPlayerCard key={i} />
+                 ))}
+               </div>
+             </section>
+             <aside className="hidden lg:flex flex-1 flex-col items-start justify-center gap-6 px-6">
+               <SidebarBox>
+                 <div className="text-left">Box A</div>
+               </SidebarBox>
+               <SidebarBox>
+                 <div className="text-left">Box B</div>
+               </SidebarBox>
+               <SidebarBox>
+                 <div className="text-left">Box C</div>
+               </SidebarBox>
+             </aside>
+           </>
+         ) : (
+           <div className="flex items-center justify-center h-full">
+             <span className="text-white text-sm">{activePage}</span>
+           </div>
+         )}
+       </div>
+              <div className="grid grid-cols-2 gap-4">
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <SkeletonPlayerCard key={i} />
+                  <div key={i} className="bg-ally-card rounded-xl p-8 flex flex-row items-center gap-5 min-h-[200px]">
+                    <div className="w-24 h-24 rounded-full bg-ally-hover flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="text-white text-lg font-semibold mb-1">Player {i + 1}</div>
+                      <div className="text-ally-muted text-sm">Rank {i + 1}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-white text-sm mb-1">Gold: {Math.floor(Math.random() * 50) + 10}</div>
+                      <div className="text-ally-muted text-sm">HP: {100 - i * 10}%</div>
+                    </div>
+                  </div>
                 ))}
               </div>
             </section>
             <aside className="hidden lg:flex flex-1 flex-col items-start justify-center gap-6 px-6">
               <SidebarBox>
-                <div className="text-left">Box A</div>
+                <div className="text-left text-ally-muted text-sm">Comps</div>
               </SidebarBox>
               <SidebarBox>
-                <div className="text-left">Box B</div>
+                <div className="text-left text-ally-muted text-sm">History</div>
               </SidebarBox>
               <SidebarBox>
-                <div className="text-left">Box C</div>
+                <div className="text-left text-ally-muted text-sm">Augments</div>
               </SidebarBox>
             </aside>
           </>

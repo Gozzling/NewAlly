@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import type { RiotRegion } from '../types/riot'
-import { Key, Globe, Moon, Sun, Save, Trash2, AlertCircle } from 'lucide-react'
+import { Key, Globe, Moon, Sun, Save, Trash2, AlertCircle, Info, Keyboard, Layers, Database } from 'lucide-react'
 
 export function Settings() {
   const storeSettings = useAppStore((s) => s.settings)
@@ -136,6 +136,77 @@ export function Settings() {
           >
             <Sun className="w-4 h-4" /> Light
           </button>
+        </div>
+      </div>
+
+      {/* Data Source */}
+      <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-semibold text-white">
+          <Database className="w-4 h-4 text-[#35c3e7]" />
+          Data Source
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setStoreSettings({ ...storeSettings, dataSource: 'live' })}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm border transition-colors ${
+              storeSettings.dataSource === 'live'
+                ? 'bg-[#252525] border-[#35c3e7] text-white'
+                : 'border-[#2a2a2a] text-[#a1a1a1] hover:text-white'
+            }`}
+          >
+            <Globe className="w-4 h-4" /> Live API
+          </button>
+          <button
+            onClick={() => setStoreSettings({ ...storeSettings, dataSource: 'static' })}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm border transition-colors ${
+              storeSettings.dataSource === 'static'
+                ? 'bg-[#252525] border-[#35c3e7] text-white'
+                : 'border-[#2a2a2a] text-[#a1a1a1] hover:text-white'
+            }`}
+          >
+            <Layers className="w-4 h-4" /> Static
+          </button>
+        </div>
+      </div>
+
+      {/* Overlay Opacity */}
+      <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-semibold text-white">
+          <Info className="w-4 h-4 text-[#35c3e7]" />
+          Overlay Opacity
+        </div>
+        <input
+          type="range"
+          min={20}
+          max={100}
+          value={storeSettings.overlayOpacity ?? 90}
+          onChange={(e) => setStoreSettings({ ...storeSettings, overlayOpacity: Number(e.target.value) })}
+          className="w-full accent-[#35c3e7]"
+        />
+        <div className="text-[11px] text-neutral-400 text-right">{storeSettings.overlayOpacity ?? 90}%</div>
+      </div>
+
+      {/* Keyboard Shortcuts */}
+      <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-semibold text-white">
+          <Keyboard className="w-4 h-4 text-[#35c3e7]" />
+          Keyboard Shortcuts
+        </div>
+        <div className="space-y-1 text-[11px] text-neutral-400">
+          <div className="flex justify-between"><span>Toggle Overlay</span><span className="text-white font-mono bg-[#2a2a2a] px-1.5 py-0.5 rounded">Ctrl+Shift+O</span></div>
+          <div className="flex justify-between"><span>Show/Hide Desktop</span><span className="text-white font-mono bg-[#2a2a2a] px-1.5 py-0.5 rounded">Ctrl+Shift+D</span></div>
+          <div className="flex justify-between"><span>Reload Data</span><span className="text-white font-mono bg-[#2a2a2a] px-1.5 py-0.5 rounded">Ctrl+Shift+R</span></div>
+        </div>
+      </div>
+
+      {/* About */}
+      <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4 space-y-2">
+        <div className="text-sm font-semibold text-white">About TFT Ally</div>
+        <div className="text-[11px] text-neutral-400">
+          <p>Version: 1.0.0-beta &middot; Set 17: Space Gods</p>
+          <p>Patch: 17.1 (April 2026)</p>
+          <p>Built with React + Tailwind + TypeScript</p>
+          <p>Data: Riot Games API + Community Dragon</p>
         </div>
       </div>
 

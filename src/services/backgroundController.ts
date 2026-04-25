@@ -7,23 +7,25 @@ import {
   parseBenchComponents,
   calculateBestCompMatch,
   calculateItemCrafting,
+  detectCompFromUnits,
 } from "@/shared/gameEngine";
 import type { MetaComp, ItemRecipes, TftGameState } from "@/types/tft";
 import { openWindow, hideWindow, getWindowId } from "./overwolfWindowService";
+import { GeppService } from "./geppService";
+import { savePersonalMatch, markPersonalMatchSynced, type PersonalMatchRecord } from "./indexedDbService";
+import { syncPersonalMatchToSupabase } from "./matchHistoryService";
 
 const TFT_CLASS_ID = 21570;
-const GEP_RETRY_DELAY = 2000;
-const GEP_MAX_RETRIES = 10;
 const REQUIRED_FEATURES = [
   "game_info", "match_info", "active_player", "board", "shop", "roster", "items",
 ];
 
-let gepRetries = 0;
 let metaComps: MetaComp[] = [];
 let itemRecipes: ItemRecipes = {};
 let overlayId: string | null = null;
 let lobbyId: string | null = null;
 let desktopId: string | null = null;
+let geppService: GeppService | null = null;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -65,117 +67,162 @@ function recalcItems(): void {
   setState({ itemTracker });
 }
 
-// ── GEP ──────────────────────────────────────────────────────────────────────
+// ── GEP via GeppService ────────────────────────────────────────────────────
 
-function setupGep(): void {
-  gepRetries = 0;
-  tryRegister();
+function buildPersonalMatchRecord(eventData?: Record<string, unknown>): PersonalMatchRecord {
+  const app = useAppStore.getState();
+  const gs = app.gameState;
+  const now = Date.now();
+  const boardUnits = gs.board.units ?? [];
+  const items = boardUnits.flatMap((u) => u.items ?? []);
+  const units = boardUnits.map((u) => u.name).filter(Boolean);
+  const summonerName = app.selectedPlayer?.name ?? "Unknown";
+  const region = app.settings.region;
+  const compDetected = detectCompFromUnits(units);
+
+  return {
+    id: `match-${now}-${summonerName}`,
+    summonerName,
+    region,
+    createdAt: now,
+    timestamp: now,
+    isSynced: false,
+    syncStatus: "pending",
+    placement: gs.roster.find((p) => p.isLocalPlayer)?.rank ?? null,
+    units,
+    items,
+    augments: gs.augmentSlots ?? [],
+    comp: compDetected || (gs.activeCompTracker.bestMatchName ?? null),
+    compName: compDetected || (gs.activeCompTracker.bestMatchName ?? null),
+    duration: eventData?.duration ? Number(eventData.duration) : null,
+    source: "gep_match_end",
+    raw: {
+      eventData: eventData ?? {},
+      round_type: gs.round_type,
+      gold: gs.gold,
+    },
+  };
 }
 
-function tryRegister(): void {
-  overwolf.games.events.setRequiredFeatures(REQUIRED_FEATURES, (r: any) => {
-    if (r.status !== "success") {
-      if (gepRetries < GEP_MAX_RETRIES) {
-        console.warn(`[BG] GEP retry ${++gepRetries}/${GEP_MAX_RETRIES}`);
-        setTimeout(tryRegister, GEP_RETRY_DELAY);
-      } else {
-        console.error("[BG] GEP registration failed:", r.error);
-      }
-      return;
+async function persistAndSyncPersonalMatch(eventData?: Record<string, unknown>): Promise<void> {
+  const record = buildPersonalMatchRecord(eventData);
+
+  try {
+    await savePersonalMatch(record);
+    useAppStore.getState().addPersonalMatch(record);
+    console.debug("[BG][match_end] personal match saved", { id: record.id });
+  } catch (e) {
+    console.error("[BG][match_end] failed to save IndexedDB match", e);
+    return;
+  }
+
+  try {
+    await syncPersonalMatchToSupabase(record);
+    await markPersonalMatchSynced(record.id, true);
+    useAppStore.getState().updatePersonalMatchSyncStatus(record.id, "synced", Date.now());
+    console.debug("[BG][match_end] personal match synced", { id: record.id });
+  } catch (e) {
+    await markPersonalMatchSynced(record.id, false);
+    useAppStore.getState().updatePersonalMatchSyncStatus(record.id, "failed");
+    console.warn("[BG][match_end] personal match sync failed", e);
+  }
+}
+
+function setupGepService(): void {
+  geppService = new GeppService();
+  geppService.register(REQUIRED_FEATURES);
+
+  // Info updates
+  geppService.onInfoUpdate("active_player", (info) => {
+    const gs = useAppStore.getState().gameState;
+    const activePlayer = info?.active_player as Record<string, unknown> | undefined;
+    const gold = activePlayer?.gold;
+    const augmentSlotsRaw = activePlayer?.augmentSlots;
+    const augmentSlots = Array.isArray(augmentSlotsRaw) ? augmentSlotsRaw.map(String) : [];
+    if (gold !== undefined || augmentSlots.length > 0) {
+      setState({
+        gold: gold !== undefined ? Number(gold) : gs.gold,
+        augmentSlots,
+        raw: { ...gs.raw, active_player: info },
+      });
     }
-    gepRetries = 0;
-    console.log("[BG] GEP registered:", REQUIRED_FEATURES);
   });
-}
 
-function onInfoUpdates(event: any): void {
-  const feature = event?.feature as string | undefined;
-  const info = event?.info as Record<string, unknown>;
-  if (!feature) return;
+  geppService.onInfoUpdate("match_info", (info) => {
+    const rt = (info?.match_info as Record<string, unknown>)?.round_type;
+    if (rt !== undefined) {
+      setState({ round_type: String(rt), raw: { ...useAppStore.getState().gameState.raw, match_info: info } });
+    }
+  });
 
-  const gs = useAppStore.getState().gameState;
-  const nextRaw = { ...gs.raw, [feature]: info };
+  geppService.onInfoUpdate("shop", (info) => {
+    const gs = useAppStore.getState().gameState;
+    const shop = info?.shop as Record<string, unknown> | undefined;
+    const shopVisible = shop?.shop_visible ?? shop?.visible;
+    const shopUnitsRaw = shop?.shop_units ?? shop?.units ?? shop?.slots ?? [];
+    const shopUnits = Array.isArray(shopUnitsRaw)
+      ? shopUnitsRaw
+          .map((u: any) => u?.display_name ?? u?.name ?? u?.championName ?? String(u))
+          .map((name: string) => name.trim())
+          .filter(Boolean)
+      : [];
 
-  switch (feature) {
-    case "active_player": {
-      const gold = (info?.active_player as Record<string, unknown>)?.gold;
-      if (gold !== undefined) setState({ gold: Number(gold), raw: nextRaw });
-      break;
-    }
-    case "match_info": {
-      const rt = (info?.match_info as Record<string, unknown>)?.round_type;
-      if (rt !== undefined) setState({ round_type: String(rt), raw: nextRaw });
-      break;
-    }
-    case "shop": {
-      const sv = (info?.shop as Record<string, unknown>)?.shop_visible;
-      if (sv !== undefined) setState({ shop_visible: Boolean(sv), raw: nextRaw });
-      break;
-    }
-    case "roster": {
-      const parsed = parseRoster(info?.roster);
-      if (parsed.length > 0) setState({ roster: parsed, raw: nextRaw });
-      break;
-    }
-    case "board": {
-      const parsed = parseBoard(info?.board);
-      const activeCompTracker = calculateBestCompMatch(parsed.units, metaComps);
-      setState({ board: parsed, activeCompTracker, raw: nextRaw });
-      recalcItems();
-      break;
-    }
-    case "items": {
-      const benchComponents = parseBenchComponents(info?.items);
-      setState({ benchComponents, raw: nextRaw });
-      recalcItems();
-      break;
-    }
-    default:
-      setState({ raw: nextRaw });
-  }
-}
+    console.debug("[BG][shop] parsed", {
+      visible: shopVisible,
+      count: shopUnits.length,
+      units: shopUnits,
+      rawKeys: shop ? Object.keys(shop) : [],
+    });
 
-function onNewEvents(payload: any): void {
-  for (const event of (payload?.events ?? []) as Array<{ name: string }>) {
-    switch (event.name) {
-      case "match_start":
-        setState({ isInGame: true });
-        hideLobby();
-        showOverlay();
-        break;
-      case "match_end":
-        hideOverlay();
-        resetState();
-        showLobby();
-        break;
+    const updates: Partial<TftGameState> = {
+      shopUnits,
+    };
+    if (shopVisible !== undefined) updates.shop_visible = Boolean(shopVisible);
+
+    setState({
+      ...updates,
+      raw: { ...gs.raw, shop: info },
+    });
+  });
+
+  geppService.onInfoUpdate("roster", (info) => {
+    const parsed = parseRoster(info?.roster);
+    if (parsed.length > 0) {
+      setState({ roster: parsed, raw: { ...useAppStore.getState().gameState.raw, roster: info } });
     }
-  }
-}
+  });
 
-function onGameInfoUpdated(e: any): void {
-  if (!e?.gameInfo) return;
-  const gameIsTft = isTft(Number(e.gameInfo.id));
-  const isRunning = Boolean(e.gameInfo.isRunning);
-  const gs = useAppStore.getState().gameState;
+  geppService.onInfoUpdate("board", (info) => {
+    const parsed = parseBoard(info?.board ?? info);
+    console.debug("[BG][board] parsed", {
+      count: parsed.units.length,
+      unitNames: parsed.units.map((u) => u.name),
+      payloadKeys: info && typeof info === "object" ? Object.keys(info as Record<string, unknown>) : [],
+    });
+    const activeCompTracker = calculateBestCompMatch(parsed.units, metaComps);
+    setState({ board: parsed, activeCompTracker, raw: { ...useAppStore.getState().gameState.raw, board: info } });
+    recalcItems();
+  });
 
-  if (gameIsTft && isRunning) {
-    console.log("[BG] TFT running");
+  geppService.onInfoUpdate("items", (info) => {
+    const benchComponents = parseBenchComponents(info?.items);
+    setState({ benchComponents, raw: { ...useAppStore.getState().gameState.raw, items: info } });
+    recalcItems();
+  });
+
+  // New events
+  geppService.onNewEvent("match_start", () => {
     setState({ isInGame: true });
-    if (gs.isInGame) {
-      hideLobby();
-      showOverlay();
-    } else {
-      hideOverlay();
-      showLobby();
-    }
-    setupGep();
-  } else if (!isRunning && gs.isInGame) {
-    console.log("[BG] TFT closed");
-    hideOverlay();
     hideLobby();
+    showOverlay();
+  });
+
+  geppService.onNewEvent("match_end", (eventData) => {
+    void persistAndSyncPersonalMatch((eventData ?? {}) as Record<string, unknown>);
+    hideOverlay();
     resetState();
-    showDesktop();
-  }
+    showLobby();
+  });
 }
 
 // ── Window helpers ───────────────────────────────────────────────────────────
@@ -246,9 +293,8 @@ export async function initBackgroundController(): Promise<void> {
     console.error("[BG] Data load failed:", err);
   }
 
-  overwolf.games.events.onInfoUpdates2.addListener(onInfoUpdates);
-  overwolf.games.events.onNewEvents.addListener(onNewEvents);
-  overwolf.games.onGameInfoUpdated.addListener(onGameInfoUpdated);
+  setupGepService();
+
   overwolf.settings.hotkeys.onPressed.addListener(onHotkeyPressed);
 
   // Pre-obtain window ids
@@ -270,7 +316,7 @@ export async function initBackgroundController(): Promise<void> {
       console.log("[BG] TFT already running");
       setState({ isInGame: true });
       showLobby();
-      setupGep();
+      // GEP service already set up
     } else {
       showDesktop();
     }

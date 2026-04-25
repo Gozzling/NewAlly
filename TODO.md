@@ -1,0 +1,7 @@
+- [x] Align personal match IndexedDB schema/APIs with pass requirements (v3-ready + unsynced querying).
+- [x] Add `detectCompFromUnits(units)` in `src/shared/gameEngine.ts` and wire into match logging.
+- [x] Update background `match_end` extraction to include summoner/region/timestamp/comp and persist normalized record.
+- [x] Update Supabase sync to `personal_matches` + batch unsynced sync flow.
+- [ ] Update PlayerAnalytics "Your Matches" rendering/stats for normalized personal match fields.
+- [ ] Run build validation (`npm run build`).
+- [ ] Mark tasks complete.

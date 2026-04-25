@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uvx playwright *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(node -e \"const {UNITS}=require\\('./src/data/units.ts'\\); console.log\\(UNITS.map\\(u=>u.name\\).join\\('\\\\n'\\)\\)\")",
+      "Bash(curl -s https://raw.githubusercontent.com/Marthon13/TFT-Set-17-data/master/data/en_us.json)",
+      "WebSearch",
+      "Bash(grep -v '^\\\\[\\\\|^\\\\]\\\\|\\\\s*$')",
+      "Bash(node *)",
+      "Bash(xargs grep *)"
+    ]
+  }
+}

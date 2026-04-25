@@ -1,6 +1,9 @@
 import type { Match, MatchDetail, RiotRegion } from '../types/riot'
 import { fetchMatchIds, fetchMatchDetail, regionToMatchRegion } from './riotApiClient'
 import { getCache, setCache, ONE_DAY } from './storageService'
+import { supabase, hasSupabase } from './supabaseClient'
+import type { PersonalMatchRecord } from './indexedDbService'
+import { getUnsyncedMatches, markPersonalMatchSynced } from './indexedDbService'
 
 function normalizeCompName(traits: { name: string; num_units: number }[]): string | null {
   const active = traits.filter((t) => t.num_units > 0).map((t) => t.name)
@@ -77,4 +80,61 @@ export async function fetchPlayerMatchHistory(
 
   setCache(cacheKey, matches, ONE_DAY)
   return matches
+}
+
+export function toRiotMatchFromPersonal(record: PersonalMatchRecord): Match {
+  return {
+    matchId: record.id,
+    placement: record.placement ?? 0,
+    level: 0,
+    date: new Date(record.createdAt),
+    gameLength: record.duration ?? 0,
+    units: record.units,
+    augments: record.augments,
+    traits: [],
+    comp: record.comp,
+  }
+}
+
+export async function syncPersonalMatchToSupabase(record: PersonalMatchRecord): Promise<void> {
+  if (!hasSupabase()) {
+    throw new Error('Supabase not configured')
+  }
+
+  const payload = {
+    id: record.id,
+    summoner_name: record.summonerName ?? 'Unknown',
+    region: record.region ?? 'unknown',
+    placement: record.placement ?? 8,
+    comp_name: record.compName ?? record.comp ?? null,
+    units: record.units,
+    augments: record.augments,
+    timestamp: record.timestamp ?? record.createdAt,
+    duration: record.duration,
+  }
+
+  const { error } = await supabase.from('personal_matches').upsert(payload, { onConflict: 'id' })
+  if (error) {
+    throw new Error(`[MH] Supabase insert failed: ${error.message}`)
+  }
+}
+
+export async function syncUnsyncedPersonalMatches(limit = 50): Promise<{ synced: number; failed: number }> {
+  const rows = await getUnsyncedMatches(limit)
+  let synced = 0
+  let failed = 0
+
+  for (const row of rows) {
+    try {
+      await syncPersonalMatchToSupabase(row)
+      await markPersonalMatchSynced(row.id, true)
+      synced++
+    } catch (err) {
+      await markPersonalMatchSynced(row.id, false)
+      failed++
+      console.warn('[MH] Failed to sync personal match', row.id, err)
+    }
+  }
+
+  return { synced, failed }
 }

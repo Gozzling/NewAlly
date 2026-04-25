@@ -1,31 +1,61 @@
 import { useEffect } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import { subscribeToStateSnapshots } from '@/services/ipcService'
-import { HudPanel }     from './components/HudPanel'
-import { DebugRoster }  from './components/DebugRoster'
-import { DebugBoard }   from './components/DebugBoard'
-import { CompTracker }  from './components/CompTracker'
-import { ItemTracker }  from './components/ItemTracker'
+import { OverlayCompTracker } from './components/OverlayCompTracker'
+import { OverlayTraitPanel } from './components/OverlayTraitPanel'
+import { OverlayItemPanel } from './components/OverlayItemPanel'
+import { OverlayMiniBoard } from './components/OverlayMiniBoard'
+import { OverlayShopGuide } from './components/OverlayShopGuide'
+
+function HudBar({ gold, roundType, stage, health }: { gold?: number; roundType?: string; stage?: string; health?: number }) {
+  return (
+    <div className="flex items-center gap-2 bg-[#1f1f1f]/90 border border-[#2a2a2a] rounded-lg px-3 py-1.5 text-[10px] pointer-events-none">
+      <span className="text-yellow-400 font-semibold">G: {gold ?? '–'}</span>
+      <span className="text-neutral-500">|</span>
+      <span className="text-white">{stage ?? '–'}</span>
+      <span className="text-neutral-500">|</span>
+      <span className="text-[#35c3e7]">{roundType ?? '–'}</span>
+      <span className="text-neutral-500">|</span>
+      <span className="text-red-400">HP: {health ?? '–'}</span>
+    </div>
+  )
+}
 
 export function OverlayApp() {
   const state = useAppStore((s: any) => s.gameState)
+  const { guideModeEnabled, toggleGuideMode } = useAppStore((s) => ({
+    guideModeEnabled: s.guideModeEnabled,
+    toggleGuideMode: s.toggleGuideMode,
+  }))
 
   useEffect(() => {
     return subscribeToStateSnapshots()
   }, [])
 
+  if (!state?.isInGame) {
+    return (
+      <div className="w-full h-full flex items-center justify-center pointer-events-none">
+        <div className="bg-[#1f1f1f]/90 border border-[#2a2a2a] rounded-lg px-4 py-2 text-[10px] text-neutral-500">
+          Waiting for TFT...
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full h-full relative pointer-events-none">
-      <HudPanel
-        gold={state.gold}
-        roundType={state.round_type}
-        shopVisible={state.shop_visible}
-      />
-      <div className="absolute top-20 left-4 flex flex-col gap-3 font-mono text-xs text-ally-text pointer-events-none">
-        <DebugRoster roster={state.roster} />
-        <DebugBoard board={state.board} />
-        <CompTracker tracker={state.activeCompTracker} />
-        <ItemTracker tracker={state.itemTracker} />
+      <div className="flex items-center justify-between mb-2">
+        <HudBar gold={state.gold} roundType={state.round_type} stage={state.stage} health={state.health} />
+        <button onClick={() => toggleGuideMode(!guideModeEnabled)} className="text-xs bg-[#35c3e7]/20 hover:bg-[#35c3e7]/30 text-[#35c3e7] hover:text-white transition-colors px-2 py-1 rounded">
+          Guide Mode: {guideModeEnabled ? 'On' : 'Off'}
+        </button>
+      </div>
+      <div className="absolute top-14 left-0 w-64 flex flex-col gap-2 p-2 font-sans text-xs pointer-events-none">
+        <OverlayCompTracker />
+        <OverlayTraitPanel />
+        <OverlayMiniBoard />
+        <OverlayItemPanel />
+        {guideModeEnabled && <OverlayShopGuide />}
       </div>
     </div>
   )

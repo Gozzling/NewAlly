@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { AUGMENTS, AUGMENT_TIERS, type Augment } from '../data/augments'
 import { getAugmentTierColor, getAugmentTierBg, searchAugments } from '../services/augmentAdvisorService'
-import { Search, Zap, TrendingUp, ChevronDown, ChevronUp, Swords, Shield, Package } from 'lucide-react'
+import { Search, Zap, TrendingUp, ChevronDown, ChevronUp, Swords, Package } from 'lucide-react'
 
 const TAG_ICONS: Record<string, React.ReactNode> = {
   combat: <Swords className="w-3 h-3" />,
