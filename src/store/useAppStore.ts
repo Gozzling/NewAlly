@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { TftGameState, BoardUnit } from "../types/tft";
 import type { PlayerCard, RiotRegion, Match } from "../types/riot";
-import { computeActiveTraitsFromUnits } from "../shared/gameEngine";
+import { UNITS } from "../data/units";
 
 export interface RecentSearch {
   name: string;
@@ -90,51 +90,18 @@ export interface AppState {
   setOverlayPanels: (panels: Partial<OverlayPanels>) => void;
   addFavoriteComp: (compName: string) => void;
   removeFavoriteComp: (compName: string) => void;
-  // Guide system
-  setSavedComps: (comps: SavedComp[]) => {
-    const next = { savedComps: comps };
-    try { localStorage.setItem('tft-ally::saved-comps', JSON.stringify(comps)); } catch { /* ignore */ }
-    set(next);
-  },
-  addSavedComp: (comp: SavedComp) => {
-    set((s) => {
-      const next = [...s.savedComps, comp];
-      try { localStorage.setItem('tft-ally::saved-comps', JSON.stringify(next)); } catch { /* ignore */ }
-      return { savedComps: next };
-    });
-  },
-  removeSavedComp: (id: string) => {
-    set((s) => {
-      const next = s.savedComps.filter(c => c.id !== id);
-      try { localStorage.setItem('tft-ally::saved-comps', JSON.stringify(next)); } catch { /* ignore */ }
-      return { savedComps: next };
-    });
-  },
-  loadSavedComp: (id: string) => set((s) => {
-    const comp = s.savedComps.find(c => c.id === id);
-    if (comp) {
-      const boardUnits: BoardUnit[] = comp.units.map(name => ({
-        name,
-        boardIndex: 0,
-        x: 0,
-        y: 0,
-        starLevel: 1,
-        items: [],
-        location: 'board',
-      }));
-      const traits = computeActiveTraitsFromUnits(boardUnits);
-      return { activeGuideComp: { units: comp.units, traits } };
-    }
-    return {};
-  }),
-  setActiveGuideComp: (comp: ActiveGuideComp | null) => set((s) => ({ activeGuideComp: comp })),
-  toggleGuideMode: (enabled: boolean) => set((s) => ({ guideModeEnabled: enabled }));
+  setSavedComps: (comps: SavedComp[]) => void;
+  addSavedComp: (comp: SavedComp) => void;
+  removeSavedComp: (id: string) => void;
+  loadSavedComp: (id: string) => void;
+  setActiveGuideComp: (comp: ActiveGuideComp | null) => void;
+  toggleGuideMode: (enabled: boolean) => void;
 }
 
 export const EMPTY_STATE: TftGameState = {
   isInGame: false,
   round_type: null,
-  gold: null
+  gold: null,
   shop_visible: false,
   roster: [],
   board: { units: [], grid: {} },
@@ -232,6 +199,8 @@ export const useAppStore = create<AppState>(
     overlayPanels: DEFAULT_OVERLAY_PANELS,
     favoriteComps: loadStoredFavorites(),
     savedComps: STORED_SAVED_COMPS,
+    activeGuideComp: null,
+    guideModeEnabled: false,
 
     setGameState: (partial: Partial<TftGameState>) =>
       set((s: AppState) => ({ gameState: { ...s.gameState, ...partial } })),
@@ -283,5 +252,56 @@ export const useAppStore = create<AppState>(
         try { localStorage.setItem('tft-ally::favorite-comps', JSON.stringify(next)); } catch { /* ignore */ }
         return { favoriteComps: next };
       }),
+
+    setSavedComps: (comps: SavedComp[]) =>
+      set(() => {
+        try { localStorage.setItem('tft-ally::saved-comps', JSON.stringify(comps)); } catch { /* ignore */ }
+        return { savedComps: comps };
+      }),
+
+    addSavedComp: (comp: SavedComp) =>
+      set((s: AppState) => {
+        const next = [...s.savedComps, comp];
+        try { localStorage.setItem('tft-ally::saved-comps', JSON.stringify(next)); } catch { /* ignore */ }
+        return { savedComps: next };
+      }),
+
+    removeSavedComp: (id: string) =>
+      set((s: AppState) => {
+        const next = s.savedComps.filter((c) => c.id !== id);
+        try { localStorage.setItem('tft-ally::saved-comps', JSON.stringify(next)); } catch { /* ignore */ }
+        return { savedComps: next };
+      }),
+
+    loadSavedComp: (id: string) =>
+      set((s: AppState) => {
+        const comp = s.savedComps.find((c) => c.id === id);
+        if (!comp) return {};
+        const boardUnits: BoardUnit[] = comp.units.map((name) => ({
+          name,
+          boardIndex: 0,
+          x: 0,
+          y: 0,
+          starLevel: 1,
+          items: [],
+          location: 'board',
+        }));
+        const traitCounts: Record<string, number> = {};
+        for (const unit of boardUnits) {
+          const unitData = UNITS.find((u) => u.name === unit.name);
+          if (!unitData) continue;
+          for (const trait of unitData.traits) {
+            traitCounts[trait] = (traitCounts[trait] || 0) + 1;
+          }
+        }
+        const traits = Object.keys(traitCounts);
+        return { activeGuideComp: { units: comp.units, traits } };
+      }),
+
+    setActiveGuideComp: (comp: ActiveGuideComp | null) =>
+      set(() => ({ activeGuideComp: comp })),
+
+    toggleGuideMode: (enabled: boolean) =>
+      set(() => ({ guideModeEnabled: enabled })),
   })
 );

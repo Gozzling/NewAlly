@@ -3,6 +3,10 @@ import { useAppStore } from '@/store/useAppStore'
 import { UNITS } from '@/data/units'
 import { Star } from 'lucide-react'
 
+function normalizeName(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, '')
+}
+
 const COST_BG: Record<number, string> = {
   1: 'bg-neutral-600',
   2: 'bg-green-600',
@@ -16,7 +20,7 @@ export function OverlayMiniBoard() {
 
   const enriched = useMemo(() => {
     return board.map((u: any) => {
-      const unitData = UNITS.find(x => x.name === u.name)
+      const unitData = UNITS.find((x) => normalizeName(x.name) === normalizeName(u.name))
       return { ...u, cost: unitData?.cost ?? 1 }
     })
   }, [board])

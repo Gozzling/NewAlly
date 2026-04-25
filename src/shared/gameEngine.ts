@@ -3,8 +3,6 @@ import type {
   ActiveCompTracker, ItemTracker, CraftableItem, MissingItem,
   MetaComp, ItemRecipes,
 } from '../types/tft'
-import { UNITS } from '../data/units'
-import { SYNERGIES } from '../data/synergies'
 
 // ─── Normalizers ──────────────────────────────────────────────────────────────
 
@@ -44,7 +42,8 @@ export function parseRoster(infoRoster: unknown): RosterPlayer[] {
 export function parseBoard(infoBoard: unknown): BoardState {
   const empty: BoardState = { units: [], grid: {} }
   try {
-    const raw = (infoBoard as Record<string, unknown>)?.board_piece
+    const info = infoBoard as Record<string, unknown> | undefined
+    const raw = info?.board_piece ?? info?.board_pieces ?? info?.units ?? info?.board
     if (raw == null) return empty
     const pieces = typeof raw === 'string' ? JSON.parse(raw) : raw
     if (!Array.isArray(pieces)) return empty

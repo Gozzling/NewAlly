@@ -21,7 +21,6 @@ export function TeamBuilder() {
 
   const addUnit = (name: string) => { if (team.length < 10 && !team.includes(name)) setTeam([...team, name]) }
   const removeUnit = (name: string) => setTeam(team.filter(u => u !== name))
-  const clearTeam = () => setTeam([])
 
   const handleSave = () => {
     const name = window.prompt('Enter a name for this composition:')
@@ -164,7 +163,7 @@ export function TeamBuilder() {
               {UNITS.filter(u => u.cost === cost).map(u => (
                 <button key={u.id} onClick={() => addUnit(u.name)} disabled={team.includes(u.name)} className={`text-left px-2 py-1.5 rounded bg-[#1f1f1f] border border-[#2a2a2a] hover:border-[#35c3e7] transition-colors text-xs ${team.includes(u.name) ? 'opacity-40' : ''}`}>
                   <div className="text-white font-medium truncate">{u.name}</div>
-                  <div className="text-[10px] text-neutral-500 truncate">{u.traits.join(', ')</div>
+                  <div className="text-[10px] text-neutral-500 truncate">{u.traits.join(', ')}</div>
                 </button>
               ))}
             </div>

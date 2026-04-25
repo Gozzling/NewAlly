@@ -96,18 +96,31 @@ function setupGepService(): void {
   geppService.onInfoUpdate("shop", (info) => {
     const gs = useAppStore.getState().gameState;
     const shop = info?.shop as Record<string, unknown> | undefined;
-    const shopVisible = shop?.shop_visible;
-    const shopUnitsRaw = shop?.shop_units ?? shop?.units ?? [];
-    const shopUnits = Array.isArray(shopUnitsRaw) ? shopUnitsRaw.map((u: any) => u.display_name ?? u.name ?? String(u)).filter(Boolean) : [];
-    const updates: Partial<TftGameState> = {};
+    const shopVisible = shop?.shop_visible ?? shop?.visible;
+    const shopUnitsRaw = shop?.shop_units ?? shop?.units ?? shop?.slots ?? [];
+    const shopUnits = Array.isArray(shopUnitsRaw)
+      ? shopUnitsRaw
+          .map((u: any) => u?.display_name ?? u?.name ?? u?.championName ?? String(u))
+          .map((name: string) => name.trim())
+          .filter(Boolean)
+      : [];
+
+    console.debug("[BG][shop] parsed", {
+      visible: shopVisible,
+      count: shopUnits.length,
+      units: shopUnits,
+      rawKeys: shop ? Object.keys(shop) : [],
+    });
+
+    const updates: Partial<TftGameState> = {
+      shopUnits,
+    };
     if (shopVisible !== undefined) updates.shop_visible = Boolean(shopVisible);
-    if (shopUnits.length > 0) updates.shopUnits = shopUnits;
-    if (Object.keys(updates).length > 0) {
-      setState({
-        ...updates,
-        raw: { ...gs.raw, shop: info },
-      });
-    }
+
+    setState({
+      ...updates,
+      raw: { ...gs.raw, shop: info },
+    });
   });
 
   geppService.onInfoUpdate("roster", (info) => {
@@ -118,7 +131,12 @@ function setupGepService(): void {
   });
 
   geppService.onInfoUpdate("board", (info) => {
-    const parsed = parseBoard(info?.board);
+    const parsed = parseBoard(info?.board ?? info);
+    console.debug("[BG][board] parsed", {
+      count: parsed.units.length,
+      unitNames: parsed.units.map((u) => u.name),
+      payloadKeys: info && typeof info === "object" ? Object.keys(info as Record<string, unknown>) : [],
+    });
     const activeCompTracker = calculateBestCompMatch(parsed.units, metaComps);
     setState({ board: parsed, activeCompTracker, raw: { ...useAppStore.getState().gameState.raw, board: info } });
     recalcItems();
