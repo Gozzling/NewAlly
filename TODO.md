@@ -1,5 +1,5 @@
-- [x] Harden board parsing for alternate GEP payload keys in `src/shared/gameEngine.ts`
-- [x] Improve shop parsing/state updates + add debugging logs in `src/services/backgroundController.ts`
-- [x] Normalize unit matching + fix shop highlighting logic in `src/windows/overlay/components/OverlayShopGuide.tsx`
-- [x] Normalize unit enrichment matching in `src/windows/overlay/components/OverlayMiniBoard.tsx`
-- [ ] Run `npm run build` and report issues/results
+- [x] Fix `OverlayShopGuide` unit matching reliability for board/shop highlights.
+- [x] Refactor guide/shop/board matching to normalized deterministic sets/maps.
+- [x] Keep existing overlay UI/wording unchanged while correcting highlight/check logic.
+- [x] Run build validation (`npm run build`).
+- [x] Mark tasks complete.

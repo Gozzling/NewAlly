@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import type { RiotRegion, Match } from '../types/riot'
 import { useAppStore } from '../store/useAppStore'
 import { fetchPlayerCard } from '../services/riotApiClient'
-import { fetchPlayerMatchHistory } from '../services/matchHistoryService'
+import { fetchPlayerMatchHistory, toRiotMatchFromPersonal } from '../services/matchHistoryService'
+import { getPersonalMatches } from '../services/indexedDbService'
 import { calculatePlayerStats } from '../services/playerStatsService'
 import { StatCard } from '../components/StatCard'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as ReTooltip, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts'
@@ -22,6 +23,8 @@ const COLORS = ['#35c3e7', '#4caf50', '#ff9800', '#f44336', '#9c27b0', '#e91e63'
 export function PlayerAnalytics() {
   const selectedPlayer = useAppStore((s) => s.selectedPlayer)
   const storeRegion = useAppStore((s) => s.settings.region)
+  const personalMatches = useAppStore((s) => s.personalMatches)
+  const setPersonalMatches = useAppStore((s) => s.setPersonalMatches)
 
   const [query, setQuery] = useState(selectedPlayer?.name ?? '')
   const [region, setRegion] = useState<RiotRegion>(storeRegion)
@@ -29,6 +32,11 @@ export function PlayerAnalytics() {
   const [error, setError] = useState<string | null>(null)
   const [_matches, setMatches] = useState<Match[]>([])
   const [stats, setStats] = useState<ReturnType<typeof calculatePlayerStats> | null>(null)
+  const personalAsRiotMatches = useMemo(() => personalMatches.map(toRiotMatchFromPersonal), [personalMatches])
+  const personalStats = useMemo(
+    () => (personalAsRiotMatches.length > 0 ? calculatePlayerStats(personalAsRiotMatches) : null),
+    [personalAsRiotMatches],
+  )
 
   useEffect(() => {
     setRegion(storeRegion)
@@ -39,6 +47,19 @@ export function PlayerAnalytics() {
       setQuery(selectedPlayer.name)
     }
   }, [selectedPlayer])
+
+  useEffect(() => {
+    let mounted = true
+    ;(async () => {
+      try {
+        const rows = await getPersonalMatches(50)
+        if (mounted) setPersonalMatches(rows)
+      } catch (err) {
+        console.warn('[PlayerAnalytics] failed to load personal matches', err)
+      }
+    })()
+    return () => { mounted = false }
+  }, [setPersonalMatches])
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -199,6 +220,47 @@ export function PlayerAnalytics() {
           )}
         </>
       )}
+
+      {/* Your Matches */}
+      <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4">
+        <div className="text-[10px] uppercase tracking-widest text-[#a1a1a1] mb-3">Your Matches</div>
+        {personalMatches.length === 0 ? (
+          <div className="text-sm text-[#a1a1a1]">No personal matches logged yet.</div>
+        ) : (
+          <>
+            {personalStats && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                <StatCard label="Games" value={String(personalAsRiotMatches.length)} />
+                <StatCard label="Avg Place" value={personalStats.avgPlacement.toFixed(2)} />
+                <StatCard label="Top 4" value={`${personalStats.top4Rate.toFixed(1)}%`} />
+                <StatCard label="Win Rate" value={`${personalStats.winRate.toFixed(1)}%`} />
+              </div>
+            )}
+            <div className="space-y-2 max-h-72 overflow-auto pr-1">
+              {personalMatches.slice(0, 20).map((m) => (
+                <div key={m.id} className="bg-[#181818] border border-[#2a2a2a] rounded-lg p-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="text-neutral-200">
+                      Place: <span className="text-[#35c3e7] font-semibold">{m.placement ?? '-'}</span>
+                      {' · '}
+                      Comp: <span className="text-neutral-300">{m.comp ?? 'Unknown'}</span>
+                    </div>
+                    <div className="text-neutral-400">
+                      {new Date(m.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                  <div className="mt-1 text-[11px] text-neutral-400">
+                    Units: {m.units.slice(0, 8).join(', ') || 'N/A'}
+                  </div>
+                  <div className="mt-1 text-[11px] text-neutral-500">
+                    Sync: {m.syncStatus}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }

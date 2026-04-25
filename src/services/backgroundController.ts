@@ -11,6 +11,8 @@ import {
 import type { MetaComp, ItemRecipes, TftGameState } from "@/types/tft";
 import { openWindow, hideWindow, getWindowId } from "./overwolfWindowService";
 import { GeppService } from "./geppService";
+import { savePersonalMatch, markPersonalMatchSynced, type PersonalMatchRecord } from "./indexedDbService";
+import { syncPersonalMatchToSupabase } from "./matchHistoryService";
 
 const TFT_CLASS_ID = 21570;
 const REQUIRED_FEATURES = [
@@ -65,6 +67,55 @@ function recalcItems(): void {
 }
 
 // ── GEP via GeppService ────────────────────────────────────────────────────
+
+function buildPersonalMatchRecord(eventData?: Record<string, unknown>): PersonalMatchRecord {
+  const gs = useAppStore.getState().gameState;
+  const now = Date.now();
+  const boardUnits = gs.board.units ?? [];
+  const items = boardUnits.flatMap((u) => u.items ?? []);
+
+  return {
+    id: `gep-${now}`,
+    createdAt: now,
+    syncStatus: "pending",
+    placement: gs.roster.find((p) => p.isLocalPlayer)?.rank ?? null,
+    units: boardUnits.map((u) => u.name).filter(Boolean),
+    items,
+    augments: gs.augmentSlots ?? [],
+    comp: gs.activeCompTracker.bestMatchName ?? null,
+    duration: eventData?.duration ? Number(eventData.duration) : null,
+    source: "gep_match_end",
+    raw: {
+      eventData: eventData ?? {},
+      round_type: gs.round_type,
+      gold: gs.gold,
+    },
+  };
+}
+
+async function persistAndSyncPersonalMatch(eventData?: Record<string, unknown>): Promise<void> {
+  const record = buildPersonalMatchRecord(eventData);
+
+  try {
+    await savePersonalMatch(record);
+    useAppStore.getState().addPersonalMatch(record);
+    console.debug("[BG][match_end] personal match saved", { id: record.id });
+  } catch (e) {
+    console.error("[BG][match_end] failed to save IndexedDB match", e);
+    return;
+  }
+
+  try {
+    await syncPersonalMatchToSupabase(record);
+    await markPersonalMatchSynced(record.id, true);
+    useAppStore.getState().updatePersonalMatchSyncStatus(record.id, "synced", Date.now());
+    console.debug("[BG][match_end] personal match synced", { id: record.id });
+  } catch (e) {
+    await markPersonalMatchSynced(record.id, false);
+    useAppStore.getState().updatePersonalMatchSyncStatus(record.id, "failed");
+    console.warn("[BG][match_end] personal match sync failed", e);
+  }
+}
 
 function setupGepService(): void {
   geppService = new GeppService();
@@ -155,7 +206,8 @@ function setupGepService(): void {
     showOverlay();
   });
 
-  geppService.onNewEvent("match_end", () => {
+  geppService.onNewEvent("match_end", (eventData) => {
+    void persistAndSyncPersonalMatch((eventData ?? {}) as Record<string, unknown>);
     hideOverlay();
     resetState();
     showLobby();

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { TftGameState, BoardUnit } from "../types/tft";
 import type { PlayerCard, RiotRegion, Match } from "../types/riot";
 import { UNITS } from "../data/units";
+import type { PersonalMatchRecord } from "../services/indexedDbService";
 
 export interface RecentSearch {
   name: string;
@@ -79,6 +80,7 @@ export interface AppState {
   savedComps: SavedComp[];
   activeGuideComp: ActiveGuideComp | null;
   guideModeEnabled: boolean;
+  personalMatches: PersonalMatchRecord[];
   setGameState: (partial: Partial<TftGameState>) => void;
   resetGameState: () => void;
   setWindowId: (name: string, id: string | null) => void;
@@ -96,6 +98,9 @@ export interface AppState {
   loadSavedComp: (id: string) => void;
   setActiveGuideComp: (comp: ActiveGuideComp | null) => void;
   toggleGuideMode: (enabled: boolean) => void;
+  setPersonalMatches: (matches: PersonalMatchRecord[]) => void;
+  addPersonalMatch: (match: PersonalMatchRecord) => void;
+  updatePersonalMatchSyncStatus: (id: string, status: PersonalMatchRecord['syncStatus'], syncedAt?: number) => void;
 }
 
 export const EMPTY_STATE: TftGameState = {
@@ -201,6 +206,7 @@ export const useAppStore = create<AppState>(
     savedComps: STORED_SAVED_COMPS,
     activeGuideComp: null,
     guideModeEnabled: false,
+    personalMatches: [],
 
     setGameState: (partial: Partial<TftGameState>) =>
       set((s: AppState) => ({ gameState: { ...s.gameState, ...partial } })),
@@ -303,5 +309,23 @@ export const useAppStore = create<AppState>(
 
     toggleGuideMode: (enabled: boolean) =>
       set(() => ({ guideModeEnabled: enabled })),
+
+    setPersonalMatches: (matches: PersonalMatchRecord[]) =>
+      set(() => ({ personalMatches: [...matches].sort((a, b) => b.createdAt - a.createdAt) })),
+
+    addPersonalMatch: (match: PersonalMatchRecord) =>
+      set((s: AppState) => ({
+        personalMatches: [match, ...s.personalMatches.filter((m) => m.id !== match.id)]
+          .sort((a, b) => b.createdAt - a.createdAt),
+      })),
+
+    updatePersonalMatchSyncStatus: (id: string, status: PersonalMatchRecord['syncStatus'], syncedAt?: number) =>
+      set((s: AppState) => ({
+        personalMatches: s.personalMatches.map((m) =>
+          m.id === id
+            ? { ...m, syncStatus: status, ...(syncedAt ? { syncedAt } : {}) }
+            : m
+        ),
+      })),
   })
 );

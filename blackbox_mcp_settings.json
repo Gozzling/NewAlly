@@ -14,6 +14,18 @@
       "args": [
         "mcp-server-git"
       ]
+    },
+    "github.com/mendableai/firecrawl-mcp-server": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "firecrawl-mcp"
+      ],
+      "env": {
+        "FIRECRAWL_API_KEY": "fc-0a0e1f07c1ea498baa7d8c8c4d7ed1bc"
+      }
     }
   }
 }

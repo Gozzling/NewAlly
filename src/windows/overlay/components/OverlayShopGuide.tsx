@@ -41,8 +41,10 @@ export function OverlayShopGuide() {
   const shopUnitNames = shopUnits
   const normalizedShop = new Set(shopUnitNames.map(normalizeName))
 
+  const normalizedGuideUnits = guideUnits.map(normalizeName)
+
   const onBoardSet = new Set(
-    guideUnits.filter((unit) => normalizedBoard.has(normalizeName(unit)))
+    normalizedGuideUnits.filter((unit) => normalizedBoard.has(unit))
   )
 
   const traitCountsOnBoard = computeTraitCounts(boardUnitNames)
@@ -52,7 +54,7 @@ export function OverlayShopGuide() {
   })
 
   const matchedGuideUnitsInShop = new Set(
-    guideUnits.filter((g) => normalizedShop.has(normalizeName(g)))
+    normalizedGuideUnits.filter((g) => normalizedShop.has(g))
   )
 
   return (
@@ -71,10 +73,12 @@ export function OverlayShopGuide() {
             <div key={index} className="flex items-center gap-1 text-[9px]">
               <span
                 className={`w-3 h-3 flex items-center justify-center ${
-                  onBoardSet.has(unit) ? 'text-[#35c3e7]' : 'text-neutral-500'
+                  onBoardSet.has(normalizeName(unit))
+                    ? 'text-[#35c3e7]'
+                    : 'text-neutral-500'
                 }`}
               >
-                {onBoardSet.has(unit) ? '✓' : '✗'}
+                {onBoardSet.has(normalizeName(unit)) ? '✓' : '✗'}
               </span>
               <span className="truncate">{unit}</span>
             </div>
@@ -119,9 +123,7 @@ export function OverlayShopGuide() {
         <div className="text-[9px] text-neutral-500">Shop Units:</div>
         <div className="space-y-0.5 flex flex-wrap gap-1">
           {shopUnitNames.map((unit, index) => {
-            const isGuideUnit = matchedGuideUnitsInShop.has(
-              guideUnits.find((g) => normalizeName(g) === normalizeName(unit)) ?? ''
-            )
+            const isGuideUnit = matchedGuideUnitsInShop.has(normalizeName(unit))
             return (
               <div
                 key={index}

@@ -1,6 +1,8 @@
 import type { Match, MatchDetail, RiotRegion } from '../types/riot'
 import { fetchMatchIds, fetchMatchDetail, regionToMatchRegion } from './riotApiClient'
 import { getCache, setCache, ONE_DAY } from './storageService'
+import { supabase, hasSupabase } from './supabaseClient'
+import type { PersonalMatchRecord } from './indexedDbService'
 
 function normalizeCompName(traits: { name: string; num_units: number }[]): string | null {
   const active = traits.filter((t) => t.num_units > 0).map((t) => t.name)
@@ -77,4 +79,43 @@ export async function fetchPlayerMatchHistory(
 
   setCache(cacheKey, matches, ONE_DAY)
   return matches
+}
+
+export function toRiotMatchFromPersonal(record: PersonalMatchRecord): Match {
+  return {
+    matchId: record.id,
+    placement: record.placement ?? 0,
+    level: 0,
+    date: new Date(record.createdAt),
+    gameLength: record.duration ?? 0,
+    units: record.units,
+    augments: record.augments,
+    traits: [],
+    comp: record.comp,
+  }
+}
+
+export async function syncPersonalMatchToSupabase(record: PersonalMatchRecord): Promise<void> {
+  if (!hasSupabase()) {
+    throw new Error('Supabase not configured')
+  }
+
+  const payload = {
+    id: record.id,
+    source: record.source,
+    created_at: new Date(record.createdAt).toISOString(),
+    placement: record.placement,
+    units: record.units,
+    items: record.items,
+    augments: record.augments,
+    comp_name: record.comp,
+    duration_seconds: record.duration,
+    sync_status: record.syncStatus,
+    raw: record.raw ?? {},
+  }
+
+  const { error } = await supabase.from('matches').insert(payload)
+  if (error) {
+    throw new Error(`[MH] Supabase insert failed: ${error.message}`)
+  }
 }
