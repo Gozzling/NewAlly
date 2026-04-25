@@ -3,6 +3,8 @@ import type {
   ActiveCompTracker, ItemTracker, CraftableItem, MissingItem,
   MetaComp, ItemRecipes,
 } from '../types/tft'
+import { UNITS } from '../data/units'
+import { SYNERGIES } from '../data/synergies'
 
 // ─── Normalizers ──────────────────────────────────────────────────────────────
 

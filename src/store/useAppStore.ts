@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import type { TftGameState } from "../types/tft";
+import type { TftGameState, BoardUnit } from "../types/tft";
 import type { PlayerCard, RiotRegion, Match } from "../types/riot";
+import { computeActiveTraitsFromUnits } from "../shared/gameEngine";
 
 export interface RecentSearch {
   name: string;
@@ -33,6 +34,18 @@ export interface PrivacySettings {
   shareMatchHistory: boolean;
 }
 
+export interface SavedComp {
+  id: string;
+  name: string;
+  units: string[];
+  timestamp: number;
+}
+
+export interface ActiveGuideComp {
+  units: string[];
+  traits: string[];
+}
+
 export interface OverlayPanels {
   comps: boolean;
   boardScanner: boolean;
@@ -63,6 +76,9 @@ export interface AppState {
   };
   overlayPanels: OverlayPanels;
   favoriteComps: string[];
+  savedComps: SavedComp[];
+  activeGuideComp: ActiveGuideComp | null;
+  guideModeEnabled: boolean;
   setGameState: (partial: Partial<TftGameState>) => void;
   resetGameState: () => void;
   setWindowId: (name: string, id: string | null) => void;
@@ -74,12 +90,51 @@ export interface AppState {
   setOverlayPanels: (panels: Partial<OverlayPanels>) => void;
   addFavoriteComp: (compName: string) => void;
   removeFavoriteComp: (compName: string) => void;
+  // Guide system
+  setSavedComps: (comps: SavedComp[]) => {
+    const next = { savedComps: comps };
+    try { localStorage.setItem('tft-ally::saved-comps', JSON.stringify(comps)); } catch { /* ignore */ }
+    set(next);
+  },
+  addSavedComp: (comp: SavedComp) => {
+    set((s) => {
+      const next = [...s.savedComps, comp];
+      try { localStorage.setItem('tft-ally::saved-comps', JSON.stringify(next)); } catch { /* ignore */ }
+      return { savedComps: next };
+    });
+  },
+  removeSavedComp: (id: string) => {
+    set((s) => {
+      const next = s.savedComps.filter(c => c.id !== id);
+      try { localStorage.setItem('tft-ally::saved-comps', JSON.stringify(next)); } catch { /* ignore */ }
+      return { savedComps: next };
+    });
+  },
+  loadSavedComp: (id: string) => set((s) => {
+    const comp = s.savedComps.find(c => c.id === id);
+    if (comp) {
+      const boardUnits: BoardUnit[] = comp.units.map(name => ({
+        name,
+        boardIndex: 0,
+        x: 0,
+        y: 0,
+        starLevel: 1,
+        items: [],
+        location: 'board',
+      }));
+      const traits = computeActiveTraitsFromUnits(boardUnits);
+      return { activeGuideComp: { units: comp.units, traits } };
+    }
+    return {};
+  }),
+  setActiveGuideComp: (comp: ActiveGuideComp | null) => set((s) => ({ activeGuideComp: comp })),
+  toggleGuideMode: (enabled: boolean) => set((s) => ({ guideModeEnabled: enabled }));
 }
 
 export const EMPTY_STATE: TftGameState = {
   isInGame: false,
   round_type: null,
-  gold: null,
+  gold: null
   shop_visible: false,
   roster: [],
   board: { units: [], grid: {} },
@@ -87,6 +142,7 @@ export const EMPTY_STATE: TftGameState = {
   benchComponents: [],
   itemTracker: { craftable: [], missing: [] },
   augmentSlots: [],
+  shopUnits: [],
   raw: {},
 };
 
@@ -154,7 +210,16 @@ function loadStoredFavorites(): string[] {
   return [];
 }
 
+function loadStoredSavedComps(): SavedComp[] {
+  try {
+    const raw = localStorage.getItem('tft-ally::saved-comps');
+    if (raw) return JSON.parse(raw);
+  } catch { /* ignore */ }
+  return [];
+}
+
 const STORED_SETTINGS = loadStoredSettings();
+const STORED_SAVED_COMPS = loadStoredSavedComps();
 
 export const useAppStore = create<AppState>(
   (set: (fn: (s: AppState) => Partial<AppState>) => void) => ({
@@ -166,6 +231,7 @@ export const useAppStore = create<AppState>(
     settings: STORED_SETTINGS,
     overlayPanels: DEFAULT_OVERLAY_PANELS,
     favoriteComps: loadStoredFavorites(),
+    savedComps: STORED_SAVED_COMPS,
 
     setGameState: (partial: Partial<TftGameState>) =>
       set((s: AppState) => ({ gameState: { ...s.gameState, ...partial } })),

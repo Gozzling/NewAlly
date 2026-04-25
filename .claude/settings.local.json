@@ -4,7 +4,8 @@
       "Bash(uvx playwright *)",
       "Bash(npx tsc *)",
       "Bash(npm run *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit *)"
     ]
   }
 }

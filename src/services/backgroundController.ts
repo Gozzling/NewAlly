@@ -94,9 +94,19 @@ function setupGepService(): void {
   });
 
   geppService.onInfoUpdate("shop", (info) => {
-    const sv = (info?.shop as Record<string, unknown>)?.shop_visible;
-    if (sv !== undefined) {
-      setState({ shop_visible: Boolean(sv), raw: { ...useAppStore.getState().gameState.raw, shop: info } });
+    const gs = useAppStore.getState().gameState;
+    const shop = info?.shop as Record<string, unknown> | undefined;
+    const shopVisible = shop?.shop_visible;
+    const shopUnitsRaw = shop?.shop_units ?? shop?.units ?? [];
+    const shopUnits = Array.isArray(shopUnitsRaw) ? shopUnitsRaw.map((u: any) => u.display_name ?? u.name ?? String(u)).filter(Boolean) : [];
+    const updates: Partial<TftGameState> = {};
+    if (shopVisible !== undefined) updates.shop_visible = Boolean(shopVisible);
+    if (shopUnits.length > 0) updates.shopUnits = shopUnits;
+    if (Object.keys(updates).length > 0) {
+      setState({
+        ...updates,
+        raw: { ...gs.raw, shop: info },
+      });
     }
   });
 

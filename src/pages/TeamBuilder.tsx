@@ -1,16 +1,69 @@
 import { useState, useMemo } from 'react'
-import { UNITS } from '../data/units'
-import { SYNERGIES } from '../data/synergies'
+import { UNITS } from '@/data/units'
+import { SYNERGIES } from '@/data/synergies'
 import { Hammer, X } from 'lucide-react'
+import { useAppStore } from '@/store/useAppStore'
 
 const COST_COLORS: Record<number, string> = { 1: 'text-neutral-400', 2: 'text-green-400', 3: 'text-blue-400', 4: 'text-purple-400', 5: 'text-yellow-400' }
 
 export function TeamBuilder() {
   const [team, setTeam] = useState<string[]>([])
+  const [selectedCompId, setSelectedCompId] = useState<string>('')
+
+  const { savedComps, addSavedComp, removeSavedComp, loadSavedComp } = useAppStore(
+    (s) => ({
+      savedComps: s.savedComps,
+      addSavedComp: s.addSavedComp,
+      removeSavedComp: s.removeSavedComp,
+      loadSavedComp: s.loadSavedComp,
+    })
+  )
 
   const addUnit = (name: string) => { if (team.length < 10 && !team.includes(name)) setTeam([...team, name]) }
   const removeUnit = (name: string) => setTeam(team.filter(u => u !== name))
   const clearTeam = () => setTeam([])
+
+  const handleSave = () => {
+    const name = window.prompt('Enter a name for this composition:')
+    if (name) {
+      const newComp = {
+        id: `${Date.now()}-${name.replace(/\s+/g, '-')}`,
+        name,
+        units: team,
+        timestamp: Date.now(),
+      }
+      addSavedComp(newComp)
+    }
+  }
+
+  const handleLoad = () => {
+    if (selectedCompId) {
+      loadSavedComp(selectedCompId)
+      // Also load the comp into the team builder for editing
+      const comp = savedComps.find(c => c.id === selectedCompId)
+      if (comp) {
+        setTeam(comp.units)
+      }
+    }
+  }
+
+  const handleDelete = () => {
+    if (selectedCompId && window.confirm('Are you sure you want to delete this saved comp?')) {
+      removeSavedComp(selectedCompId)
+      setSelectedCompId('')
+    }
+  }
+
+  const handleShare = () => {
+    if (selectedCompId) {
+      const comp = savedComps.find(c => c.id === selectedCompId)
+      if (comp) {
+        const compData = btoa(JSON.stringify(comp))
+        const url = `${window.location.origin}${window.location.pathname}?comp=${compData}`
+        window.prompt('Share this URL:', url)
+      }
+    }
+  }
 
   const teamUnits = useMemo(() => team.map(n => UNITS.find(u => u.name === n)).filter(Boolean) as typeof UNITS, [team])
 
@@ -30,9 +83,44 @@ export function TeamBuilder() {
 
   return (
     <div className="p-5 space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2"><Hammer className="w-5 h-5 text-[#35c3e7]" /><h1 className="text-lg font-bold text-white">Team Builder</h1></div>
-        <button onClick={clearTeam} className="text-xs text-neutral-500 hover:text-white transition-colors">Clear</button>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={handleSave} className="text-xs bg-[#35c3e7]/20 hover:bg-[#35c3e7]/30 text-[#35c3e7] hover:text-white transition-colors px-2 py-1 rounded">Save Comp</button>
+          <select
+            value={selectedCompId}
+            onChange={(e) => setSelectedCompId(e.target.value)}
+            className="text-xs border border-[#2a2a2a] rounded px-2 py-1 bg-[#1f1f1f] text-white"
+          >
+            <option value="">Load a saved comp</option>
+            {savedComps.map(comp => (
+              <option key={comp.id} value={comp.id}>
+                {comp.name} ({new Date(comp.timestamp).toLocaleString()})
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={handleLoad}
+            disabled={!selectedCompId}
+            className={`text-xs bg-[#35c3e7]/20 hover:bg-[#35c3e7]/30 text-[#35c3e7] hover:text-white transition-colors px-2 py-1 rounded ${!selectedCompId ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            Load
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={!selectedCompId}
+            className={`text-xs bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-white transition-colors px-2 py-1 rounded ${!selectedCompId ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            Delete
+          </button>
+          <button
+            onClick={handleShare}
+            disabled={!selectedCompId}
+            className={`text-xs bg-[#35c3e7]/20 hover:bg-[#35c3e7]/30 text-[#35c3e7] hover:text-white transition-colors px-2 py-1 rounded ${!selectedCompId ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            Share
+          </button>
+        </div>
       </div>
 
       {/* Active team */}
@@ -76,7 +164,7 @@ export function TeamBuilder() {
               {UNITS.filter(u => u.cost === cost).map(u => (
                 <button key={u.id} onClick={() => addUnit(u.name)} disabled={team.includes(u.name)} className={`text-left px-2 py-1.5 rounded bg-[#1f1f1f] border border-[#2a2a2a] hover:border-[#35c3e7] transition-colors text-xs ${team.includes(u.name) ? 'opacity-40' : ''}`}>
                   <div className="text-white font-medium truncate">{u.name}</div>
-                  <div className="text-[10px] text-neutral-500 truncate">{u.traits.join(', ')}</div>
+                  <div className="text-[10px] text-neutral-500 truncate">{u.traits.join(', ')</div>
                 </button>
               ))}
             </div>
