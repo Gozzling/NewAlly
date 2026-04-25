@@ -110,7 +110,7 @@ export function DesktopApp() {
           className="flex items-center px-4 flex-shrink-0"
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
-          <svg viewBox="0 0 220 66" fill="none" className="h-5 w-auto">
+          <svg viewBox="0 0 220 66" fill="none" className="h-4 w-auto">
             <path d="M35.75 0L67 62.5H49.5L37 30L17 62.5H2" stroke="#35c3e7" strokeWidth="8" strokeLinejoin="round" strokeLinecap="round"/>
             <line x1="12" y1="43.75" x2="49.5" y2="43.75" stroke="#35c3e7" strokeWidth="7"/>
             <path d="M82 4L82 62.5L112 62.5" stroke="white" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/>
@@ -128,7 +128,7 @@ export function DesktopApp() {
   placeholder="Search…"
   value={searchTerm}
   onChange={(e) => setSearchTerm(e.target.value)}
-  className="ml-4 w-80 bg-ally-card border border-ally-border rounded-full pl-[30px] pr-2 py-0.5 text-ally-text placeholder:text-ally-muted focus:outline-none focus:ring-2 focus:ring-ally-accent"
+  className="ml-4 w-80 bg-ally-card border border-ally-border rounded-full pl-[50px] pr-2 py-0.5 text-ally-text placeholder:text-ally-muted focus:outline-none focus:ring-2 focus:ring-ally-accent"
 />
         </div>
         <div
