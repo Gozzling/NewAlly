@@ -58,6 +58,8 @@ export interface AppState {
     dataPrefs: DataPreferences;
     notifications: NotificationPrefs;
     privacy: PrivacySettings;
+    dataSource: 'live' | 'static';
+    overlayOpacity: number;
   };
   overlayPanels: OverlayPanels;
   favoriteComps: string[];
@@ -131,6 +133,8 @@ const DEFAULT_SETTINGS = {
   dataPrefs: DEFAULT_DATA_PREFS,
   notifications: DEFAULT_NOTIFICATIONS,
   privacy: DEFAULT_PRIVACY,
+  dataSource: 'static' as const,
+  overlayOpacity: 90,
 };
 
 function loadStoredSettings(): typeof DEFAULT_SETTINGS {
