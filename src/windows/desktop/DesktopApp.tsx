@@ -123,13 +123,13 @@ export function DesktopApp() {
           </svg>
         </div>
         <div className="flex-1 flex justify-center" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-          <input
-            type="text"
-            placeholder="Search…"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="ml-4 w-80 bg-ally-card border border-ally-border rounded-full pl-8 pr-2 py-0.5 text-ally-text placeholder:text-ally-muted focus:outline-none focus:ring-2 focus:ring-ally-accent"
-          />
+<input
+  type="text"
+  placeholder="Search…"
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+  className="ml-4 w-80 bg-ally-card border border-ally-border rounded-full pl-9 pr-2 py-0.5 text-ally-text placeholder:text-ally-muted focus:outline-none focus:ring-2 focus:ring-ally-accent"
+/>
         </div>
         <div
           className="flex items-center gap-2 px-4"
