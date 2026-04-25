@@ -38,7 +38,7 @@
       "Corki",
       "Kai'Sa",
       "Samira",
-      "Miss Fortune",
+      "Gwen",
       "Veigar",
       "Zoe"
     ],
@@ -95,7 +95,7 @@
   {
     "compName": "Psion Overload",
     "requiredUnits": [
-      "Vex",
+      "Master Yi",
       "Ezreal",
       "LeBlanc",
       "Fizz",
@@ -106,7 +106,7 @@
     ],
     "carries": [
       {
-        "name": "Vex",
+        "name": "Master Yi",
         "bisItems": [
           "Rabadon's Deathcap",
           "Jeweled Gauntlet",
@@ -129,7 +129,7 @@
       "Bard",
       "Diana",
       "Samira",
-      "Miss Fortune",
+      "Gwen",
       "Briar",
       "Fiora",
       "Karma",
@@ -256,7 +256,7 @@
       "Zoe",
       "LeBlanc",
       "Ezreal",
-      "Vex",
+      "Master Yi",
       "Corki"
     ],
     "carries": [
