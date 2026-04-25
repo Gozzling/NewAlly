@@ -37,7 +37,7 @@ function SkeletonPlayerCard() {
 
 function SidebarBox({ children }: { children?: React.ReactNode }) {
   return (
-    <div className="bg-ally-card border border-ally-border rounded-xl w-[240px] aspect-square flex-shrink-0 flex items-center justify-center overflow-hidden relative sidebar-box">
+    <div className="bg-ally-card border border-white rounded-xl w-[240px] aspect-square flex-shrink-0 flex items-center justify-center overflow-hidden relative sidebar-box">
       {children}
     </div>
   );
@@ -58,6 +58,7 @@ export function DesktopApp() {
   const state = useAppStore((s: any) => s.gameState)
   const lastRawRef = useRef<string>('')
   const [activePage, setActivePage] = useState<string>('In Game')
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     return subscribeToStateSnapshots()
@@ -78,7 +79,7 @@ export function DesktopApp() {
   if (rawJson !== lastRawRef.current) lastRawRef.current = rawJson
 
   return (
-    <div className="w-full h-full flex flex-col bg-ally-bg text-ally-text font-sans">
+    <div className="w-full h-full flex flex-col bg-ally-bg text-white font-sans">
 <style>{`
 @keyframes breathe {
   0%,100% { transform: scale(1); opacity: 0.8; }
@@ -102,7 +103,7 @@ export function DesktopApp() {
 `}</style>
       {/* Bar 1 — Titlebar */}
       <div
-        className="w-full h-8 flex-shrink-0 bg-ally-bg flex items-center justify-between"
+        className="w-full h-8 flex-shrink-0 bg-ally-card flex items-center justify-between"
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
       >
         <div
@@ -121,24 +122,35 @@ export function DesktopApp() {
             <line x1="188" y1="48" x2="207" y2="40" stroke="#35c3e7" strokeWidth="5" strokeLinecap="round"/>
           </svg>
         </div>
+        <div className="flex-1 flex justify-center" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+          <input
+            type="text"
+            placeholder="Search…"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="ml-4 w-80 bg-ally-card border border-ally-border rounded-full pl-8 pr-2 py-0.5 text-ally-text placeholder:text-ally-muted focus:outline-none focus:ring-2 focus:ring-ally-accent"
+          />
+        </div>
         <div
-          className="flex items-center gap-1"
+          className="flex items-center gap-2 px-4"
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" className="h-5 w-5 text-ally-muted" fill="currentColor"><path d="M524.5 133.8C524.3 133.5 524.1 133.2 523.7 133.1C485.6 115.6 445.3 103.1 404 96C403.6 95.9 403.2 96 402.9 96.1C402.6 96.2 402.3 96.5 402.1 96.9C396.6 106.8 391.6 117.1 387.2 127.5C342.6 120.7 297.3 120.7 252.8 127.5C248.3 117 243.3 106.8 237.7 96.9C237.5 96.6 237.2 96.3 236.9 96.1C236.6 95.9 236.2 95.9 235.8 95.9C194.5 103 154.2 115.5 116.1 133C115.8 133.1 115.5 133.4 115.3 133.7C39.1 247.5 18.2 358.6 28.4 468.2C28.4 468.5 28.5 468.7 28.6 469C28.7 469.3 28.9 469.4 29.1 469.6C73.5 502.5 123.1 527.6 175.9 543.8C176.3 543.9 176.7 543.9 177 543.8C177.3 543.7 177.7 543.4 177.9 543.1C189.2 527.7 199.3 511.3 207.9 494.3C208 494.1 208.1 493.8 208.1 493.5C208.1 493.2 208.1 493 208 492.7C207.9 492.4 207.8 492.2 207.6 492.1C207.4 492 207.2 491.8 206.9 491.7C191.1 485.6 175.7 478.3 161 469.8C160.7 469.6 160.5 469.4 160.3 469.2C160.1 469 160 468.6 160 468.3C160 468 160 467.7 160.2 467.4C160.4 467.1 160.5 466.9 160.8 466.7C163.9 464.4 167 462 169.9 459.6C170.2 459.4 170.5 459.2 170.8 459.2C171.1 459.2 171.5 459.2 171.8 459.3C268 503.2 372.2 503.2 467.3 459.3C467.6 459.2 468 459.1 468.3 459.1C468.6 459.1 469 459.3 469.2 459.5C472.1 461.9 475.2 464.4 478.3 466.7C478.5 466.9 478.7 467.1 478.9 467.4C479.1 467.7 479.1 468 479.1 468.3C479.1 468.6 479 468.9 478.8 469.2C478.6 469.5 478.4 469.7 478.2 469.8C463.5 478.4 448.2 485.7 432.3 491.6C432.1 491.7 431.8 491.8 431.6 492C431.4 492.2 431.3 492.4 431.2 492.7C431.1 493 431.1 493.2 431.1 493.5C431.1 493.8 431.2 494 431.3 494.3C440.1 511.3 450.1 527.6 461.3 543.1C461.5 543.4 461.9 543.7 462.2 543.8C462.5 543.9 463 543.9 463.3 543.8C516.2 527.6 565.9 502.5 610.4 469.6C610.6 469.4 610.8 469.2 610.9 469C611 468.8 611.1 468.5 611.1 468.2C623.4 341.4 590.6 231.3 524.2 133.7zM222.5 401.5C193.5 401.5 169.7 374.9 169.7 342.3C169.7 309.7 193.1 283.1 222.5 283.1C252.2 283.1 275.8 309.9 275.3 342.3C275.3 375 251.9 4..."/></svg>
-          <button onClick={handleMinimize} className="w-7 h-7 text-ally-muted rounded text-[13px] hover:bg-ally-hover hover:text-ally-text transition-colors">─</button>
-          <button onClick={handleMaximize} className="w-7 h-7 text-ally-muted rounded hover:bg-ally-hover hover:text-ally-text flex items-center justify-center leading-none"><span className="text-[26px] leading-none text-center">□</span></button>
-          <button onClick={handleClose} className="w-7 h-7 text-ally-muted rounded text-[13px] hover:bg-red-900 hover:text-ally-text transition-colors">✕</button>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" className="h-5 w-5 text-white" fill="currentColor"><path d="M524.5 133.8C524.3 133.5 524.1 133.2 523.7 133.1C485.6 115.6 445.3 103.1 404 96C403.6 95.9 403.2 96 402.9 96.1C402.6 96.2 402.3 96.5 402.1 96.9C396.6 106.8 391.6 117.1 387.2 127.5C342.6 120.7 297.3 120.7 252.8 127.5C248.3 117 243.3 106.8 237.7 96.9C237.5 96.6 237.2 96.3 236.9 96.1C236.6 95.9 236.2 95.9 235.8 95.9C194.5 103 154.2 115.5 116.1 133C115.8 133.1 115.5 133.4 115.3 133.7C39.1 247.5 18.2 358.6 28.4 468.2C28.4 468.5 28.5 468.7 28.6 469C28.7 469.3 28.9 469.4 29.1 469.6C73.5 502.5 123.1 527.6 175.9 543.8C176.3 543.9 176.7 543.9 177 543.8C177.3 543.7 177.7 543.4 177.9 543.1C189.2 527.7 199.3 511.3 207.9 494.3C208 494.1 208.1 493.8 208.1 493.5C208.1 493.2 208.1 493 208 492.7C207.9 492.4 207.8 492.2 207.6 492.1C207.4 492 207.2 491.8 206.9 491.7C191.1 485.6 175.7 478.3 161 469.8C160.7 469.6 160.5 469.4 160.3 469.2C160.1 469 160 468.6 160 468.3C160 468 160 467.7 160.2 467.4C160.4 467.1 160.5 466.9 160.8 466.7C163.9 464.4 167 462 169.9 459.6C170.2 459.4 170.5 459.2 170.8 459.2C171.1 459.2 171.5 459.2 171.8 459.3C268 503.2 372.2 503.2 467.3 459.3C467.6 459.2 468 459.1 468.3 459.1C468.6 459.1 469 459.3 469.2 459.5C472.1 461.9 475.2 464.4 478.3 466.7C478.5 466.9 478.7 467.1 478.9 467.4C479.1 467.7 479.1 468 479.1 468.3C479.1 468.6 479 468.9 478.8 469.2C478.6 469.5 478.4 469.7 478.2 469.8C463.5 478.4 448.2 485.7 432.3 491.6C432.1 491.7 431.8 491.8 431.6 492C431.4 492.2 431.3 492.4 431.2 492.7C431.1 493 431.1 493.2 431.1 493.5C431.1 493.8 431.2 494 431.3 494.3C440.1 511.3 450.1 527.6 461.3 543.1C461.5 543.4 461.9 543.7 462.2 543.8C462.5 543.9 463 543.9 463.3 543.8C516.2 527.6 565.9 502.5 610.4 469.6C610.6 469.4 610.8 469.2 610.9 469C611 468.8 611.1 468.5 611.1 468.2C623.4 341.4 590.6 231.3 524.2 133.7zM222.5 401.5C193.5 401.5 169.7 374.9 169.7 342.3C169.7 309.7 193.1 283.1 222.5 283.1C252.2 283.1 275.8 309.9 275.3 342.3C275.3 375 251.9 401.5 222.5 401.5zM222.5 401.5C193.5 401.5 169.7 374.9 169.7 342.3C169.7 309.7 193.1 283.1 222.5 283.1C252.2 283.1 275.8 309.9 275.3 342.3C275.3 375 251.9 401.5 222.5 401.5z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" className="h-5 w-5 text-white" fill="currentColor"><path d="M524.5 133.8C524.3 133.5 524.1 133.2 523.7 133.1C485.6 115.6 445.3 103.1 404 96C403.6 95.9 403.2 96 402.9 96.1C402.6 96.2 402.3 96.5 402.1 96.9C396.6 106.8 391.6 117.1 387.2 127.5C342.6 120.7 297.3 120.7 252.8 127.5C248.3 117 243.3 106.8 237.7 96.9C237.5 96.6 237.2 96.3 236.9 96.1C236.6 95.9 236.2 95.9 235.8 95.9C194.5 103 154.2 115.5 116.1 133C115.8 133.1 115.5 133.4 115.3 133.7C39.1 247.5 18.2 358.6 28.4 468.2C28.4 468.5 28.5 468.7 28.6 469C28.7 469.3 28.9 469.4 29.1 469.6C73.5 502.5 123.1 527.6 175.9 543.8C176.3 543.9 176.7 543.9 177 543.8C177.3 543.7 177.7 543.4 177.9 543.1C189.2 527.7 199.3 511.3 207.9 494.3C208 494.1 208.1 493.8 208.1 493.5C208.1 493.2 208.1 493 208 492.7C207.9 492.4 207.8 492.2 207.6 492.1C207.4 492 207.2 491.8 206.9 491.7C191.1 485.6 175.7 478.3 161 469.8C160.7 469.6 160.5 469.4 160.3 469.2C160.1 469 160 468.6 160 468.3C160 468 160 467.7 160.2 467.4C160.4 467.1 160.5 466.9 160.8 466.7C163.9 464.4 167 462 169.9 459.6C170.2 459.4 170.5 459.2 170.8 459.2C171.1 459.2 171.5 459.2 171.8 459.3C268 503.2 372.2 503.2 467.3 459.3C467.6 459.2 468 459.1 468.3 459.1C468.6 459.1 469 459.3 469.2 459.5C472.1 461.9 475.2 464.4 478.3 466.7C478.5 466.9 478.7 467.1 478.9 467.4C479.1 467.7 479.1 468 479.1 468.3C479.1 468.6 479 468.9 478.8 469.2C478.6 469.5 478.4 469.7 478.2 469.8C463.5 478.4 448.2 485.7 432.3 491.6C432.1 491.7 431.8 491.8 431.6 492C431.4 492.2 431.3 492.4 431.2 492.7C431.1 493 431.1 493.2 431.1 493.5C431.1 493.8 431.2 494 431.3 494.3C440.1 511.3 450.1 527.6 461.3 543.1C461.5 543.4 461.9 543.7 462.2 543.8C462.5 543.9 463 543.9 463.3 543.8C516.2 527.6 565.9 502.5 610.4 469.6C610.6 469.4 610.8 469.2 610.9 469C611 468.8 611.1 468.5 611.1 468.2C623.4 341.4 590.6 231.3 524.2 133.7zM222.5 401.5C193.5 401.5 169.7 374.9 169.7 342.3C169.7 309.7 193.1 283.1 222.5 283.1C252.2 283.1 275.8 309.9 275.3 342.3C275.3 375 251.9 4...z"/></svg>
+          <div className="w-px h-5 bg-white mx-1" />
+          <button onClick={handleMinimize} className="w-7 h-7 text-white rounded text-[13px] hover:bg-ally-hover hover:text-white transition-colors">─</button>
+          <button onClick={handleMaximize} className="w-7 h-7 text-white rounded hover:bg-ally-hover hover:text-white flex items-center justify-center leading-none"><span className="text-[26px] leading-none text-center">□</span></button>
+          <button onClick={handleClose} className="w-7 h-7 text-white rounded text-[13px] hover:bg-red-900 hover:text-white transition-colors">✕</button>
         </div>
       </div>
 
       {/* Bar 2 — Nav tabs */}
-      <div className="w-full h-8 flex-shrink-0 bg-ally-bg flex items-center justify-center gap-4">
+      <div className="w-full h-8 flex-shrink-0 bg-ally-card flex items-center justify-center gap-4">
         {TABS.map((tab) => (
           <button
             key={tab}
             onClick={() => setActivePage(tab)}
-            className={`px-2 h-full text-[13px] whitespace-nowrap transition-colors ${activePage === tab ? 'text-ally-accent border-b-2 border-ally-accent' : 'text-ally-muted hover:text-ally-text'}`}
+            className={`px-2 h-full text-[13px] whitespace-nowrap transition-colors ${activePage === tab ? 'text-white border-b-2 border-white' : 'text-white hover:text-white'}`}
           >
             {tab}
           </button>
@@ -146,16 +158,16 @@ export function DesktopApp() {
       </div>
 
       {/* Page area */}
-      <div className="w-full flex-1 flex flex-row bg-ally-bg px-8 py-6">
+      <div className="w-full flex-1 flex flex-row bg-ally-bg px-8 py-6 gap-6">
         {activePage === 'In Game' ? (
             <>
-<aside className="flex flex-1 flex-col items-end justify-center gap-6 px-6">
+<aside className="flex flex-1 flex-col items-end justify-center gap-6 px-6 mr-4">
   <SidebarBox><div className="text-right">Box</div></SidebarBox>
   <SidebarBox><div className="text-right">Box</div></SidebarBox>
   <SidebarBox><div className="text-right">Box</div></SidebarBox>
 </aside>
-   <section className="w-full max-w-[1000px] flex flex-col border-x border-ally-border/50">
-    <div className="text-[11px] uppercase tracking-widest text-ally-muted mb-4">Live Lobby</div>
+   <section className="w-full max-w-[1000px] flex flex-col">
+    <div className="text-[11px] uppercase tracking-widest text-white mb-4">Live Lobby</div>
     <div className="grid grid-cols-2 gap-3">
       {Array.from({ length: 8 }).map((_, i) => (
         <SkeletonPlayerCard key={i} />
@@ -171,7 +183,7 @@ export function DesktopApp() {
 </>
           ) : (
           <div className="flex items-center justify-center h-full">
-            <span className="text-ally-muted text-sm">{activePage}</span>
+            <span className="text-white text-sm">{activePage}</span>
 </div>
 
         )}
