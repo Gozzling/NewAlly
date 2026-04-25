@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from 'react'
 import type { MetaComp } from '../types/tft'
 import { CompCard } from '../components/CompCard'
 import { StatCard } from '../components/StatCard'
-import { Search, TrendingUp, LayoutGrid } from 'lucide-react'
+import { Search, TrendingUp, LayoutGrid, Rocket, BadgeCheck } from 'lucide-react'
+import { SET_17_PATCH } from '../services/dataFetchService'
 
 const TIERS = ['S', 'A', 'B', 'C'] as const
 type Tier = (typeof TIERS)[number]
@@ -65,6 +66,21 @@ export function Dashboard() {
 
   return (
     <div className="space-y-5">
+      {/* Set 17 Badge */}
+      <div className="flex items-center gap-3 bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg p-3">
+        <div className="w-9 h-9 rounded-lg bg-[#35c3e7]/10 flex items-center justify-center text-[#35c3e7]">
+          <Rocket className="w-5 h-5" />
+        </div>
+        <div className="flex-1">
+          <div className="text-sm font-bold text-white flex items-center gap-1.5">
+            Set {SET_17_PATCH.setNumber}: {SET_17_PATCH.setName}
+            <BadgeCheck className="w-3.5 h-3.5 text-[#35c3e7]" />
+          </div>
+          <div className="text-[11px] text-neutral-400">Current patch: {SET_17_PATCH.patch} &middot; {SET_17_PATCH.tftPatch}</div>
+        </div>
+        <div className="px-2 py-1 rounded bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-semibold">Active</div>
+      </div>
+
       {/* Header stats */}
       <div className="grid grid-cols-3 gap-3">
         <StatCard label="Total Comps" value={String(comps.length)} subtext="Meta viable builds" />
