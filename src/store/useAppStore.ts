@@ -86,6 +86,7 @@ export const EMPTY_STATE: TftGameState = {
   activeCompTracker: { bestMatchName: null, matchPercentage: 0, missingUnits: [] },
   benchComponents: [],
   itemTracker: { craftable: [], missing: [] },
+  augmentSlots: [],
   raw: {},
 };
 

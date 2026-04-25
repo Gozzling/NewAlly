@@ -54,6 +54,7 @@ export interface TftGameState {
   activeCompTracker: ActiveCompTracker
   benchComponents: string[]
   itemTracker: ItemTracker
+  augmentSlots: string[]
   raw: Record<string, unknown>
 }
 
