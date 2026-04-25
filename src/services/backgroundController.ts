@@ -7,6 +7,7 @@ import {
   parseBenchComponents,
   calculateBestCompMatch,
   calculateItemCrafting,
+  detectCompFromUnits,
 } from "@/shared/gameEngine";
 import type { MetaComp, ItemRecipes, TftGameState } from "@/types/tft";
 import { openWindow, hideWindow, getWindowId } from "./overwolfWindowService";
@@ -69,20 +70,30 @@ function recalcItems(): void {
 // ── GEP via GeppService ────────────────────────────────────────────────────
 
 function buildPersonalMatchRecord(eventData?: Record<string, unknown>): PersonalMatchRecord {
-  const gs = useAppStore.getState().gameState;
+  const app = useAppStore.getState();
+  const gs = app.gameState;
   const now = Date.now();
   const boardUnits = gs.board.units ?? [];
   const items = boardUnits.flatMap((u) => u.items ?? []);
+  const units = boardUnits.map((u) => u.name).filter(Boolean);
+  const summonerName = app.selectedPlayer?.name ?? "Unknown";
+  const region = app.settings.region;
+  const compDetected = detectCompFromUnits(units);
 
   return {
-    id: `gep-${now}`,
+    id: `match-${now}-${summonerName}`,
+    summonerName,
+    region,
     createdAt: now,
+    timestamp: now,
+    isSynced: false,
     syncStatus: "pending",
     placement: gs.roster.find((p) => p.isLocalPlayer)?.rank ?? null,
-    units: boardUnits.map((u) => u.name).filter(Boolean),
+    units,
     items,
     augments: gs.augmentSlots ?? [],
-    comp: gs.activeCompTracker.bestMatchName ?? null,
+    comp: compDetected || (gs.activeCompTracker.bestMatchName ?? null),
+    compName: compDetected || (gs.activeCompTracker.bestMatchName ?? null),
     duration: eventData?.duration ? Number(eventData.duration) : null,
     source: "gep_match_end",
     raw: {

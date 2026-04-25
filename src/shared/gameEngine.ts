@@ -3,6 +3,7 @@ import type {
   ActiveCompTracker, ItemTracker, CraftableItem, MissingItem,
   MetaComp, ItemRecipes,
 } from '../types/tft'
+import { UNITS } from '../data/units'
 
 // ─── Normalizers ──────────────────────────────────────────────────────────────
 
@@ -120,6 +121,32 @@ export function calculateBestCompMatch(
     }
   }
   return best ?? empty
+}
+
+export function detectCompFromUnits(units: string[]): string {
+  if (!units.length) return 'Mixed'
+
+  const normalized = units.map((u) => normalizeChampionId(u).toLowerCase())
+  const traitCounts: Record<string, number> = {}
+
+  for (const unitName of normalized) {
+    const unit = UNITS.find((x) => x.name.toLowerCase() === unitName)
+    if (!unit) continue
+    for (const trait of unit.traits) {
+      traitCounts[trait] = (traitCounts[trait] ?? 0) + 1
+    }
+  }
+
+  const topTraits = Object.entries(traitCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2)
+    .map(([name]) => name)
+
+  if (topTraits.length === 0) {
+    return units.slice(0, 3).join(' / ') || 'Mixed'
+  }
+
+  return topTraits.join(' / ')
 }
 
 export function calculateItemCrafting(
