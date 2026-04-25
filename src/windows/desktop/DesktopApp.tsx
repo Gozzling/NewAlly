@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
-import { useAppStore } from '@/store/useAppStore'
-import { subscribeToStateSnapshots } from '@/services/ipcService'
-import { Dashboard } from '@/pages/Dashboard'
-import { ItemsGuide } from '@/pages/ItemsGuide'
-import { UnitGuide } from '@/pages/UnitGuide'
-import { SynergyGuide } from '@/pages/SynergyGuide'
-import { AugmentGuide } from '@/pages/AugmentGuide'
-import { TeamBuilder } from '@/pages/TeamBuilder'
-import { PlayerSearch } from '@/pages/PlayerSearch'
+import { useEffect, useRef, useState } from 'react';
+import { useAppStore } from '@/store/useAppStore';
+import { subscribeToStateSnapshots } from '@/services/ipcService';
+import { Dashboard } from '@/pages/Dashboard';
+import { ItemsGuide } from '@/pages/ItemsGuide';
+import { UnitGuide } from '@/pages/UnitGuide';
+import { SynergyGuide } from '@/pages/SynergyGuide';
+import { AugmentGuide } from '@/pages/AugmentGuide';
+import { TeamBuilder } from '@/pages/TeamBuilder';
+import { PlayerSearch } from '@/pages/PlayerSearch';
 
 function getCurrentWindowId(): Promise<string> {
   return new Promise((resolve) => {
@@ -81,15 +81,238 @@ const TABS = [
 ];
 
 // TFT data for typing animation
-const CHAMPIONS = ['Aatrox', 'Briar', 'Caitlyn', 'ChoGath', 'Ezreal', 'Leona', 'Lissandra', 'Nasus', 'Poppy', 'RekSai', 'Talon', 'Teemo', 'Twisted Fate', 'Veigar', 'Akali', 'Belveth', 'Gnar', 'Gragas', 'Gwen', 'Jax', 'Jinx', 'Meepsie', 'Milio', 'Mordekaiser', 'Pantheon', 'Pyke', 'Zoe', 'Aurora', 'Diana', 'Fizz', 'Illaoi', 'Kaisa', 'Lulu', 'Maokai', 'Miss Fortune', 'Ornn', 'Rhaast', 'Samira', 'Urgot', 'Viktor', 'Aurelion Sol', 'Corki', 'Karma', 'Kindred', 'Leblanc', 'Master Yi', 'Nami', 'Nunu', 'Rammus', 'Riven', 'Tahm Kench', 'The Mighty Mech', 'Xayah', 'Bard', 'Blitzcrank', 'Fiora', 'Graves', 'Jhin', 'Morgana', 'Shen', 'Sona', 'Vex', 'Zed'];
+const CHAMPIONS = [
+  'Aatrox',
+  'Briar',
+  'Caitlyn',
+  'ChoGath',
+  'Ezreal',
+  'Leona',
+  'Lissandra',
+  'Nasus',
+  'Poppy',
+  'RekSai',
+  'Talon',
+  'Teemo',
+  'Twisted Fate',
+  'Veigar',
+  'Akali',
+  'Belveth',
+  'Gnar',
+  'Gragas',
+  'Gwen',
+  'Jax',
+  'Jinx',
+  'Meepsie',
+  'Milio',
+  'Mordekaiser',
+  'Pantheon',
+  'Pyke',
+  'Zoe',
+  'Aurora',
+  'Diana',
+  'Fizz',
+  'Illaoi',
+  'Kaisa',
+  'Lulu',
+  'Maokai',
+  'Miss Fortune',
+  'Ornn',
+  'Rhaast',
+  'Samira',
+  'Urgot',
+  'Viktor',
+  'Aurelion Sol',
+  'Corki',
+  'Karma',
+  'Kindred',
+  'Leblanc',
+  'Master Yi',
+  'Nami',
+  'Nunu',
+  'Rammus',
+  'Riven',
+  'Tahm Kench',
+  'The Mighty Mech',
+  'Xayah',
+  'Bard',
+  'Blitzcrank',
+  'Fiora',
+  'Graves',
+  'Jhin',
+  'Morgana',
+  'Shen',
+  'Sona',
+  'Vex',
+  'Zed',
+];
 
-const ITEMS = ['Adaptive Helm', 'Archangel Staff', 'Bloodthirster', 'Blue Buff', 'Bramble Vest', 'Crownguard', 'Deathblade', 'Dragon Claw', 'Edge of Night', 'Evenshroud', 'Gargoyle Stoneplate', 'Giant Slayer', 'Guinsoo Rageblade', 'Hand Of Justice', 'Hextech Gunblade', 'Infinity Edge', 'Ionic Spark', 'Jeweled Gauntlet', 'Kraken Fury', 'Last Whisper', 'Morellonomicon', 'Nashor Tooth', 'Protector Vow', 'Quicksilver', 'Rabadon Deathcap', 'Red Buff', 'Spear of Shojin', 'Spirit Visage', 'Steadfast Heart', 'Sterak Gage', 'Striker Flail', 'Sunfire Cape', 'Thief Gloves', 'Titan Resolve', 'Void Staff', 'Warmog Armor', 'Anima Emblem', 'Arbiter Emblem', 'Bastion Emblem', 'Brawler Emblem', 'Challenger Emblem', 'Dark Star Emblem', 'Marauder Emblem', 'Meeple Emblem', 'N.O.V.A. Emblem', 'Primordian Emblem', 'Psionic Emblem', 'Rogue Emblem', 'Shepherd Emblem', 'Sniper Emblem', 'Space Groove Emblem', 'Stargazer Emblem', 'Timebreaker Emblem', 'Vanguard Emblem', 'Voyager Emblem'];
+const ITEMS = [
+  'Adaptive Helm',
+  'Archangel Staff',
+  'Bloodthirster',
+  'Blue Buff',
+  'Bramble Vest',
+  'Crownguard',
+  'Deathblade',
+  'Dragon Claw',
+  'Edge of Night',
+  'Evenshroud',
+  'Gargoyle Stoneplate',
+  'Giant Slayer',
+  'Guinsoo Rageblade',
+  'Hand Of Justice',
+  'Hextech Gunblade',
+  'Infinity Edge',
+  'Ionic Spark',
+  'Jeweled Gauntlet',
+  'Kraken Fury',
+  'Last Whisper',
+  'Morellonomicon',
+  'Nashor Tooth',
+  'Protector Vow',
+  'Quicksilver',
+  'Rabadon Deathcap',
+  'Red Buff',
+  'Spear of Shojin',
+  'Spirit Visage',
+  'Steadfast Heart',
+  'Sterak Gage',
+  'Striker Flail',
+  'Sunfire Cape',
+  'Thief Gloves',
+  'Titan Resolve',
+  'Void Staff',
+  'Warmog Armor',
+  'Anima Emblem',
+  'Arbiter Emblem',
+  'Bastion Emblem',
+  'Brawler Emblem',
+  'Challenger Emblem',
+  'Dark Star Emblem',
+  'Marauder Emblem',
+  'Meeple Emblem',
+  'N.O.V.A. Emblem',
+  'Primordian Emblem',
+  'Psionic Emblem',
+  'Rogue Emblem',
+  'Shepherd Emblem',
+  'Sniper Emblem',
+  'Space Groove Emblem',
+  'Stargazer Emblem',
+  'Timebreaker Emblem',
+  'Vanguard Emblem',
+  'Voyager Emblem',
+];
 
-const PLAYERS = ['Fuktigt Rostbröd#Hiii', 'Double61#EUW', 'K3Soju#KR', 'Prestivent#NA', 'Setsuko#EUW', 'Kurumx#NA', 'Dishsoap#EUW', 'RiotMax#RIOT', 'RiotMort#RIOT', 'RiotPhroxzon#RIOT', 'RiotMatt#RIOT', 'RiotAugust#RIOT', 'RiotRoaming#RIOT', 'RiotSapMagic#RIOT', 'RiotMeddler#RIOT'];
+const PLAYERS = [
+  'Fuktigt Rostbröd#Hiii',
+  'Double61#EUW',
+  'K3Soju#KR',
+  'Prestivent#NA',
+  'Setsuko#EUW',
+  'Kurumx#NA',
+  'Dishsoap#EUW',
+  'RiotMax#RIOT',
+  'RiotMort#RIOT',
+  'RiotPhroxzon#RIOT',
+  'RiotMatt#RIOT',
+  'RiotAugust#RIOT',
+  'RiotRoaming#RIOT',
+  'RiotSapMagic#RIOT',
+  'RiotMeddler#RIOT',
+];
 
-const TRAITS = ['Anima', 'Arbiter', 'Dark Star', 'Mecha', 'Meeple', 'N.O.V.A.', 'Primordian', 'Psionic', 'Space Groove', 'Stargazer', 'Timebreaker', 'Shepherd', 'Bastion', 'Brawler', 'Channeler', 'Challenger', 'Commander', 'Divine Duelist', 'Eradicator', 'Fateweaver', 'Marauder', 'Party Animal', 'Replicator', 'Rogue', 'Sniper', 'Vanguard', 'Voyager'];
+const TRAITS = [
+  'Anima',
+  'Arbiter',
+  'Dark Star',
+  'Mecha',
+  'Meeple',
+  'N.O.V.A.',
+  'Primordian',
+  'Psionic',
+  'Space Groove',
+  'Stargazer',
+  'Timebreaker',
+  'Shepherd',
+  'Bastion',
+  'Brawler',
+  'Channeler',
+  'Challenger',
+  'Commander',
+  'Divine Duelist',
+  'Eradicator',
+  'Fateweaver',
+  'Marauder',
+  'Party Animal',
+  'Replicator',
+  'Rogue',
+  'Sniper',
+  'Vanguard',
+  'Voyager',
+];
 
-const AUGMENTS = ['Accretion', 'Ardent Censer', 'Backfoot', 'Battlemage', 'Blue Battery', 'Cull', 'Cybernetic Implants', 'Daring', 'Deathblade', 'Electrocharge', 'Economizer', 'Feint', 'First Aid Kit', 'Gotta Go Fast', 'Greed', 'Heart of Steel', 'Hextech Gunblade', 'High Voltage', 'Illuminated', 'Last Stand', 'Lethality', 'Lightning Greaves', 'Lucky Looter', 'Luden Echo', 'Meditation', 'Metabolic Accelerator', 'Multistrike', 'Mystic', 'Never Give Up', 'Pantheon', 'Phoenix', 'Plunder', 'Power Surge', 'Precious Cargo', 'Prismatic Heart', 'Promoted', 'Protector', 'Quickdraw', 'Rapid Fire', 'Reconnaissance', 'Reinforced', 'Resurrection', 'Ricochet', 'Second Wind', 'Shapeshifter', 'Siphon', 'Spectral', 'Stoneskin Plate', 'Sunfire', 'Tactical', 'Thieves Tools', 'Titan Wrath', 'Tri Force', 'Underdog', 'Verdant Veil', 'Warlords Banner', 'Wise Sage', 'Wishful Thinking'];
+const AUGMENTS = [
+  'Accretion',
+  'Ardent Censer',
+  'Backfoot',
+  'Battlemage',
+  'Blue Battery',
+  'Cull',
+  'Cybernetic Implants',
+  'Daring',
+  'Deathblade',
+  'Electrocharge',
+  'Economizer',
+  'Feint',
+  'First Aid Kit',
+  'Gotta Go Fast',
+  'Greed',
+  'Heart of Steel',
+  'Hextech Gunblade',
+  'High Voltage',
+  'Illuminated',
+  'Last Stand',
+  'Lethality',
+  'Lightning Greaves',
+  'Lucky Looter',
+  'Luden Echo',
+  'Meditation',
+  'Metabolic Accelerator',
+  'Multistrike',
+  'Mystic',
+  'Never Give Up',
+  'Pantheon',
+  'Phoenix',
+  'Plunder',
+  'Power Surge',
+  'Precious Cargo',
+  'Prismatic Heart',
+  'Promoted',
+  'Protector',
+  'Quickdraw',
+  'Rapid Fire',
+  'Reconnaissance',
+  'Reinforced',
+  'Resurrection',
+  'Ricochet',
+  'Second Wind',
+  'Shapeshifter',
+  'Siphon',
+  'Spectral',
+  'Stoneskin Plate',
+  'Sunfire',
+  'Tactical',
+  'Thieves Tools',
+  'Titan Wrath',
+  'Tri Force',
+  'Underdog',
+  'Verdant Veil',
+  'Warlords Banner',
+  'Wise Sage',
+  'Wishful Thinking',
+];
 
 export function DesktopApp() {
   const state = useAppStore((s: any) => s.gameState);
@@ -177,11 +400,11 @@ export function DesktopApp() {
     <div className="w-full h-full flex flex-col bg-ally-bg text-white font-sans">
       <style>{`
 @keyframes breathe {
-  0%,100% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.01); opacity: 1; }
+  0%,100% { transform: scale(1); opacity: 0.05; }
+  50% { transform: scale(1.005); opacity: 1; }
 }
 .sidebar-box {
-  animation: breathe 3s infinite;
+  animation: breathe 5s infinite;
 }
 @keyframes shimmer {
   0% { background-position: -200% 0; }
@@ -322,21 +545,27 @@ export function DesktopApp() {
           <div className="w-px h-5 bg-white mx-1" />
           <button
             onClick={handleMinimize}
-            className="w-7 h-7 text-white rounded text-[13px] hover:bg-ally-hover hover:text-white transition-colors"
+            className="w-7 h-7 text-white rounded text-[13px] hover:bg-ally-hover hover:text-white transition-colors flex items-center justify-center"
           >
-            ─
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+            </svg>
           </button>
           <button
             onClick={handleMaximize}
-            className="w-7 h-7 text-white rounded hover:bg-ally-hover hover:text-white flex items-center justify-center leading-none"
+            className="w-7 h-7 text-white rounded hover:bg-ally-hover hover:text-white flex items-center justify-center transition-colors"
           >
-            <span className="text-[26px] leading-none text-center">□</span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h18v18H3V3z" />
+            </svg>
           </button>
           <button
             onClick={handleClose}
-            className="w-7 h-7 text-white rounded text-[13px] hover:bg-red-900 hover:text-white transition-colors"
+            className="w-7 h-7 text-white rounded hover:bg-red-900 hover:text-white transition-colors flex items-center justify-center"
           >
-            ✕
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
       </div>
@@ -347,88 +576,70 @@ export function DesktopApp() {
           <button
             key={tab}
             onClick={() => setActivePage(tab)}
-            className={`px-2 h-full text-[13px] whitespace-nowrap transition-colors ${activePage === tab ? 'text-white border-b-2 border-white' : 'text-white hover:text-white'}`}
+            className={`px-2 h-full text-[13px] whitespace-nowrap transition-colors ${activePage === tab ? 'text-white border-b-2' : 'text-white hover:text-white border-b-2 border-transparent hover:border-[#35c3e7]'}`}
+            style={activePage === tab ? { borderBottomColor: '#35c3e7' } as React.CSSProperties : undefined}
           >
             {tab}
           </button>
         ))}
       </div>
 
-       {/* Page area */}
-       <div className="w-full flex-1 flex flex-row bg-ally-bg px-8 py-6 gap-6">
-         {activePage === 'In Game' ? (
-           <>
-             <aside className="flex flex-1 flex-col items-end justify-center gap-6 px-6 mr-4">
-               <SidebarBox>
-                 <div className="text-right">Box</div>
-               </SidebarBox>
-               <SidebarBox>
-                 <div className="text-right">Box</div>
-               </SidebarBox>
-               <SidebarBox>
-                 <div className="text-right">Box</div>
-               </SidebarBox>
-             </aside>
-             <section className="w-full max-w-[1000px] flex flex-col">
-               <div className="text-[11px] uppercase tracking-widest text-white mb-4">
-                 (Mockups)
-               </div>
-               <div className="grid grid-cols-2 gap-3">
-                 {Array.from({ length: 8 }).map((_, i) => (
-                   <SkeletonPlayerCard key={i} />
-                 ))}
-               </div>
-             </section>
-             <aside className="hidden lg:flex flex-1 flex-col items-start justify-center gap-6 px-6">
-               <SidebarBox>
-                 <div className="text-left">Box A</div>
-               </SidebarBox>
-               <SidebarBox>
-                 <div className="text-left">Box B</div>
-               </SidebarBox>
-               <SidebarBox>
-                 <div className="text-left">Box C</div>
-               </SidebarBox>
-             </aside>
-           </>
-         ) : (
-           <div className="flex items-center justify-center h-full">
-             <span className="text-white text-sm">{activePage}</span>
-           </div>
-         )}
-       </div>
-              <div className="grid grid-cols-2 gap-4">
+      {/* Page area */}
+      <div className="w-full flex-1 flex flex-row bg-ally-bg px-8 py-6 gap-6 items-start">
+        {activePage === 'In Game' ? (
+          <>
+            <aside className="flex flex-1 flex-col items-end gap-6 px-6 mr-4" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
+              <SidebarBox />
+              <SidebarBox />
+              <SidebarBox />
+            </aside>
+            <section className="w-full max-w-[1000px] flex flex-col">
+              <div className="text-[11px] uppercase tracking-widest text-white mb-4 text-center">
+                (Mockups)
+              </div>
+              <div className="grid grid-cols-2 gap-3 -mt-[100px]">
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="bg-ally-card rounded-xl p-8 flex flex-row items-center gap-5 min-h-[200px]">
-                    <div className="w-24 h-24 rounded-full bg-ally-hover flex-shrink-0" />
+                  <div
+                    key={i}
+                    className="bg-ally-card rounded-xl p-4 flex flex-col items-start gap-2 min-h-[200px]"
+                  >
+                    <div className="w-16 h-16 rounded-full bg-ally-hover flex-shrink-0" />
                     <div className="flex-1">
-                      <div className="text-white text-lg font-semibold mb-1">Player {i + 1}</div>
-                      <div className="text-ally-muted text-sm">Rank {i + 1}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-white text-sm mb-1">Gold: {Math.floor(Math.random() * 50) + 10}</div>
-                      <div className="text-ally-muted text-sm">HP: {100 - i * 10}%</div>
+                      <div className="text-white text-sm font-semibold mb-0.5">
+                        Player {i + 1}
+                      </div>
+                      <div className="text-ally-muted text-xs">
+                        Rank {i + 1}
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             </section>
-            <aside className="hidden lg:flex flex-1 flex-col items-start justify-center gap-6 px-6">
-              <SidebarBox>
-                <div className="text-left text-ally-muted text-sm">Comps</div>
-              </SidebarBox>
-              <SidebarBox>
-                <div className="text-left text-ally-muted text-sm">History</div>
-              </SidebarBox>
-              <SidebarBox>
-                <div className="text-left text-ally-muted text-sm">Augments</div>
-              </SidebarBox>
+            <aside className="hidden lg:flex flex-1 flex-col items-start gap-6 px-6" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
+              <SidebarBox />
+              <SidebarBox />
+              <SidebarBox />
             </aside>
           </>
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <span className="text-white text-sm">{activePage}</span>
-          </div>
+          <>
+            <aside className="flex flex-1 flex-col items-end gap-6 px-6 mr-4" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
+              <SidebarBox />
+              <SidebarBox />
+              <SidebarBox />
+            </aside>
+            <section className="w-full max-w-[1000px] flex flex-col">
+              <div className="flex items-center justify-center h-full">
+                <span className="text-white text-sm">{activePage}</span>
+              </div>
+            </section>
+            <aside className="hidden lg:flex flex-1 flex-col items-start gap-6 px-6" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
+              <SidebarBox />
+              <SidebarBox />
+              <SidebarBox />
+            </aside>
+          </>
         )}
       </div>
     </div>
