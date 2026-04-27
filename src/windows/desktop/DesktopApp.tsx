@@ -1,13 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { subscribeToStateSnapshots } from '@/services/ipcService';
-import { Dashboard } from '@/pages/Dashboard';
-import { ItemsGuide } from '@/pages/ItemsGuide';
-import { UnitGuide } from '@/pages/UnitGuide';
-import { SynergyGuide } from '@/pages/SynergyGuide';
-import { AugmentGuide } from '@/pages/AugmentGuide';
 import { TeamBuilder } from '@/pages/TeamBuilder';
-import { PlayerSearch } from '@/pages/PlayerSearch';
 
 function getCurrentWindowId(): Promise<string> {
   return new Promise((resolve) => {
@@ -17,54 +11,10 @@ function getCurrentWindowId(): Promise<string> {
   });
 }
 
-// Skeleton placeholder component for lobby player cards
-function SkeletonPlayerCard() {
-  return (
-    <div className="bg-ally-card rounded-xl p-5 flex flex-row items-center gap-3 animate-pulse aspect-square max-w-[280px]">
-      {/* Avatar circle */}
-      <div className="w-16 h-16 rounded-full bg-ally-hover" />
-      {/* Name line */}
-      <div className="w-28 h-3 rounded-full bg-ally-hover" />
-      {/* Subtitle line */}
-      <div className="w-20 h-2.5 rounded-full bg-ally-hover" />
-      {/* Stats row */}
-      <div className="flex gap-2 mt-1">
-        <div className="w-10 h-6 rounded bg-ally-hover" />
-        <div className="w-10 h-6 rounded bg-ally-hover" />
-        <div className="w-10 h-6 rounded bg-ally-hover" />
-      </div>
-      {/* Tag pills */}
-      <div className="flex gap-2">
-        <div className="w-14 h-5 rounded-full bg-ally-hover" />
-        <div className="w-16 h-5 rounded-full bg-ally-hover" />
-      </div>
-    </div>
-  );
-}
-
 function SidebarBox({ children }: { children?: React.ReactNode }) {
   return (
     <div className="bg-ally-card rounded-xl w-[240px] aspect-square flex items-center justify-center overflow-hidden relative sidebar-box">
       {children}
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  valueClass = 'text-white',
-}: {
-  label: string;
-  value: string;
-  valueClass?: string;
-}) {
-  return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3.5">
-      <div className="text-[10px] uppercase tracking-widest text-neutral-600 mb-1.5">
-        {label}
-      </div>
-      <div className={`text-2xl font-bold ${valueClass}`}>{value}</div>
     </div>
   );
 }
@@ -630,9 +580,11 @@ export function DesktopApp() {
               <SidebarBox />
             </aside>
             <section className="w-full max-w-[1000px] flex flex-col">
-              <div className="flex items-center justify-center h-full">
-                <span className="text-white text-sm">{activePage}</span>
-              </div>
+              {activePage === 'Team Builder' ? <TeamBuilder /> : (
+                <div className="flex items-center justify-center h-full">
+                  <span className="text-white text-sm">{activePage}</span>
+                </div>
+              )}
             </section>
             <aside className="hidden lg:flex flex-1 flex-col items-start gap-6 px-6" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
               <SidebarBox />
