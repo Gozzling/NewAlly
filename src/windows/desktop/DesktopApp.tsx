@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { subscribeToStateSnapshots } from '@/services/ipcService';
-import { Dashboard } from '@/pages/Dashboard';
-import { ItemsGuide } from '@/pages/ItemsGuide';
-import { UnitGuide } from '@/pages/UnitGuide';
-import { SynergyGuide } from '@/pages/SynergyGuide';
-import { AugmentGuide } from '@/pages/AugmentGuide';
 import { TeamBuilder } from '@/pages/TeamBuilder';
 import { PlayerSearch } from '@/pages/PlayerSearch';
 import { META_COMPS } from '@/data/metaComps';
@@ -17,31 +12,6 @@ function getCurrentWindowId(): Promise<string> {
       if (r.status === 'success') resolve(r.window.id);
     });
   });
-}
-
-// Skeleton placeholder component for lobby player cards
-function SkeletonPlayerCard() {
-  return (
-    <div className="bg-ally-card rounded-xl p-5 flex flex-row items-center gap-3 animate-pulse aspect-square max-w-[280px]">
-      {/* Avatar circle */}
-      <div className="w-16 h-16 rounded-full bg-ally-hover" />
-      {/* Name line */}
-      <div className="w-28 h-3 rounded-full bg-ally-hover" />
-      {/* Subtitle line */}
-      <div className="w-20 h-2.5 rounded-full bg-ally-hover" />
-      {/* Stats row */}
-      <div className="flex gap-2 mt-1">
-        <div className="w-10 h-6 rounded bg-ally-hover" />
-        <div className="w-10 h-6 rounded bg-ally-hover" />
-        <div className="w-10 h-6 rounded bg-ally-hover" />
-      </div>
-      {/* Tag pills */}
-      <div className="flex gap-2">
-        <div className="w-14 h-5 rounded-full bg-ally-hover" />
-        <div className="w-16 h-5 rounded-full bg-ally-hover" />
-      </div>
-    </div>
-  );
 }
 
 function SidebarBox({ children }: { children?: React.ReactNode }) {
@@ -207,6 +177,8 @@ function CompCard({ comp, tier = 'A' }: { comp: MetaComp; tier?: string }) {
   );
 }
 
+=======
+>>>>>>> 4ed29d8cda1c9816566c4c557adf66b565a4587e
 const TABS = [
   'In Game',
   'Comps',
@@ -1218,9 +1190,11 @@ export function DesktopApp() {
               <SidebarBox />
             </aside>
             <section className="w-full max-w-[1000px] flex flex-col">
-              <div className="flex items-center justify-center h-full">
-                <span className="text-white text-sm">{activePage}</span>
-              </div>
+              {activePage === 'Team Builder' ? <TeamBuilder /> : (
+                <div className="flex items-center justify-center h-full">
+                  <span className="text-white text-sm">{activePage}</span>
+                </div>
+              )}
             </section>
             <aside className="hidden lg:flex flex-1 flex-col items-start gap-6 px-6" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
               <SidebarBox />
