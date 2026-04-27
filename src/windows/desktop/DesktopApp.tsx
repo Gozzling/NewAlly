@@ -8,6 +8,8 @@ import { SynergyGuide } from '@/pages/SynergyGuide';
 import { AugmentGuide } from '@/pages/AugmentGuide';
 import { TeamBuilder } from '@/pages/TeamBuilder';
 import { PlayerSearch } from '@/pages/PlayerSearch';
+import { META_COMPS } from '@/data/metaComps';
+import type { MetaComp } from '@/types/tft';
 
 function getCurrentWindowId(): Promise<string> {
   return new Promise((resolve) => {
@@ -65,6 +67,142 @@ function StatCard({
         {label}
       </div>
       <div className={`text-2xl font-bold ${valueClass}`}>{value}</div>
+    </div>
+  );
+}
+
+// Skeleton loader for Items tab
+function ItemsSkeleton() {
+  return (
+    <div className="p-5 space-y-4">
+      <div className="flex items-center gap-2">
+        <div className="w-5 h-5 bg-ally-hover rounded-full animate-pulse" />
+        <h1 className="text-lg font-bold text-white animate-pulse">Items Guide</h1>
+      </div>
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 bg-ally-hover rounded-full animate-pulse" />
+          <input
+            type="text"
+            placeholder="Search item or component..."
+            className="w-full bg-ally-bg border border-ally-border rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-ally-muted focus:outline-none focus:ring-2 focus:ring-ally-accent"
+            readOnly
+          />
+        </div>
+        <select
+          className="bg-ally-bg border border-ally-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-ally-accent"
+          readOnly
+        >
+          <option value="all">All Tags</option>
+          <option value="offense">Offense</option>
+          <option value="defense">Defense</option>
+          <option value="AP">Ability Power</option>
+          <option value="tank">Tank</option>
+          <option value="sustain">Sustain</option>
+          <option value="mana">Mana</option>
+          <option value="hybrid">Hybrid</option>
+        </select>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Item card skeletons */}
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((_, index) => (
+          <div key={index} className="bg-ally-card border border-ally-border rounded-xl p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="w-24 h-4 bg-ally-hover rounded animate-pulse" />
+              <span className="w-12 h-3 bg-ally-hover rounded animate-pulse" />
+            </div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {[1, 2, 3].map((_, tagIndex) => (
+                <span key={tagIndex} className="flex items-center gap-1 px-1.5 py-0.5 bg-ally-hover rounded text-[10px] text-neutral-400 animate-pulse">
+                  <div className="w-3 h-3 bg-ally-bg rounded" />
+                  <span className="w-4 h-1 bg-ally-hover rounded animate-pulse" />
+                </span>
+              ))}
+            </div>
+            <div className="w-20 h-2 bg-ally-hover rounded animate-pulse" />
+            <div className="w-24 h-2 bg-ally-hover rounded animate-pulse" />
+            <div className="text-[11px] text-neutral-500">
+              <span className="w-20 h-2 bg-ally-hover rounded animate-pulse inline-block" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CompCard({ comp, tier = 'A' }: { comp: MetaComp; tier?: string }) {
+  const getTierColor = (tier: string) => {
+    switch (tier.toUpperCase()) {
+      case 'S': return 'bg-red-500';
+      case 'A': return 'bg-orange-500';
+      case 'B': return 'bg-yellow-500';
+      case 'C': return 'bg-green-500';
+      case 'D': return 'bg-blue-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  return (
+    <div className="bg-ally-card rounded-lg p-4 border border-ally-border hover:border-ally-accent transition-colors">
+      <div className="flex gap-4">
+        {/* Tier indicator */}
+        <div className={`w-12 h-12 rounded-lg flex-shrink-0 ${getTierColor(tier)} flex items-center justify-center text-white font-bold text-xl`}>
+          {tier}
+        </div>
+        
+        {/* Comp info */}
+        <div className="flex-1 flex flex-col gap-3 min-w-0">
+          <div className="flex items-center justify-between">
+            <div className="text-white text-lg font-semibold">
+              {comp.compName}
+            </div>
+            <div className="text-ally-muted text-xs">
+              {comp.requiredUnits.length} units
+            </div>
+          </div>
+          
+          {/* Units horizontal row */}
+          <div className="flex gap-2 flex-wrap">
+            {comp.requiredUnits.map((unit) => (
+              <div key={unit} className="bg-ally-hover rounded-lg p-2 flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-ally-bg flex-shrink-0" />
+                <div className="text-xs text-ally-text">{unit}</div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Carries section */}
+          <div className="border-t border-ally-border pt-3">
+            <div className="text-[10px] uppercase tracking-widest text-ally-muted mb-2">
+              Carries
+            </div>
+            {comp.carries.map((carry) => (
+              <div key={carry.name} className="flex items-center gap-3 mb-2 last:mb-0">
+                <div className="w-8 h-8 rounded-full bg-ally-hover flex-shrink-0" />
+                <div className="flex-1">
+                  <div className="text-sm text-white">{carry.name}</div>
+                  <div className="flex gap-1 mt-1">
+                    {carry.bisItems.map((item) => (
+                      <div key={item} className="w-4 h-4 rounded bg-ally-bg" title={item} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Stats */}
+          <div className="flex gap-6 text-sm">
+            <div className="text-ally-muted">
+              <span className="text-white font-semibold">52%</span> win rate
+            </div>
+            <div className="text-ally-muted">
+              <span className="text-white font-semibold">18%</span> pick rate
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -537,33 +675,33 @@ export function DesktopApp() {
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 16 16"
-            className="h-5 w-5 text-white"
+            className="h-4 w-4 text-white"
             fill="currentColor"
           >
             <path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612" />
           </svg>
-          <div className="w-px h-5 bg-white mx-1" />
+          <div className="w-px h-4 bg-white mx-1" />
           <button
             onClick={handleMinimize}
-            className="w-7 h-7 text-white rounded text-[13px] hover:bg-ally-hover hover:text-white transition-colors flex items-center justify-center"
+            className="w-5 h-5 text-white rounded text-[11px] hover:bg-ally-hover hover:text-white transition-colors flex items-center justify-center"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
             </svg>
           </button>
           <button
             onClick={handleMaximize}
-            className="w-7 h-7 text-white rounded hover:bg-ally-hover hover:text-white flex items-center justify-center transition-colors"
+            className="w-5 h-5 text-white rounded hover:bg-ally-hover hover:text-white flex items-center justify-center transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h18v18H3V3z" />
             </svg>
           </button>
           <button
             onClick={handleClose}
-            className="w-7 h-7 text-white rounded hover:bg-red-900 hover:text-white transition-colors flex items-center justify-center"
+            className="w-5 h-5 text-white rounded hover:bg-red-900 hover:text-white transition-colors flex items-center justify-center"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -585,7 +723,7 @@ export function DesktopApp() {
       </div>
 
       {/* Page area */}
-      <div className="w-full flex-1 flex flex-row bg-ally-bg px-8 py-6 gap-6 items-start">
+      <div className="w-full flex-1 flex flex-row bg-ally-bg px-8 py-6 gap-6 items-start overflow-y-auto">
         {activePage === 'In Game' ? (
           <>
             <aside className="flex flex-1 flex-col items-end gap-6 px-6 mr-4" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
@@ -610,6 +748,101 @@ export function DesktopApp() {
                       </div>
                       <div className="text-ally-muted text-xs">
                         Rank {i + 1}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+            <aside className="hidden lg:flex flex-1 flex-col items-start gap-6 px-6" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
+              <SidebarBox />
+              <SidebarBox />
+              <SidebarBox />
+            </aside>
+          </>
+        ) : activePage === 'Comps' ? (
+          <>
+            <aside className="flex flex-1 flex-col items-end gap-6 px-6 mr-4" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
+              <SidebarBox />
+              <SidebarBox />
+              <SidebarBox />
+            </aside>
+            <section className="w-full max-w-[1000px] flex flex-col">
+              <div className="text-[11px] uppercase tracking-widest text-white mb-4 text-center">
+                Meta Comps
+              </div>
+              
+              {/* Comps grid */}
+              <div className="flex flex-col gap-2">
+                {META_COMPS.map((comp, index) => {
+                  const tier = index < 2 ? 'S' : index < 6 ? 'A' : index < 8 ? 'B' : index < 9 ? 'C' : 'D';
+                  return (
+                    <CompCard 
+                      key={comp.compName} 
+                      comp={comp} 
+                      tier={tier} 
+                    />
+                  );
+                })}
+              </div>
+            </section>
+            <aside className="hidden lg:flex flex-1 flex-col items-start gap-6 px-6" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
+              <SidebarBox />
+              <SidebarBox />
+              <SidebarBox />
+            </aside>
+          </>
+        ) : activePage === 'Items' ? (
+          <>
+            <aside className="flex flex-1 flex-col items-end gap-6 px-6 mr-4" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
+              <SidebarBox />
+              <SidebarBox />
+              <SidebarBox />
+            </aside>
+            <section className="w-full max-w-[1000px] flex flex-col">
+              <div className="text-[11px] uppercase tracking-widest text-white mb-4 text-center">
+                Meta Items
+              </div>
+              
+              {/* Items grid */}
+              <div className="grid grid-cols-4 gap-3">
+                {Array.from({ length: 16 }).map((_, i) => (
+                  <div key={i} className="bg-ally-card rounded-lg p-3 border border-ally-border hover:border-ally-accent transition-colors">
+                    <div className="flex flex-col gap-2">
+                      {/* Item icon */}
+                      <div className="w-12 h-12 rounded-lg bg-ally-hover mx-auto flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-ally-bg" />
+                      </div>
+                      
+                      {/* Item name */}
+                      <div className="text-white text-sm font-semibold text-center">
+                        Item {i + 1}
+                      </div>
+                      
+                      {/* Win rate */}
+                      <div className="text-center">
+                        <div className="text-ally-muted text-[10px]">Win Rate</div>
+                        <div className="text-white font-bold text-sm">
+                          {45 + (i % 10)}%
+                        </div>
+                      </div>
+                      
+                      {/* Best champions */}
+                      <div className="border-t border-ally-border pt-2">
+                        <div className="text-[9px] uppercase tracking-widest text-ally-muted mb-1 text-center">
+                          Best Champions
+                        </div>
+                        <div className="flex gap-1 justify-center flex-wrap">
+                          {Array.from({ length: 3 }).map((_, j) => (
+                            <div key={j} className="w-6 h-6 rounded-full bg-ally-hover" />
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Pick rate */}
+                      <div className="text-center text-[10px]">
+                        <span className="text-ally-muted">Pick Rate:</span>{' '}
+                        <span className="text-white font-semibold">{5 + (i % 15)}%</span>
                       </div>
                     </div>
                   </div>
