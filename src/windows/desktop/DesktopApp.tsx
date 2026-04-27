@@ -855,6 +855,361 @@ export function DesktopApp() {
               <SidebarBox />
             </aside>
           </>
+        ) : activePage === 'Units' ? (
+          <>
+            <aside className="flex flex-1 flex-col items-end gap-6 px-6 mr-4" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
+              <SidebarBox />
+              <SidebarBox />
+              <SidebarBox />
+            </aside>
+            <section className="w-full max-w-[1000px] flex flex-col">
+              <div className="text-[11px] uppercase tracking-widest text-white mb-4 text-center">
+                Meta Units
+              </div>
+              
+              {/* Units grid */}
+              <div className="grid grid-cols-4 gap-3">
+                {Array.from({ length: 16 }).map((_, i) => (
+                  <div key={i} className="bg-ally-card rounded-lg p-3 border border-ally-border hover:border-ally-accent transition-colors">
+                    <div className="flex flex-col gap-2">
+                      {/* Unit icon */}
+                      <div className="w-12 h-12 rounded-lg bg-ally-hover mx-auto flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-ally-bg" />
+                      </div>
+                      
+                      {/* Unit name */}
+                      <div className="text-white text-sm font-semibold text-center">
+                        Unit {i + 1}
+                      </div>
+                      
+                      {/* Cost */}
+                      <div className="text-center">
+                        <div className="text-ally-muted text-[10px]">Cost</div>
+                        <div className="text-white font-bold text-sm">
+                          {1 + (i % 5)}g
+                        </div>
+                      </div>
+                      
+                      {/* Win rate */}
+                      <div className="text-center">
+                        <div className="text-ally-muted text-[10px]">Win Rate</div>
+                        <div className="text-white font-bold text-sm">
+                          {45 + (i % 10)}%
+                        </div>
+                      </div>
+                      
+                      {/* Best items */}
+                      <div className="border-t border-ally-border pt-2">
+                        <div className="text-[9px] uppercase tracking-widest text-ally-muted mb-1 text-center">
+                          Best Items
+                        </div>
+                        <div className="flex gap-1 justify-center flex-wrap">
+                          {Array.from({ length: 3 }).map((_, j) => (
+                            <div key={j} className="w-4 h-4 rounded bg-ally-bg" />
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Traits */}
+                      <div className="border-t border-ally-border pt-2">
+                        <div className="text-[9px] uppercase tracking-widest text-ally-muted mb-1 text-center">
+                          Traits
+                        </div>
+                        <div className="flex gap-1 justify-center flex-wrap">
+                          {Array.from({ length: 2 }).map((_, j) => (
+                            <div key={j} className="text-[8px] text-white bg-ally-hover rounded px-1 py-0.5">
+                              Trait {j + 1}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Pick rate */}
+                      <div className="text-center text-[10px]">
+                        <span className="text-ally-muted">Pick Rate:</span>{' '}
+                        <span className="text-white font-semibold">{5 + (i % 15)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+            <aside className="hidden lg:flex flex-1 flex-col items-start gap-6 px-6" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
+              <SidebarBox />
+              <SidebarBox />
+              <SidebarBox />
+            </aside>
+          </>
+        ) : activePage === 'Traits' ? (
+          <>
+            <aside className="flex flex-1 flex-col items-end gap-6 px-6 mr-4" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
+              <SidebarBox />
+              <SidebarBox />
+              <SidebarBox />
+            </aside>
+            <section className="w-full max-w-[1000px] flex flex-col">
+              <div className="text-[11px] uppercase tracking-widest text-white mb-4 text-center">
+                Meta Traits
+              </div>
+              
+              {/* Traits grid */}
+              <div className="grid grid-cols-4 gap-3">
+                {Array.from({ length: 16 }).map((_, i) => (
+                  <div key={i} className="bg-ally-card rounded-lg p-3 border border-ally-border hover:border-ally-accent transition-colors">
+                    <div className="flex flex-col gap-2">
+                      {/* Trait icon */}
+                      <div className="w-12 h-12 rounded-lg bg-ally-hover mx-auto flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-ally-bg" />
+                      </div>
+                      
+                      {/* Trait name */}
+                      <div className="text-white text-sm font-semibold text-center">
+                        Trait {i + 1}
+                      </div>
+                      
+                      {/* Tier */}
+                      <div className="text-center">
+                        <div className="text-ally-muted text-[10px]">Tier</div>
+                        <div className="text-white font-bold text-sm">
+                          {['Bronze', 'Silver', 'Gold', 'Prismatic'][i % 4]}
+                        </div>
+                      </div>
+                      
+                      {/* Win rate */}
+                      <div className="text-center">
+                        <div className="text-ally-muted text-[10px]">Win Rate</div>
+                        <div className="text-white font-bold text-sm">
+                          {45 + (i % 10)}%
+                        </div>
+                      </div>
+                      
+                      {/* Best units */}
+                      <div className="border-t border-ally-border pt-2">
+                        <div className="text-[9px] uppercase tracking-widest text-ally-muted mb-1 text-center">
+                          Best Units
+                        </div>
+                        <div className="flex gap-1 justify-center flex-wrap">
+                          {Array.from({ length: 3 }).map((_, j) => (
+                            <div key={j} className="w-4 h-4 rounded bg-ally-hover" />
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Synergies */}
+                      <div className="border-t border-ally-border pt-2">
+                        <div className="text-[9px] uppercase tracking-widest text-ally-muted mb-1 text-center">
+                          Synergies
+                        </div>
+                        <div className="flex gap-1 justify-center flex-wrap">
+                          {Array.from({ length: 2 }).map((_, j) => (
+                            <div key={j} className="text-[8px] text-white bg-ally-hover rounded px-1 py-0.5">
+                              Synergy {j + 1}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Pick rate */}
+                      <div className="text-center text-[10px]">
+                        <span className="text-ally-muted">Pick Rate:</span>{' '}
+                        <span className="text-white font-semibold">{5 + (i % 15)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+            <aside className="hidden lg:flex flex-1 flex-col items-start gap-6 px-6" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
+              <SidebarBox />
+              <SidebarBox />
+              <SidebarBox />
+            </aside>
+          </>
+        ) : activePage === 'Augments' ? (
+          <>
+            <aside className="flex flex-1 flex-col items-end gap-6 px-6 mr-4" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
+              <SidebarBox />
+              <SidebarBox />
+              <SidebarBox />
+            </aside>
+            <section className="w-full max-w-[1000px] flex flex-col">
+              <div className="text-[11px] uppercase tracking-widest text-white mb-4 text-center">
+                Meta Augments
+              </div>
+              
+              {/* Augments grid */}
+              <div className="grid grid-cols-4 gap-3">
+                {Array.from({ length: 16 }).map((_, i) => (
+                  <div key={i} className="bg-ally-card rounded-lg p-3 border border-ally-border hover:border-ally-accent transition-colors">
+                    <div className="flex flex-col gap-2">
+                      {/* Augment icon */}
+                      <div className="w-12 h-12 rounded-lg bg-ally-hover mx-auto flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-ally-bg" />
+                      </div>
+                      
+                      {/* Augment name */}
+                      <div className="text-white text-sm font-semibold text-center">
+                        Augment {i + 1}
+                      </div>
+                      
+                      {/* Tier */}
+                      <div className="text-center">
+                        <div className="text-ally-muted text-[10px]">Tier</div>
+                        <div className="text-white font-bold text-sm">
+                          {['Prismatic', 'Gold', 'Silver', 'Bronze'][i % 4]}
+                        </div>
+                      </div>
+                      
+                      {/* Win rate */}
+                      <div className="text-center">
+                        <div className="text-ally-muted text-[10px]">Win Rate</div>
+                        <div className="text-white font-bold text-sm">
+                          {45 + (i % 10)}%
+                        </div>
+                      </div>
+                      
+                      {/* Best comps */}
+                      <div className="border-t border-ally-border pt-2">
+                        <div className="text-[9px] uppercase tracking-widest text-ally-muted mb-1 text-center">
+                          Best Comps
+                        </div>
+                        <div className="flex gap-1 justify-center flex-wrap">
+                          {Array.from({ length: 2 }).map((_, j) => (
+                            <div key={j} className="text-[8px] text-white bg-ally-hover rounded px-1 py-0.5">
+                              Comp {j + 1}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Synergies */}
+                      <div className="border-t border-ally-border pt-2">
+                        <div className="text-[9px] uppercase tracking-widest text-ally-muted mb-1 text-center">
+                          Synergies
+                        </div>
+                        <div className="flex gap-1 justify-center flex-wrap">
+                          {Array.from({ length: 2 }).map((_, j) => (
+                            <div key={j} className="text-[8px] text-white bg-ally-hover rounded px-1 py-0.5">
+                              Synergy {j + 1}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Pick rate */}
+                      <div className="text-center text-[10px]">
+                        <span className="text-ally-muted">Pick Rate:</span>{' '}
+                        <span className="text-white font-semibold">{5 + (i % 15)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+            <aside className="hidden lg:flex flex-1 flex-col items-start gap-6 px-6" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
+              <SidebarBox />
+              <SidebarBox />
+              <SidebarBox />
+            </aside>
+          </>
+        ) : activePage === 'Match History' ? (
+          <>
+            <aside className="flex flex-1 flex-col items-end gap-6 px-6 mr-4" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
+              <SidebarBox />
+              <SidebarBox />
+              <SidebarBox />
+            </aside>
+            <section className="w-full max-w-[1000px] flex flex-col">
+              <div className="text-[11px] uppercase tracking-widest text-white mb-4 text-center">
+                Match History
+              </div>
+              
+              {/* User profile header */}
+              <div className="bg-ally-card rounded-lg p-6 mb-4 border border-ally-border">
+                <div className="flex items-center gap-6">
+                  {/* Avatar */}
+                  <div className="w-20 h-20 rounded-full bg-ally-hover flex-shrink-0" />
+                  
+                  {/* User info */}
+                  <div className="flex-1">
+                    <div className="text-white text-xl font-bold mb-1">
+                      Player Name
+                    </div>
+                    <div className="text-ally-muted text-sm mb-3">
+                      Summoner Level 100
+                    </div>
+                    <div className="flex gap-4 text-sm">
+                      <div className="text-ally-muted">
+                        <span className="text-white font-semibold">Diamond II</span> Rank
+                      </div>
+                      <div className="text-ally-muted">
+                        <span className="text-white font-semibold">52%</span> Win Rate
+                      </div>
+                      <div className="text-ally-muted">
+                        <span className="text-white font-semibold">1,234</span> Games
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Stats grid */}
+              <div className="grid grid-cols-4 gap-3 mb-4">
+                {[
+                  { label: 'Top 4 Rate', value: '48%' },
+                  { label: 'Avg Placement', value: '#3.2' },
+                  { label: 'Win Rate', value: '12%' },
+                  { label: 'Play Time', value: '250h' },
+                ].map((stat, i) => (
+                  <div key={i} className="bg-ally-card rounded-lg p-3 border border-ally-border">
+                    <div className="text-ally-muted text-[10px] uppercase tracking-widest mb-1">
+                      {stat.label}
+                    </div>
+                    <div className="text-white font-bold text-lg">
+                      {stat.value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Recent matches */}
+              <div className="bg-ally-card rounded-lg p-4 border border-ally-border">
+                <div className="text-[10px] uppercase tracking-widest text-ally-muted mb-3">
+                  Recent Matches
+                </div>
+                <div className="flex flex-col gap-2">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="bg-ally-hover rounded-lg p-3 flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm ${i < 2 ? 'bg-green-500' : i < 3 ? 'bg-yellow-500' : 'bg-red-500'}`}>
+                        {i + 1}
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-white text-sm font-semibold">
+                          Match {i + 1}
+                        </div>
+                        <div className="text-ally-muted text-xs">
+                          {['S', 'A', 'B', 'C', 'D'][i]} Tier Comp
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-white text-sm font-semibold">
+                          {['1st', '2nd', '3rd', '4th', '5th'][i]}
+                        </div>
+                        <div className="text-ally-muted text-xs">
+                          {10 + i * 5} mins ago
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+            <aside className="hidden lg:flex flex-1 flex-col items-start gap-6 px-6" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
+              <SidebarBox />
+              <SidebarBox />
+              <SidebarBox />
+            </aside>
+          </>
         ) : (
           <>
             <aside className="flex flex-1 flex-col items-end gap-6 px-6 mr-4" style={{ transform: 'translateY(30px)' } as React.CSSProperties}>
