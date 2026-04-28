@@ -177,8 +177,6 @@ function CompCard({ comp, tier = 'A' }: { comp: MetaComp; tier?: string }) {
   );
 }
 
-=======
->>>>>>> 4ed29d8cda1c9816566c4c557adf66b565a4587e
 const TABS = [
   'In Game',
   'Comps',
