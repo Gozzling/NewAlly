@@ -13,6 +13,24 @@
   --font-display: 'Rajdhani', ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Light mode colors */
+html.light {
+  --color-ally-bg:     #F5F6F7;
+  --color-ally-card:   #C1C4C8;
+  --color-ally-accent: #35c3e7;
+  --color-ally-text:   #2B2E33;
+  --color-ally-muted:  #7B7F85;
+  --color-ally-border: #C1C4C8;
+  --color-ally-hover:  #D0D4D8;
+}
+
+/* Smooth transition for theme switching */
+html, html *, body, body * {
+  transition: background-color 350ms cubic-bezier(0.25, 1, 0.5, 1),
+              color 350ms cubic-bezier(0.25, 1, 0.5, 1),
+              border-color 350ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
 html, body, #root {
   width: 100%;
   height: 100%;

@@ -28,10 +28,10 @@ export function TeamBuilder() {
   const [augs, setAugs] = useState<string[]>([])
   const [comps, setComps] = useState<string[]>([])
 
-  const { savedComps, addSavedComp, removeSavedComp, loadSavedComp } = useAppStore(s => ({
-    savedComps: s.savedComps, addSavedComp: s.addSavedComp,
-    removeSavedComp: s.removeSavedComp, loadSavedComp: s.loadSavedComp,
-  }))
+  const savedComps = useAppStore((state) => state.savedComps)
+  const addSavedComp = useAppStore((state) => state.addSavedComp)
+  const removeSavedComp = useAppStore((state) => state.removeSavedComp)
+  const loadSavedComp = useAppStore((state) => state.loadSavedComp)
 
   const cur = hist[hi], board = cur.board, bench = cur.bench
   const ps = useCallback((n: H) => {

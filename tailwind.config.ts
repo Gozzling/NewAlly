@@ -9,24 +9,65 @@ const config: Config = {
         ally: {
           bg:      '#181818', // background — hsl(0 0% 9%)
           card:    '#1f1f1f', // card surfaces — hsl(0 0% 12%)
-          accent:  '#35c3e7', // primary accent — cyan
+          accent:  '#00d4ff', // primary accent — vibrant cyan (more gaming)
+          accentDark: '#0099cc', // darker variant for hover/pressed
+          accentLight: '#33e0ff', // lighter variant for glows
           text:    '#ffffff', // primary text — pure white
+          textDim:   '#e0e0e0', // slightly dimmed text for secondary info
           muted:   '#a1a1a1', // secondary text
           border:  '#2a2a2a', // subtle borders
+          borderBright: '#35c3e7', // bright borders for active states
           hover:   '#252525', // hover states on cards
+          success: '#10b981', // success states (green)
+          warning: '#f59e0b', // warning states (amber)
+          error:   '#ef4444', // error states (red)
+          // Gradient definitions for dynamic backgrounds
+          gradientPrimary: 'from-[#00d4ff] to-[#0099cc]',
+          gradientSecondary: 'from-[#10b981] to-[#059669]',
         },
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
         display: ['Rajdhani', 'sans-serif'], // for headings / logo
+        numbers: ['Space Grotesk', 'monospace'], // for stats/costs/damage
       },
       borderRadius: {
         card: '12px',
         pill: '9999px',
       },
       boxShadow: {
-        accent: '0 0 12px rgba(53, 195, 231, 0.25)',
+        accent: '0 0 12px rgba(0, 212, 255, 0.25)',
+        accentStrong: '0 0 20px rgba(0, 212, 255, 0.4), 0 0 40px rgba(0, 212, 255, 0.2)',
         card:   '0 2px 8px rgba(0, 0, 0, 0.4)',
+        cardHover: '0 4px 16px rgba(0, 0, 0, 0.5)',
+        inner: 'inset 0 2px 4px rgba(0, 0, 0, 0.6)',
+      },
+      keyframes: {
+        pulse: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.7' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-8px)' },
+        },
+        wiggle: {
+          '0%, 100%': { transform: 'rotate(0deg)' },
+          '15%': { transform: 'rotate(-5deg)' },
+          '30%': { transform: 'rotate(5deg)' },
+          '45%': { transform: 'rotate(-3deg)' },
+          '60%': { transform: 'rotate(3deg)' },
+        }
+      },
+      animation: {
+        pulse: 'pulse 3s ease-in-out infinite',
+        shimmer: 'shimmer 3s linear infinite',
+        float: 'float 6s ease-in-out infinite',
+        wiggle: 'wiggle 2s ease-in-out infinite',
       },
     },
   },
