@@ -1,0 +1,89 @@
+
+<h2 class="sr-only">TFT Team Builder — pick units from the Units panel, click hexes to rearrange</h2>
+
+<div id="app" style="font-family:var(--font-sans);">
+
+  <!-- Toolbar -->
+  <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px;flex-wrap:wrap;">
+    <div style="display:flex;gap:3px;">
+      <button class="tbb" id="undo-btn">Undo</button>
+      <button class="tbb" id="redo-btn">Redo</button>
+      <button class="tbb" id="clear-btn">Clear</button>
+    </div>
+    <div style="flex:1;min-width:6px;"></div>
+    <button class="tbb units-btn" id="units-btn">+ Units</button>
+    <div style="flex:1;min-width:6px;"></div>
+    <div style="display:flex;gap:3px;">
+      <button class="tbt" id="enemy-btn">Enemy</button>
+      <button class="tbt on" id="names-btn">Names</button>
+      <button class="tbt on" id="traits-btn">Traits</button>
+    </div>
+  </div>
+
+  <!-- Units panel -->
+  <div id="units-panel" style="display:none;background:#0a0a18;border-radius:10px;padding:12px;margin-bottom:8px;max-height:230px;overflow-y:auto;border:1px solid #1e1e38;">
+    <div id="units-target-row" style="display:none;gap:5px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
+      <span style="font-size:10px;color:#555;">Place on:</span>
+      <button class="tgt-btn active" id="tgt-player">My Board</button>
+      <button class="tgt-btn" id="tgt-enemy">Enemy Board</button>
+    </div>
+    <div id="units-grid"></div>
+  </div>
+
+  <!-- Enemy board -->
+  <div id="enemy-section" style="display:none;margin-bottom:8px;">
+    <div style="font-size:10px;color:#ff6666;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Enemy Board — <span id="enemy-count">0</span> units · <span id="enemy-cost" style="color:#ff7777;">$0</span></div>
+    <div style="background:#0d0808;border-radius:12px;padding:8px 8px 4px;">
+      <svg id="enemy-board" viewBox="0 0 510 285" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </div>
+
+  <!-- Player board -->
+  <div style="background:#0d0d1a;border-radius:12px;padding:8px 8px 4px;">
+    <svg id="player-board" viewBox="0 0 510 285" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div style="text-align:center;padding:3px 0 1px;font-size:11px;color:#444;">
+      <span id="player-count">0</span>/9 units · Cost: <span id="player-cost" style="color:#f0b429;font-weight:500;">$0</span>
+      <span id="move-hint" style="color:#f0b429;margin-left:8px;display:none;font-size:10px;">· Click a hex to move</span>
+    </div>
+  </div>
+
+  <!-- Traits -->
+  <div id="traits-section" style="margin-top:10px;display:none;">
+    <div style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Active traits</div>
+    <div id="traits-list" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
+  </div>
+</div>
+
+<style>
+#app *{box-sizing:border-box;}
+.tbb{padding:4px 12px;border-radius:20px;border:1px solid #252545;background:#0f0f22;color:#666;font-size:11px;cursor:pointer;font-family:var(--font-sans);transition:all .12s;}
+.tbb:hover{border-color:#555;color:#ccc;}
+.units-btn{border-color:#f0b429!important;color:#f0b429!important;}
+.units-btn.open{background:rgba(240,180,41,.12);}
+.tbt{padding:4px 12px;border-radius:20px;border:1px solid #252545;background:#0f0f22;color:#555;font-size:11px;cursor:pointer;font-family:var(--font-sans);transition:all .12s;}
+.tbt.on{border-color:#f0b429;color:#f0b429;background:rgba(240,180,41,.08);}
+.tgt-btn{padding:3px 10px;border-radius:12px;border:1px solid #252545;background:#0f0f22;color:#555;font-size:10px;cursor:pointer;font-family:var(--font-sans);transition:all .1s;}
+.tgt-btn.active{border-color:#f0b429;color:#f0b429;background:rgba(240,180,41,.1);}
+.hg{cursor:pointer;}
+.hg polygon{transition:stroke .1s,fill .1s;}
+.hg.player polygon{fill:#131323;stroke:#28285a;stroke-width:1.5;}
+.hg.player:hover polygon{stroke:#f0b429;fill:#1a1a32;}
+.hg.player.occ polygon{fill:#1c1c38;}
+.hg.player.occ:hover polygon{stroke:#f0b429;fill:#222240;}
+.hg.player.sel polygon{stroke:#f0b429!important;fill:#252548!important;stroke-width:2.5;}
+.hg.enemy polygon{fill:#160c0c;stroke:#3a1a1a;stroke-width:1.5;}
+.hg.enemy:hover polygon{stroke:#ff5555;fill:#1e1010;}
+.hg.enemy.occ polygon{fill:#1f1212;}
+.hg.enemy.occ:hover polygon{stroke:#ff5555;fill:#271a1a;}
+.hg.enemy.sel polygon{stroke:#ff5555!important;fill:#2a1616!important;stroke-width:2.5;}
+.upill{padding:4px 8px;border-radius:5px;border:1px solid #1e1e3a;background:#0f0f22;color:white;font-size:10.5px;cursor:pointer;font-family:var(--font-sans);transition:all .1s;text-align:left;display:flex;flex-direction:column;gap:1px;}
+.upill:hover:not(.on){border-color:#555;}
+.upill.on{border-color:#f0b429;background:rgba(240,180,41,.08);}
+.upill.on.enemy{border-color:#ff5555;background:rgba(255,85,85,.08);}
+</style>
+
+<script>
+const UNITS=[
+  {name:'Graves',cost:1,traits:['Rebel','Gunner']},
+  {name:'Jax',cost:1,traits:['Star Guardian','Bruiser']},
+  {nam

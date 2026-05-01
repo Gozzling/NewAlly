@@ -1,0 +1,310 @@
+﻿
+<h2 class="sr-only">TFT Team Builder â€” pick units from the Units panel, click hexes to rearrange</h2>
+
+<div id="app" style="font-family:var(--font-sans);">
+
+  <!-- Toolbar -->
+  <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px;flex-wrap:wrap;">
+    <div style="display:flex;gap:3px;">
+      <button class="tbb" id="undo-btn">Undo</button>
+      <button class="tbb" id="redo-btn">Redo</button>
+      <button class="tbb" id="clear-btn">Clear</button>
+    </div>
+    <div style="flex:1;min-width:6px;"></div>
+    <button class="tbb units-btn" id="units-btn">+ Units</button>
+    <div style="flex:1;min-width:6px;"></div>
+    <div style="display:flex;gap:3px;">
+      <button class="tbt" id="enemy-btn">Enemy</button>
+      <button class="tbt on" id="names-btn">Names</button>
+      <button class="tbt on" id="traits-btn">Traits</button>
+    </div>
+  </div>
+
+  <!-- Units panel -->
+  <div id="units-panel" style="display:none;background:#0a0a18;border-radius:10px;padding:12px;margin-bottom:8px;max-height:230px;overflow-y:auto;border:1px solid #1e1e38;">
+    <div id="units-target-row" style="display:none;gap:5px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
+      <span style="font-size:10px;color:#555;">Place on:</span>
+      <button class="tgt-btn active" id="tgt-player">My Board</button>
+      <button class="tgt-btn" id="tgt-enemy">Enemy Board</button>
+    </div>
+    <div id="units-grid"></div>
+  </div>
+
+  <!-- Enemy board -->
+  <div id="enemy-section" style="display:none;margin-bottom:8px;">
+    <div style="font-size:10px;color:#ff6666;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Enemy Board â€” <span id="enemy-count">0</span> units Â· <span id="enemy-cost" style="color:#ff7777;">$0</span></div>
+    <div style="background:#0d0808;border-radius:12px;padding:8px 8px 4px;">
+      <svg id="enemy-board" viewBox="0 0 510 285" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </div>
+
+  <!-- Player board -->
+  <div style="background:#0d0d1a;border-radius:12px;padding:8px 8px 4px;">
+    <svg id="player-board" viewBox="0 0 510 285" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div style="text-align:center;padding:3px 0 1px;font-size:11px;color:#444;">
+      <span id="player-count">0</span>/9 units Â· Cost: <span id="player-cost" style="color:#f0b429;font-weight:500;">$0</span>
+      <span id="move-hint" style="color:#f0b429;margin-left:8px;display:none;font-size:10px;">Â· Click a hex to move</span>
+    </div>
+  </div>
+
+  <!-- Traits -->
+  <div id="traits-section" style="margin-top:10px;display:none;">
+    <div style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Active traits</div>
+    <div id="traits-list" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
+  </div>
+</div>
+
+<style>
+#app *{box-sizing:border-box;}
+.tbb{padding:4px 12px;border-radius:20px;border:1px solid #252545;background:#0f0f22;color:#666;font-size:11px;cursor:pointer;font-family:var(--font-sans);transition:all .12s;}
+.tbb:hover{border-color:#555;color:#ccc;}
+.units-btn{border-color:#f0b429!important;color:#f0b429!important;}
+.units-btn.open{background:rgba(240,180,41,.12);}
+.tbt{padding:4px 12px;border-radius:20px;border:1px solid #252545;background:#0f0f22;color:#555;font-size:11px;cursor:pointer;font-family:var(--font-sans);transition:all .12s;}
+.tbt.on{border-color:#f0b429;color:#f0b429;background:rgba(240,180,41,.08);}
+.tgt-btn{padding:3px 10px;border-radius:12px;border:1px solid #252545;background:#0f0f22;color:#555;font-size:10px;cursor:pointer;font-family:var(--font-sans);transition:all .1s;}
+.tgt-btn.active{border-color:#f0b429;color:#f0b429;background:rgba(240,180,41,.1);}
+.hg{cursor:pointer;}
+.hg polygon{transition:stroke .1s,fill .1s;}
+.hg.player polygon{fill:#131323;stroke:#28285a;stroke-width:1.5;}
+.hg.player:hover polygon{stroke:#f0b429;fill:#1a1a32;}
+.hg.player.occ polygon{fill:#1c1c38;}
+.hg.player.occ:hover polygon{stroke:#f0b429;fill:#222240;}
+.hg.player.sel polygon{stroke:#f0b429!important;fill:#252548!important;stroke-width:2.5;}
+.hg.enemy polygon{fill:#160c0c;stroke:#3a1a1a;stroke-width:1.5;}
+.hg.enemy:hover polygon{stroke:#ff5555;fill:#1e1010;}
+.hg.enemy.occ polygon{fill:#1f1212;}
+.hg.enemy.occ:hover polygon{stroke:#ff5555;fill:#271a1a;}
+.hg.enemy.sel polygon{stroke:#ff5555!important;fill:#2a1616!important;stroke-width:2.5;}
+.upill{padding:4px 8px;border-radius:5px;border:1px solid #1e1e3a;background:#0f0f22;color:white;font-size:10.5px;cursor:pointer;font-family:var(--font-sans);transition:all .1s;text-align:left;display:flex;flex-direction:column;gap:1px;}
+.upill:hover:not(.on){border-color:#555;}
+.upill.on{border-color:#f0b429;background:rgba(240,180,41,.08);}
+.upill.on.enemy{border-color:#ff5555;background:rgba(255,85,85,.08);}
+</style>
+
+<script>
+const UNITS=[
+  {name:'Graves',cost:1,traits:['Rebel','Gunner']},
+  {name:'Jax',cost:1,traits:['Star Guardian','Bruiser']},
+  {name:'Jinx',cost:1,traits:['Rebel','Gunner']},
+  {name:'Lux',cost:1,traits:['Star Guardian','Caster']},
+  {name:'Poppy',cost:1,traits:['Star Guardian','Bastion']},
+  {name:'Rumble',cost:1,traits:['Rebel','Technogenius']},
+  {name:'Warwick',cost:1,traits:['Rebel','Bruiser']},
+  {name:'Ahri',cost:2,traits:['K/DA','Caster']},
+  {name:'Ashe',cost:2,traits:['Star Guardian','Gunner']},
+  {name:'Blitzcrank',cost:2,traits:['Rebel','Bastion']},
+  {name:'Camille',cost:2,traits:['Academy','Bruiser']},
+  {name:"Kai'Sa",cost:2,traits:['K/DA','Gunner']},
+  {name:'Twisted Fate',cost:2,traits:['Rebel','Caster']},
+  {name:'Zed',cost:2,traits:['Academy','Slayer']},
+  {name:'Akali',cost:3,traits:['K/DA','Slayer']},
+  {name:'Darius',cost:3,traits:['Academy','Bruiser']},
+  {name:'Fiora',cost:3,traits:['Star Guardian','Slayer']},
+  {name:'Irelia',cost:3,traits:['Academy','Slayer']},
+  {name:'LeBlanc',cost:3,traits:['K/DA','Caster']},
+  {name:'Morgana',cost:3,traits:['Star Guardian','Caster']},
+  {name:'Syndra',cost:3,traits:['K/DA','Caster']},
+  {name:'Aurelion Sol',cost:4,traits:['Rebel','Caster']},
+  {name:'Draven',cost:4,traits:['Academy','Gunner']},
+  {name:'Ekko',cost:4,traits:['True Damage','Slayer']},
+  {name:'Jarvan IV',cost:4,traits:['Academy','Bastion']},
+  {name:'Leona',cost:4,traits:['Star Guardian','Bastion']},
+  {name:'Xayah',cost:4,traits:['K/DA','Gunner']},
+  {name:'Heimerdinger',cost:5,traits:['Academy','Technogenius']},
+  {name:'Kassadin',cost:5,traits:['Star Guardian','Slayer']},
+  {name:'Mordekaiser',cost:5,traits:['Rebel','Bruiser']},
+  {name:'Samira',cost:5,traits:['True Damage','Gunner']},
+  {name:'Seraphine',cost:5,traits:['K/DA','Caster']},
+];
+const THRESH={'Rebel':[3,5,7],'Star Guardian':[2,4,6],'K/DA':[2,4,6],'Academy':[2,4,6],'Bruiser':[2,4],'Bastion':[2,4,6],'Gunner':[2,4,6],'Slayer':[2,4,6],'Caster':[2,4,6],'True Damage':[2,3],'Technogenius':[1,2]};
+const CC={1:'#9aa4af',2:'#1dc93d',3:'#4a9eff',4:'#c267ff',5:'#f0b429'};
+const W=70,H=81,hw=35,hh=40.5,rg=H*.75,PAD=8,NS='http://www.w3.org/2000/svg';
+const ROWS=[7,6,7,6];
+
+function makeHexes(){
+  const h=[];
+  ROWS.forEach((cnt,r)=>{
+    const off=r%2?hw:0, cy=PAD+hh+r*rg;
+    for(let c=0;c<cnt;c++) h.push({id:`${r}-${c}`,cx:PAD+hw+off+c*W,cy});
+  });
+  return h;
+}
+const hexes=makeHexes();
+
+let pBoard={},eBoard={};
+hexes.forEach(h=>{pBoard[h.id]=null;eBoard[h.id]=null;});
+let selHex=null,selType=null,showNames=true,showTraits=true,showEnemy=false,unitsOpen=false,activeTarget='player';
+let hist=[],fut=[];
+
+function snap(){hist.push({p:{...pBoard},e:{...eBoard}});if(hist.length>40)hist.shift();fut=[];}
+function hexPts(cx,cy){return[[cx,cy-hh],[cx+hw,cy-hh/2],[cx+hw,cy+hh/2],[cx,cy+hh],[cx-hw,cy+hh/2],[cx-hw,cy-hh/2]].map(p=>p.join(',')).join(' ');}
+function trunc(s,n){return s.length>n?s.slice(0,n-1)+'â€¦':s;}
+function getBoard(t){return t==='enemy'?eBoard:pBoard;}
+
+function renderSVG(el,board,type){
+  el.innerHTML='';
+  hexes.forEach(h=>{
+    const un=board[h.id],unit=un?UNITS.find(u=>u.name===un):null;
+    const isSel=selType===type&&selHex===h.id;
+    const g=document.createElementNS(NS,'g');
+    g.setAttribute('class',`hg ${type}${un?' occ':''}${isSel?' sel':''}`);
+    const poly=document.createElementNS(NS,'polygon');
+    poly.setAttribute('points',hexPts(h.cx,h.cy));
+    g.appendChild(poly);
+    if(unit&&showNames){
+      const col=CC[unit.cost];
+      const mk=(y,fs,txt,fw)=>{const t=document.createElementNS(NS,'text');t.setAttribute('x',h.cx);t.setAttribute('y',y);t.setAttribute('text-anchor','middle');t.setAttribute('font-size',fs);t.setAttribute('fill',col);if(fw)t.setAttribute('font-weight',fw);t.textContent=txt;return t;};
+      g.appendChild(mk(h.cy-3,'8.5',trunc(un,11),'600'));
+      g.appendChild(mk(h.cy+9,'7.5','$'+unit.cost,null));
+    } else if(!unit){
+      const plus=document.createElementNS(NS,'text');
+      plus.setAttribute('x',h.cx);plus.setAttribute('y',h.cy+5);plus.setAttribute('text-anchor','middle');
+      plus.setAttribute('font-size','16');plus.setAttribute('fill',type==='enemy'?'#251515':'#1a1a32');
+      plus.textContent='+';g.appendChild(plus);
+    }
+    g.addEventListener('click',()=>onHex(h.id,type));
+    el.appendChild(g);
+  });
+}
+
+function onHex(id,type){
+  const board=getBoard(type);
+  if(selHex&&selType===type){
+    if(selHex===id){selHex=null;selType=null;render();return;}
+    snap();
+    const tmp=board[selHex];board[selHex]=board[id];board[id]=tmp;
+    selHex=null;selType=null;
+  } else if(selHex&&selType!==type){
+    selHex=null;selType=null;
+  } else {
+    if(board[id]){selHex=id;selType=type;}
+  }
+  render();
+}
+
+function render(){
+  renderSVG(document.getElementById('player-board'),pBoard,'player');
+  if(showEnemy) renderSVG(document.getElementById('enemy-board'),eBoard,'enemy');
+  updateStats();
+  renderTraits();
+  if(unitsOpen) renderUnitsPanel();
+  const hint=document.getElementById('move-hint');
+  hint.style.display=selType==='player'?'inline':'none';
+}
+
+function updateStats(){
+  const pu=Object.values(pBoard).filter(Boolean);
+  document.getElementById('player-count').textContent=pu.length;
+  document.getElementById('player-cost').textContent='$'+pu.reduce((s,n)=>{const u=UNITS.find(x=>x.name===n);return s+(u?u.cost:0);},0);
+  if(showEnemy){
+    const eu=Object.values(eBoard).filter(Boolean);
+    document.getElementById('enemy-count').textContent=eu.length;
+    document.getElementById('enemy-cost').textContent='$'+eu.reduce((s,n)=>{const u=UNITS.find(x=>x.name===n);return s+(u?u.cost:0);},0);
+  }
+}
+
+function renderTraits(){
+  const ts=document.getElementById('traits-section');
+  if(!showTraits){ts.style.display='none';return;}
+  const counts={};
+  Object.values(pBoard).filter(Boolean).forEach(n=>{const u=UNITS.find(x=>x.name===n);if(u)u.traits.forEach(t=>{counts[t]=(counts[t]||0)+1;});});
+  const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length){ts.style.display='none';return;}
+  ts.style.display='block';
+  const list=document.getElementById('traits-list');
+  list.innerHTML='';
+  entries.forEach(([trait,cnt])=>{
+    const th=THRESH[trait]||[],active=th.some(t=>cnt>=t),next=th.find(t=>cnt<t);
+    const b=document.createElement('div');
+    b.style.cssText=`padding:3px 9px;border-radius:4px;font-size:10px;font-weight:500;font-family:var(--font-sans);border:1px solid ${active?'#f0b429':'#252545'};background:${active?'rgba(240,180,41,.09)':'#0f0f22'};color:${active?'#f0b429':'#555'};`;
+    b.textContent=trait+' '+cnt+(next?' â†’'+next:'');
+    list.appendChild(b);
+  });
+}
+
+function renderUnitsPanel(){
+  const targetRow=document.getElementById('units-target-row');
+  targetRow.style.display=showEnemy?'flex':'none';
+  ['player','enemy'].forEach(t=>{
+    const btn=document.getElementById('tgt-'+t);
+    btn.classList.toggle('active',activeTarget===t);
+  });
+  const grid=document.getElementById('units-grid');
+  grid.innerHTML='';
+  const board=getBoard(activeTarget);
+  const placed=new Set(Object.values(board).filter(Boolean));
+  [5,4,3,2,1].forEach(cost=>{
+    const units=UNITS.filter(u=>u.cost===cost);
+    const col=CC[cost];
+    const hdr=document.createElement('div');
+    hdr.style.cssText=`color:${col};font-size:10px;font-weight:600;margin:7px 0 4px;font-family:var(--font-sans);`;
+    hdr.textContent='$'+cost+' Â·';
+    grid.appendChild(hdr);
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;flex-wrap:wrap;gap:4px;';
+    units.forEach(u=>{
+      const on=placed.has(u.name);
+      const btn=document.createElement('button');
+      btn.className='upill'+(on?' on'+(activeTarget==='enemy'?' enemy':''):'');
+      btn.innerHTML=`<span style="color:${col};font-weight:600;">${u.name}</span><span style="color:#444;font-size:9px;">${u.traits.join(', ')}</span>`;
+      btn.addEventListener('click',()=>{
+        const b=getBoard(activeTarget);
+        const p=new Set(Object.values(b).filter(Boolean));
+        snap();
+        if(p.has(u.name)){
+          const hid=hexes.find(h=>b[h.id]===u.name);
+          if(hid) b[hid.id]=null;
+        } else {
+          const empty=hexes.find(h=>!b[h.id]);
+          if(empty) b[empty.id]=u.name;
+        }
+        render();
+      });
+      row.appendChild(btn);
+    });
+    grid.appendChild(row);
+  });
+}
+
+// Toolbar bindings
+document.getElementById('units-btn').addEventListener('click',()=>{
+  unitsOpen=!unitsOpen;
+  document.getElementById('units-panel').style.display=unitsOpen?'block':'none';
+  document.getElementById('units-btn').classList.toggle('open',unitsOpen);
+  if(unitsOpen) renderUnitsPanel();
+});
+document.getElementById('clear-btn').addEventListener('click',()=>{
+  snap();hexes.forEach(h=>{pBoard[h.id]=null;eBoard[h.id]=null;});
+  selHex=null;selType=null;render();
+});
+document.getElementById('undo-btn').addEventListener('click',()=>{
+  if(!hist.length)return;
+  fut.push({p:{...pBoard},e:{...eBoard}});
+  const s=hist.pop();Object.assign(pBoard,s.p);Object.assign(eBoard,s.e);
+  selHex=null;selType=null;render();
+});
+document.getElementById('redo-btn').addEventListener('click',()=>{
+  if(!fut.length)return;
+  hist.push({p:{...pBoard},e:{...eBoard}});
+  const s=fut.pop();Object.assign(pBoard,s.p);Object.assign(eBoard,s.e);
+  selHex=null;selType=null;render();
+});
+document.getElementById('names-btn').addEventListener('click',()=>{
+  showNames=!showNames;document.getElementById('names-btn').classList.toggle('on',showNames);render();
+});
+document.getElementById('traits-btn').addEventListener('click',()=>{
+  showTraits=!showTraits;document.getElementById('traits-btn').classList.toggle('on',showTraits);renderTraits();
+});
+document.getElementById('enemy-btn').addEventListener('click',()=>{
+  showEnemy=!showEnemy;document.getElementById('enemy-btn').classList.toggle('on',showEnemy);
+  document.getElementById('enemy-section').style.display=showEnemy?'block':'none';
+  if(!showEnemy&&activeTarget==='enemy') activeTarget='player';
+  render();
+});
+document.getElementById('tgt-player').addEventListener('click',()=>{activeTarget='player';renderUnitsPanel();});
+document.getElementById('tgt-enemy').addEventListener('click',()=>{activeTarget='enemy';renderUnitsPanel();});
+
+render();
+</script>
+

@@ -113,7 +113,7 @@ export async function syncPersonalMatchToSupabase(record: PersonalMatchRecord): 
     duration: record.duration,
   }
 
-  const { error } = await supabase.from('personal_matches').upsert(payload, { onConflict: 'id' })
+  const { error } = await supabase!.from('personal_matches').upsert(payload, { onConflict: 'id' })
   if (error) {
     throw new Error(`[MH] Supabase insert failed: ${error.message}`)
   }

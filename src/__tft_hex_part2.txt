@@ -1,0 +1,109 @@
+e:'Jinx',cost:1,traits:['Rebel','Gunner']},
+  {name:'Lux',cost:1,traits:['Star Guardian','Caster']},
+  {name:'Poppy',cost:1,traits:['Star Guardian','Bastion']},
+  {name:'Rumble',cost:1,traits:['Rebel','Technogenius']},
+  {name:'Warwick',cost:1,traits:['Rebel','Bruiser']},
+  {name:'Ahri',cost:2,traits:['K/DA','Caster']},
+  {name:'Ashe',cost:2,traits:['Star Guardian','Gunner']},
+  {name:'Blitzcrank',cost:2,traits:['Rebel','Bastion']},
+  {name:'Camille',cost:2,traits:['Academy','Bruiser']},
+  {name:"Kai'Sa",cost:2,traits:['K/DA','Gunner']},
+  {name:'Twisted Fate',cost:2,traits:['Rebel','Caster']},
+  {name:'Zed',cost:2,traits:['Academy','Slayer']},
+  {name:'Akali',cost:3,traits:['K/DA','Slayer']},
+  {name:'Darius',cost:3,traits:['Academy','Bruiser']},
+  {name:'Fiora',cost:3,traits:['Star Guardian','Slayer']},
+  {name:'Irelia',cost:3,traits:['Academy','Slayer']},
+  {name:'LeBlanc',cost:3,traits:['K/DA','Caster']},
+  {name:'Morgana',cost:3,traits:['Star Guardian','Caster']},
+  {name:'Syndra',cost:3,traits:['K/DA','Caster']},
+  {name:'Aurelion Sol',cost:4,traits:['Rebel','Caster']},
+  {name:'Draven',cost:4,traits:['Academy','Gunner']},
+  {name:'Ekko',cost:4,traits:['True Damage','Slayer']},
+  {name:'Jarvan IV',cost:4,traits:['Academy','Bastion']},
+  {name:'Leona',cost:4,traits:['Star Guardian','Bastion']},
+  {name:'Xayah',cost:4,traits:['K/DA','Gunner']},
+  {name:'Heimerdinger',cost:5,traits:['Academy','Technogenius']},
+  {name:'Kassadin',cost:5,traits:['Star Guardian','Slayer']},
+  {name:'Mordekaiser',cost:5,traits:['Rebel','Bruiser']},
+  {name:'Samira',cost:5,traits:['True Damage','Gunner']},
+  {name:'Seraphine',cost:5,traits:['K/DA','Caster']},
+];
+const THRESH={'Rebel':[3,5,7],'Star Guardian':[2,4,6],'K/DA':[2,4,6],'Academy':[2,4,6],'Bruiser':[2,4],'Bastion':[2,4,6],'Gunner':[2,4,6],'Slayer':[2,4,6],'Caster':[2,4,6],'True Damage':[2,3],'Technogenius':[1,2]};
+const CC={1:'#9aa4af',2:'#1dc93d',3:'#4a9eff',4:'#c267ff',5:'#f0b429'};
+const W=70,H=81,hw=35,hh=40.5,rg=H*.75,PAD=8,NS='http://www.w3.org/2000/svg';
+const ROWS=[7,6,7,6];
+
+function makeHexes(){
+  const h=[];
+  ROWS.forEach((cnt,r)=>{
+    const off=r%2?hw:0, cy=PAD+hh+r*rg;
+    for(let c=0;c<cnt;c++) h.push({id:`${r}-${c}`,cx:PAD+hw+off+c*W,cy});
+  });
+  return h;
+}
+const hexes=makeHexes();
+
+let pBoard={},eBoard={};
+hexes.forEach(h=>{pBoard[h.id]=null;eBoard[h.id]=null;});
+let selHex=null,selType=null,showNames=true,showTraits=true,showEnemy=false,unitsOpen=false,activeTarget='player';
+let hist=[],fut=[];
+
+function snap(){hist.push({p:{...pBoard},e:{...eBoard}});if(hist.length>40)hist.shift();fut=[];}
+function hexPts(cx,cy){return[[cx,cy-hh],[cx+hw,cy-hh/2],[cx+hw,cy+hh/2],[cx,cy+hh],[cx-hw,cy+hh/2],[cx-hw,cy-hh/2]].map(p=>p.join(',')).join(' ');}
+function trunc(s,n){return s.length>n?s.slice(0,n-1)+'…':s;}
+function getBoard(t){return t==='enemy'?eBoard:pBoard;}
+
+function renderSVG(el,board,type){
+  el.innerHTML='';
+  hexes.forEach(h=>{
+    const un=board[h.id],unit=un?UNITS.find(u=>u.name===un):null;
+    const isSel=selType===type&&selHex===h.id;
+    const g=document.createElementNS(NS,'g');
+    g.setAttribute('class',`hg ${type}${un?' occ':''}${isSel?' sel':''}`);
+    const poly=document.createElementNS(NS,'polygon');
+    poly.setAttribute('points',hexPts(h.cx,h.cy));
+    g.appendChild(poly);
+    if(unit&&showNames){
+      const col=CC[unit.cost];
+      const mk=(y,fs,txt,fw)=>{const t=document.createElementNS(NS,'text');t.setAttribute('x',h.cx);t.setAttribute('y',y);t.setAttribute('text-anchor','middle');t.setAttribute('font-size',fs);t.setAttribute('fill',col);if(fw)t.setAttribute('font-weight',fw);t.textContent=txt;return t;};
+      g.appendChild(mk(h.cy-3,'8.5',trunc(un,11),'600'));
+      g.appendChild(mk(h.cy+9,'7.5','$'+unit.cost,null));
+    } else if(!unit){
+      const plus=document.createElementNS(NS,'text');
+      plus.setAttribute('x',h.cx);plus.setAttribute('y',h.cy+5);plus.setAttribute('text-anchor','middle');
+      plus.setAttribute('font-size','16');plus.setAttribute('fill',type==='enemy'?'#251515':'#1a1a32');
+      plus.textContent='+';g.appendChild(plus);
+    }
+    g.addEventListener('click',()=>onHex(h.id,type));
+    el.appendChild(g);
+  });
+}
+
+function onHex(id,type){
+  const board=getBoard(type);
+  if(selHex&&selType===type){
+    if(selHex===id){selHex=null;selType=null;render();return;}
+    snap();
+    const tmp=board[selHex];board[selHex]=board[id];board[id]=tmp;
+    selHex=null;selType=null;
+  } else if(selHex&&selType!==type){
+    selHex=null;selType=null;
+  } else {
+    if(board[id]){selHex=id;selType=type;}
+  }
+  render();
+}
+
+function render(){
+  renderSVG(document.getElementById('player-board'),pBoard,'player');
+  if(showEnemy) renderSVG(document.getElementById('enemy-board'),eBoard,'enemy');
+  updateStats();
+  renderTraits();
+  if(unitsOpen) renderUnitsPanel();
+  const hint=document.getElementById('move-hint');
+  hint.style.display=selType==='player'?'inline':'none';
+}
+
+function updateStats(){
+  const pu=Object.values(pBoard).f

@@ -2,6 +2,6 @@
 - [x] Add `detectCompFromUnits(units)` in `src/shared/gameEngine.ts` and wire into match logging.
 - [x] Update background `match_end` extraction to include summoner/region/timestamp/comp and persist normalized record.
 - [x] Update Supabase sync to `personal_matches` + batch unsynced sync flow.
-- [ ] Update PlayerAnalytics "Your Matches" rendering/stats for normalized personal match fields.
-- [ ] Run build validation (`npm run build`).
-- [ ] Mark tasks complete.
+- [x] Update PlayerAnalytics "Your Matches" rendering/stats for normalized personal match fields.
+- [x] Run build validation (`npm run build`).
+- [x] Mark tasks complete.

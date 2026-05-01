@@ -244,16 +244,46 @@ export function PlayerAnalytics() {
                       Place: <span className="text-[#35c3e7] font-semibold">{m.placement ?? '-'}</span>
                       {' · '}
                       Comp: <span className="text-neutral-300">{m.comp ?? 'Unknown'}</span>
+                      {m.compName && m.compName !== m.comp && (
+                        <span className="text-neutral-400 ml-1">({m.compName})</span>
+                      )}
                     </div>
                     <div className="text-neutral-400">
-                      {new Date(m.createdAt).toLocaleString()}
+                      {new Date(m.timestamp ?? m.createdAt).toLocaleString()}
+                      {m.duration && (
+                        <span className="text-neutral-400 ml-2"> • {m.duration}s</span>
+                      )}
                     </div>
                   </div>
-                  <div className="mt-1 text-[11px] text-neutral-400">
-                    Units: {m.units.slice(0, 8).join(', ') || 'N/A'}
+                  <div className="mt-1 flex flex-wrap gap-4 text-[11px]">
+                    <div className="text-neutral-400">
+                      Units: {m.units.slice(0, 4).join(', ')}${m.units.length > 4 ? ` +${m.units.length - 4}` : ''}
+                    </div>
+                    {m.summonerName && (
+                      <div className="text-neutral-400">
+                        Summoner: {m.summonerName}
+                      </div>
+                    )}
+                    {m.region && (
+                      <div className="text-neutral-400">
+                        Region: {m.region.toUpperCase()}
+                      </div>
+                    )}
+                    {m.augments.length > 0 && (
+                      <div className="text-neutral-400">
+                        Augments: {m.augments.slice(0, 2).join(', ') + (m.augments.length > 2 ? ` +${m.augments.length - 2}` : '')}
+                      </div>
+                    )}
                   </div>
-                  <div className="mt-1 text-[11px] text-neutral-500">
-                    Sync: {m.syncStatus}
+                  <div className="mt-1 text-[10px] flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded
+                      ${m.syncStatus === 'synced' ? 'bg-green-500' :
+                        m.syncStatus === 'failed' ? 'bg-red-500' :
+                        'bg-yellow-500'}`} />
+                    <span className="text-neutral-400">
+                      {m.syncStatus === 'synced' ? 'Synced' :
+                        m.syncStatus === 'failed' ? 'Failed' : 'Pending'}
+                    </span>
                   </div>
                 </div>
               ))}

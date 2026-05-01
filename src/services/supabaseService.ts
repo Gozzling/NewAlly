@@ -20,6 +20,9 @@ async function invoke<T>(functionName: string, params: Record<string, unknown>):
   assertAvailable()
   const { data, error } = await supabase!.functions.invoke(functionName, { body: params })
   if (error) {
+    if (error.statusCode >= 400 && error.statusCode < 500) {
+      throw new SupabaseError(`Edge function error: ${error.message} (${error.statusCode})`, 'EDGE_CLIENT_ERROR')
+    }
     throw new SupabaseError(error.message, 'EDGE_FUNCTION_ERROR')
   }
   return data as T
