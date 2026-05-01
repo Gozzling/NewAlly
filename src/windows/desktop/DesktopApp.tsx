@@ -16,7 +16,7 @@ function getCurrentWindowId(): Promise<string> {
 
 function SidebarBox({ children }: { children?: React.ReactNode }) {
   return (
-    <div className="bg-ally-card rounded-xl w-[240px] aspect-square flex items-center justify-center overflow-hidden relative sidebar-box hover:shadow-2xl transition-shadow duration-300">
+    <div className="bg-ally-card rounded-xl w-[240px] aspect-square flex items-center justify-center overflow-hidden relative sidebar-box hover:shadow-2xl transition-shadow duration-300 p-4">
       {children}
     </div>
   );
@@ -32,7 +32,7 @@ function StatCard({
   valueClass?: string;
 }) {
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 hover:bg-neutral-800/50 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-[2px]">
+    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 hover:bg-neutral-800/50 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-[2px]" style={{ padding: '16px' }}>
       <div className="text-[10px] uppercase tracking-widest text-neutral-600 mb-2">
         {label}
       </div>
@@ -76,7 +76,7 @@ function ItemsSkeleton() {
       <div className="grid grid-cols-2 gap-4 py-4">
         {/* Item card skeletons */}
         {[1, 2, 3, 4, 5, 6, 7, 8].map((_, index) => (
-          <div key={index} className="bg-ally-card border border-ally-border rounded-xl p-4 space-y-3 hover:shadow-lg transition-shadow duration-300">
+          <div key={index} className="bg-ally-card border border-ally-border rounded-xl hover:shadow-lg transition-shadow duration-300" style={{ padding: '16px' }}>
             <div className="flex items-center justify-between">
               <div className="w-8 h-8 bg-ally-hover rounded-full animate-pulse" />
               <div className="flex-1 space-y-1">
@@ -119,7 +119,7 @@ function CompCard({ comp, tier = 'A' }: { comp: MetaComp; tier?: string }) {
   };
 
   return (
-    <div className="bg-ally-card rounded-xl border border-ally-border p-6 hover:border-ally-accent/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-[2px] hover:scale-[1.02] relative overflow-hidden">
+    <div className="bg-ally-card rounded-xl border border-ally-border p-4 hover:border-ally-accent/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-[2px] hover:scale-[1.02] relative overflow-hidden">
       <div className="absolute inset-0"><div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/5 pointer-events-none opacity-0 hover:opacity-10 transition-opacity duration-300" /></div>
       <div className="relative z-10 flex gap-6">
         {/* Tier indicator */}
@@ -704,7 +704,7 @@ export function DesktopApp() {
 
             {/* Settings Dropdown */}
             {settingsOpen && (
-              <div className="absolute right-0 top-10 w-56 bg-[#1a1a1a] rounded-lg p-3 z-50" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.5), inset 1px 1px 2px rgba(255,255,255,0.03), inset -1px -1px 2px rgba(0,0,0,0.3)' }}>
+              <div className="absolute right-0 top-10 w-56 bg-[#1a1a1a] rounded-lg p-4 z-50" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.5), inset 1px 1px 2px rgba(255,255,255,0.03), inset -1px -1px 2px rgba(0,0,0,0.3)' }}>
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
                     <span className="text-white font-medium text-sm">Dark Mode</span>
@@ -764,7 +764,7 @@ export function DesktopApp() {
               >
                 {tab.icon}
               </button>
-              <div className="absolute left-12 top-1/2 -translate-y-1/2 bg-[#1a1a1a] text-white text-[12px] px-2.5 py-1 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50" style={{ boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.05), inset -1px -1px 2px rgba(0,0,0,0.4)' }}>
+              <div className="absolute left-12 top-1/2 -translate-y-1/2 bg-[#1a1a1a] text-white text-[12px] px-4 py-2 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50" style={{ boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.05), inset -1px -1px 2px rgba(0,0,0,0.4)' }}>
                 {tab.label}
               </div>
             </div>
@@ -778,7 +778,7 @@ export function DesktopApp() {
                 <circle cx="12" cy="7" r="4" />
               </svg>
             </button>
-            <div className="absolute left-12 top-1/2 -translate-y-1/2 bg-[#1a1a1a] text-white text-[12px] px-2.5 py-1 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50" style={{ boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.05), inset -1px -1px 2px rgba(0,0,0,0.4)' }}>
+            <div className="absolute left-12 top-1/2 -translate-y-1/2 bg-[#1a1a1a] text-white text-[12px] px-4 py-2 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50" style={{ boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.05), inset -1px -1px 2px rgba(0,0,0,0.4)' }}>
               Profile
             </div>
           </div>
@@ -801,7 +801,7 @@ export function DesktopApp() {
               {Array.from({ length: 8 }).map((_, i) => (
                 <div
                   key={i}
-                  className="bg-[#1a1a1a] rounded-xl p-4 flex flex-col items-start gap-2 min-h-[200px]" style={{ boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.4), inset -1px -1px 2px rgba(255,255,255,0.03)' }}
+                  className="bg-[#1a1a1a] rounded-xl flex flex-col items-start gap-2 min-h-[200px]" style={{ boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.4), inset -1px -1px 2px rgba(255,255,255,0.03)', padding: '16px' }}
                 >
                   <div className="w-16 h-16 rounded-full bg-[#222] flex-shrink-0" />
                   <div className="flex-1">
@@ -839,12 +839,12 @@ export function DesktopApp() {
         {/* Right Sidebar (fixed) */}
         <div className="w-80 bg-[#111111] flex-shrink-0 px-6 py-4 flex flex-col gap-4 items-center overflow-y-auto" style={{ boxShadow: 'inset 1px 0 2px rgba(0,0,0,0.3)' }}>
           {/* Ad Space */}
-          <div className="bg-[#1a1a1a] rounded-xl p-3 h-24 flex items-center justify-center w-[260px]" style={{ boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.4), inset -1px -1px 2px rgba(255,255,255,0.03)' }}>
+          <div className="bg-[#1a1a1a] rounded-xl flex items-center justify-center" style={{ width: '260px', height: '96px', padding: '16px' }}>
             <span className="text-[#555] text-xs uppercase tracking-widest">Advertisement</span>
           </div>
 
           {/* Tip Box */}
-          <div className="bg-[#1a1a1a] rounded-xl p-3 w-[260px]" style={{ boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.4), inset -1px -1px 2px rgba(255,255,255,0.03)' }}>
+          <div className="bg-[#1a1a1a] rounded-xl flex flex-col" style={{ width: '260px', padding: '16px' }}>
             <div className="text-[11px] uppercase tracking-widest text-[#35c3e7] mb-2">Tip</div>
             <div className="text-white text-sm leading-relaxed">
               Position your units in a way that maximizes trait synergies for optimal performance.
@@ -852,7 +852,7 @@ export function DesktopApp() {
           </div>
 
           {/* Info Box */}
-          <div className="bg-[#1a1a1a] rounded-xl p-3 w-[260px]" style={{ boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.4), inset -1px -1px 2px rgba(255,255,255,0.03)' }}>
+          <div className="bg-[#1a1a1a] rounded-xl flex flex-col" style={{ width: '260px', padding: '16px' }}>
             <div className="text-[11px] uppercase tracking-widest text-[#35c3e7] mb-2">Info</div>
             <div className="text-white text-sm leading-relaxed">
               Check the meta comps page for the latest team compositions that are performing well in the current patch.
@@ -860,7 +860,7 @@ export function DesktopApp() {
           </div>
 
           {/* Stats Box */}
-          <div className="bg-[#1a1a1a] rounded-xl p-3 w-[260px]" style={{ boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.4), inset -1px -1px 2px rgba(255,255,255,0.03)' }}>
+          <div className="bg-[#1a1a1a] rounded-xl flex flex-col" style={{ width: '260px', padding: '16px' }}>
             <div className="text-[11px] uppercase tracking-widest text-[#35c3e7] mb-2">Stats</div>
             <div className="flex flex-col gap-2">
               <div className="flex justify-between text-sm">
