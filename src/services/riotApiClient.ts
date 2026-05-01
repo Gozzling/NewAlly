@@ -141,7 +141,9 @@ export async function fetchPlayerCard(name: string, region: RiotRegion): Promise
       return await fetchPlayerCardSupabase(name, region)
     } catch (err) {
       if (err instanceof SupabaseError && err.code === 'NO_CONFIG') {
-        // fall through to direct
+        // Supabase not configured — fall through to direct
+      } else if (err instanceof SupabaseError) {
+        // Edge fn returned non-2xx — fall through to direct
       } else {
         throw err
       }
