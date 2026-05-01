@@ -1,11 +1,35 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import { fetchPlayerMatchHistory } from '@/services/matchHistoryService'
+import { fetchPlayerCard } from '@/services/riotApiClient'
+import type { RiotRegion } from '@/types/riot'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, ReferenceLine,
 } from 'recharts'
 import type { Match } from '@/types/riot'
+
+const EXAMPLE_NAMES = [
+  'Setsuko#EUW',
+  'K3Soju#KR',
+  'DisguisedToast#NA',
+  'Doublelift#NA',
+  'RiotPhroxzon#RIOT',
+  'Faker#KR',
+  'Kurumx#NA',
+  'RiotMort#RIOT',
+  'Meepsie#NA',
+  'Dishsoap#EUW',
+]
+
+const REGIONS: { label: string; value: RiotRegion }[] = [
+  { label: 'NA',  value: 'na1' },
+  { label: 'EUW', value: 'euw1' },
+  { label: 'EUNE', value: 'eun1' },
+  { label: 'KR',  value: 'kr'  },
+  { label: 'BR',  value: 'br1' },
+  { label: 'JP',  value: 'jp1' },
+]
 
 /* ─── Design tokens ─── */
 const C = {
@@ -295,7 +319,8 @@ function useScrollSentinel(ref: React.RefObject<HTMLDivElement | null>, onInters
 ═══════════════════════════════════════════════════════════════ */
 export function MatchHistory() {
   const selectedPlayer = useAppStore(s => s.selectedPlayer)
-  const storeRegion    = useAppStore(s => s.settings.region)
+  const storeRegion     = useAppStore(s => s.settings.region)
+  const setSelectedPlayer = useAppStore(s => s.setSelectedPlayer)
 
   const [matches, setMatches]       = useState<MatchRowData[]>([])
   const [loading, setLoading]         = useState(true)
@@ -304,6 +329,61 @@ export function MatchHistory() {
   const [range, setRange]             = useState<RangeLimit>(30)
   const [hasMore, setHasMore]          = useState(true)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
+  const [searchQuery, setSearchQuery]    = useState('')
+  const [searchRegion, setSearchRegion]  = useState<RiotRegion>(storeRegion)
+  const [searching, setSearching]        = useState(false)
+  const [searchErr, setSearchErr]        = useState<string | null>(null)
+  const [placeholder, setPlaceholder]    = useState('')
+  const [isDeleting, setIsDeleting]      = useState(false)
+  const [paused, setPaused]              = useState(false)
+  const [curIdx, setCurIdx]               = useState(0)
+
+  /* ─── Typing animation ─── */
+  useEffect(() => { setPaused(false) }, [])
+  useEffect(() => {
+    if (paused) return
+    const speed    = isDeleting ? 65 : 105
+    const cur      = EXAMPLE_NAMES[curIdx % EXAMPLE_NAMES.length]
+    const waitTyping  = 1800
+    const waitDelete  = 500
+    const t = setTimeout(() => {
+      if (!isDeleting) {
+        if (placeholder.length < cur.length) {
+          setPlaceholder(cur.slice(0, placeholder.length + 1))
+        } else {
+          setPlaceholder(cur + '...')
+          setTimeout(() => setIsDeleting(true), waitTyping)
+        }
+      } else {
+        if (placeholder.length > 0) {
+          setPlaceholder(p => p.slice(0, -1))
+        } else {
+          setIsDeleting(false)
+          setCurIdx(i => (i + 1) % EXAMPLE_NAMES.length)
+          setPaused(true)
+          setTimeout(() => setPaused(false), waitDelete)
+        }
+      }
+    }, speed)
+    return () => clearTimeout(t)
+  }, [placeholder, isDeleting, paused, curIdx])
+
+  useEffect(() => { setSearchRegion(storeRegion) }, [storeRegion])
+
+  /* ─── Search ─── */
+  async function handleSearch(e: React.FormEvent) {
+    e.preventDefault()
+    if (!searchQuery.trim()) return
+    setSearching(true); setSearchErr(null)
+    try {
+      const card = await fetchPlayerCard(searchQuery.trim(), searchRegion)
+      setSelectedPlayer(card)
+    } catch (err) {
+      setSearchErr(err instanceof Error ? err.message : 'Player not found')
+    } finally {
+      setSearching(false)
+    }
+  }
 
   const LIMIT = 30
 
@@ -367,16 +447,86 @@ export function MatchHistory() {
     return (
       <div style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center',
-        justifyContent: 'center', height: '100%', gap: 12, padding: 32,
+        justifyContent: 'center', height: '100%', gap: 20, padding: 32,
         background: C.bg,
       }}>
-        <svg viewBox="0 0 24 24" fill="none" stroke={C.faint} strokeWidth="1.5"
-          className="w-12 h-12" style={{ opacity: 0.5 }}>
-          <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-        </svg>
-        <p style={{ color: C.muted, fontFamily: 'Rajdhani, sans-serif', fontSize: 14 }}>
-          Search for a summoner to view match history
-        </p>
+        {/* Title */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+          <div style={{ color: C.text, fontFamily: 'Rajdhani, sans-serif', fontSize: 22, fontWeight: 800, letterSpacing: '0.05em' }}>
+            MATCH HISTORY
+          </div>
+          <div style={{ color: C.muted, fontFamily: 'Rajdhani, sans-serif', fontSize: 12, letterSpacing: '0.08em' }}>
+            Search a summoner to view LP progression
+          </div>
+        </div>
+
+        {/* Search form */}
+        <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8, width: '100%', maxWidth: 460 }}>
+          <div style={{ position: 'relative', flex: 1 }}>
+            <svg style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}
+              viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              className="w-4 h-4">
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder={placeholder || 'Summoner name...'}
+              style={{
+                width: '100%', background: C.surface, border: `1px solid ${C.border}`,
+                borderRadius: 8, padding: '9px 12px 9px 34px',
+                color: C.text, fontSize: 13, fontFamily: 'Rajdhani, sans-serif',
+                outline: 'none', transition: 'border-color 0.15s',
+              }}
+              onFocus={e => { e.target.style.borderColor = C.accent }}
+              onBlur={e => { e.target.style.borderColor = C.border }}
+            />
+          </div>
+          <select
+            value={searchRegion}
+            onChange={e => setSearchRegion(e.target.value as RiotRegion)}
+            style={{
+              background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8,
+              padding: '0 10px', color: C.text, fontSize: 13, fontFamily: 'Rajdhani, sans-serif',
+              outline: 'none', cursor: 'pointer',
+            }}
+          >
+            {REGIONS.map(r => (
+              <option key={r.value} value={r.value} style={{ background: C.surface }}>{r.label}</option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            disabled={searching}
+            style={{
+              background: C.accent, border: 'none', borderRadius: 8,
+              padding: '0 16px', color: '#000', fontSize: 13,
+              fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, letterSpacing: '0.04em',
+              cursor: 'pointer', opacity: searching ? 0.6 : 1, transition: 'opacity 0.15s',
+              display: 'flex', alignItems: 'center', gap: 6,
+            }}
+          >
+            {searching ? (
+              <span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #000', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+            ) : (
+              'Search'
+            )}
+          </button>
+        </form>
+
+        {searchErr && (
+          <div style={{
+            color: C.loss, fontFamily: 'Rajdhani, sans-serif', fontSize: 12,
+            padding: '6px 14px', background: 'rgba(239,68,68,0.1)', border: `1px solid rgba(239,68,68,0.25)`,
+            borderRadius: 6,
+          }}>
+            {searchErr}
+          </div>
+        )}
+
+        {/* Spinner keyframes */}
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     )
   }
