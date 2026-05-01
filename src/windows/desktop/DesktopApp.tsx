@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { subscribeToStateSnapshots } from '@/services/ipcService';
 import { TeamBuilder } from '@/pages/TeamBuilder';
-import { PlayerSearch } from '@/pages/PlayerSearch';
+import { MatchHistory } from '@/pages/MatchHistory';
 import { META_COMPS } from '@/data/metaComps';
 import type { MetaComp } from '@/types/tft';
 
@@ -12,33 +12,6 @@ function getCurrentWindowId(): Promise<string> {
       if (r.status === 'success') resolve(r.window.id);
     });
   });
-}
-
-function SidebarBox({ children }: { children?: React.ReactNode }) {
-  return (
-    <div className="bg-ally-card rounded-xl w-[240px] aspect-square flex items-center justify-center overflow-hidden relative sidebar-box hover:shadow-2xl transition-shadow duration-300 p-4">
-      {children}
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  valueClass = 'text-white',
-}: {
-  label: string;
-  value: string;
-  valueClass?: string;
-}) {
-  return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 hover:bg-neutral-800/50 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-[2px]" style={{ padding: '16px' }}>
-      <div className="text-[10px] uppercase tracking-widest text-neutral-600 mb-2">
-        {label}
-      </div>
-      <div className={`text-[24px] font-bold ${valueClass}`}>{value}</div>
-    </div>
-  );
 }
 
 // Skeleton loader for Items tab
@@ -61,9 +34,7 @@ function ItemsSkeleton() {
         </div>
         <select
           className="bg-ally-bg border border-ally-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-ally-accent"
-          readOnly
         >
-          <option value="all">All Tags</option>
           <option value="offense">Offense</option>
           <option value="defense">Defense</option>
           <option value="AP">Ability Power</option>
@@ -184,17 +155,6 @@ function CompCard({ comp, tier = 'A' }: { comp: MetaComp; tier?: string }) {
     </div>
   );
 }
-
-const TABS = [
-  'In Game',
-  'Comps',
-  'Items',
-  'Units',
-  'Traits',
-  'Augments',
-  'Team Builder',
-  'Match History',
-];
 
 // TFT data for typing animation
 const CHAMPIONS = [
@@ -525,7 +485,6 @@ export function DesktopApp() {
   const state = useAppStore((s: any) => s.gameState);
   const lastRawRef = useRef<string>('');
   const [activePage, setActivePage] = useState<string>('in-game');
-  const [searchTerm, setSearchTerm] = useState('');
   const [typingText, setTypingText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentTerm, setCurrentTerm] = useState('');
@@ -654,10 +613,10 @@ export function DesktopApp() {
       {/* Top Bar */}
       <div
         className="h-12 bg-[#111111] flex items-center px-4 flex-shrink-0 relative"
-        style={{ WebkitAppRegion: 'drag' as React.CSSProperties, boxShadow: 'inset 0 -1px 2px rgba(0,0,0,0.3)' }}
+        style={{ WebkitAppRegion: 'drag', boxShadow: 'inset 0 -1px 2px rgba(0,0,0,0.3)' } as Record<string, string>}
       >
         {/* Left: ALLY Logo */}
-        <div className="absolute" style={{ left: '19px', WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+        <div className="absolute" style={{ left: '19px', WebkitAppRegion: 'no-drag' } as Record<string, string>}>
           <svg viewBox="0 0 70 70" fill="none" className="h-5 w-auto">
             <path d="M35 0L67 62.5H49.5L37 30L17 62.5H2" stroke="#35c3e7" strokeWidth="8" strokeLinejoin="round" strokeLinecap="round" />
             <line x1="12" y1="43.75" x2="49.5" y2="43.75" stroke="#35c3e7" strokeWidth="7" />
@@ -665,7 +624,7 @@ export function DesktopApp() {
         </div>
 
         {/* Center: Search Bar */}
-        <div className="flex-1 flex justify-center" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+        <div className="flex-1 flex justify-center" style={{ WebkitAppRegion: 'no-drag' } as Record<string, string>}>
           <input
             type="text"
             placeholder="Search..."
@@ -674,7 +633,7 @@ export function DesktopApp() {
         </div>
 
         {/* Right: Icons + Window Controls */}
-        <div className="ml-auto flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+        <div className="ml-auto flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as Record<string, string>}>
           {/* Discord */}
           <button className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:bg-[#1a1a1a] transition-colors">
             <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -829,6 +788,8 @@ export function DesktopApp() {
             <ItemsSkeleton />
           ) : activePage === 'team-builder' ? (
             <TeamBuilder />
+          ) : activePage === 'match-history' ? (
+            <MatchHistory />
           ) : (
             <div className="flex items-center justify-center h-full">
               <span className="text-white text-sm capitalize">{activePage.replace('-', ' ')}</span>
