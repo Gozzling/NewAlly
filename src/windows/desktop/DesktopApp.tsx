@@ -3,6 +3,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { subscribeToStateSnapshots } from '@/services/ipcService';
 import { TeamBuilder } from '@/pages/TeamBuilder';
 import { MatchHistory } from '@/pages/MatchHistory';
+
 import { META_COMPS } from '@/data/metaComps';
 import type { MetaComp } from '@/types/tft';
 

@@ -12,7 +12,12 @@
       "WebSearch",
       "Bash(grep -v '^\\\\[\\\\|^\\\\]\\\\|\\\\s*$')",
       "Bash(node *)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(git clone *)",
+      "Bash(git pull *)",
+      "Bash(git checkout *)",
+      "Bash(npx skills *)",
+      "Bash(Copy-Item *)"
     ]
   }
 }

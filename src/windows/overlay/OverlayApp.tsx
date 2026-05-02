@@ -23,10 +23,8 @@ function HudBar({ gold, roundType, stage, health }: { gold?: number; roundType?:
 
 export function OverlayApp() {
   const state = useAppStore((s: any) => s.gameState)
-  const { guideModeEnabled, toggleGuideMode } = useAppStore((s) => ({
-    guideModeEnabled: s.guideModeEnabled,
-    toggleGuideMode: s.toggleGuideMode,
-  }))
+const guideModeEnabled = useAppStore((s) => s.guideModeEnabled);
+const toggleGuideMode = useAppStore((s) => s.toggleGuideMode);
 
   useEffect(() => {
     return subscribeToStateSnapshots()

@@ -1,0 +1,7 @@
+{
+  "files": ["background.html", "overlay.html", "desktop.html", "lobby.html"],
+  "exclude": [],
+  "insertBefore": "</body>",
+  "commentSyntax": "html",
+  "cspChecked": true
+}

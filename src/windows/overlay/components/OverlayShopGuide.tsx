@@ -22,10 +22,8 @@ function computeTraitCounts(unitNames: string[]) {
 }
 
 export function OverlayShopGuide() {
-  const { guideModeEnabled, activeGuideComp } = useAppStore((s) => ({
-    guideModeEnabled: s.guideModeEnabled,
-    activeGuideComp: s.activeGuideComp,
-  }))
+  const guideModeEnabled = useAppStore((s) => s.guideModeEnabled);
+const activeGuideComp = useAppStore((s) => s.activeGuideComp);
   const { board, shopUnits } = useAppStore((s) => s.gameState)
 
   if (!guideModeEnabled || !activeGuideComp) {
