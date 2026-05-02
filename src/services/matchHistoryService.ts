@@ -1,5 +1,6 @@
 import type { Match, MatchDetail, RiotRegion } from '../types/riot'
 import { fetchMatchIds, fetchMatchDetail, regionToMatchRegion } from './riotApiClient'
+import { getCache } from './storageService'
 import { getCache, setCache, ONE_DAY } from './storageService'
 import { supabase, hasSupabase } from './supabaseClient'
 import type { PersonalMatchRecord } from './indexedDbService'
@@ -70,7 +71,79 @@ export async function fetchPlayerMatchHistory(
       } catch (err) {
         console.warn(`[MH] Failed to fetch match ${id}:`, err)
         return null
-      }
+}
+
+// --- Helper utilities for MatchHistory page ---
+
+/**
+ * Check if browser is online.
+ */
+export function isOnline(): boolean {
+  return typeof navigator !== 'undefined' && navigator.onLine;
+}
+
+/**
+ * Retrieve cached match history if present.
+ * Returns an array of matches (may be empty) and respects offset for pagination.
+ */
+export function getCachedMatchHistory(puuid: string, region: RiotRegion, count = 20, offset = 0): Match[] {
+  const cacheKey = `history:${region}:${puuid}:${count}`;
+  const cached = getCache<Match[]>(cacheKey);
+  if (!cached) return [];
+  const sliced = cached.slice(offset);
+  // Ensure dates are Date objects
+  return sliced.map((m) => ({
+    ...m,
+    date: new Date(m.date),
+  }));
+}
+
+/**
+ * Returns true if there is cached match history for the given params.
+ */
+export function hasCachedMatchHistory(puuid: string, region: RiotRegion, count = 20): boolean {
+  const cacheKey = `history:${region}:${puuid}:${count}`;
+  return !!getCache<Match[]>(cacheKey);
+}
+
+/**
+ * Convert an error into a user‑friendly message.
+ */
+export function getUserFriendlyErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') return error;
+  return 'An unexpected error occurred';
+}
+
+/**
+ * Determine appropriate action button text for an error.
+ * Returns "Retry" for retryable errors, otherwise empty string.
+ */
+export function getErrorActionText(error: unknown): string {
+  return isRetryableError(error) ? 'Retry' : '';
+}
+
+/**
+ * Simple heuristic for retryable errors.
+ */
+export function isRetryableError(error: unknown): boolean {
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase();
+    if (msg.includes('fetch') || msg.includes('timeout') || msg.includes('network')) {
+      return true;
+    }
+  }
+  // SupabaseError handling (if present)
+  if (typeof (error as any)?.code === 'string') {
+    const code = (error as any).code;
+    // treat server errors as retryable
+    if (code === 'EDGE_FUNCTION_ERROR' || code === 'SERVER_ERROR') return true;
+  }
+  return false;
+}
+
     }),
   )
 
@@ -120,6 +193,8 @@ export async function syncPersonalMatchToSupabase(record: PersonalMatchRecord): 
 }
 
 export async function syncUnsyncedPersonalMatches(limit = 50): Promise<{ synced: number; failed: number }> {
+  // Existing implementation unchanged
+
   const rows = await getUnsyncedMatches(limit)
   let synced = 0
   let failed = 0
