@@ -59,7 +59,7 @@ export function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-[#a1a1a1] text-sm">Loading meta comps...</div>
+        <div className="text-[#a1a1a1] text-body">Loading meta comps...</div>
       </div>
     )
   }
@@ -72,13 +72,13 @@ export function Dashboard() {
           <Rocket className="w-5 h-5" />
         </div>
         <div className="flex-1">
-          <div className="text-sm font-bold text-white flex items-center gap-1.5">
+          <div className="text-subheading font-bold text-white flex items-center gap-1.5">
             Set {SET_17_PATCH.setNumber}: {SET_17_PATCH.setName}
             <BadgeCheck className="w-3.5 h-3.5 text-[#35c3e7]" />
           </div>
-          <div className="text-[11px] text-neutral-400">Current patch: {SET_17_PATCH.patch} &middot; {SET_17_PATCH.tftPatch}</div>
+          <div className="text-caption text-neutral-400">Current patch: {SET_17_PATCH.patch} &middot; {SET_17_PATCH.tftPatch}</div>
         </div>
-        <div className="px-2 py-1 rounded bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-semibold">Active</div>
+        <div className="px-2 py-1 rounded bg-green-500/10 border border-green-500/20 text-green-400 text-caption font-semibold">Active</div>
       </div>
 
       {/* Header stats */}
@@ -97,13 +97,13 @@ export function Dashboard() {
             placeholder="Search comps, units, traits..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-[#a1a1a1] focus:outline-none focus:border-[#35c3e7]"
+            className="w-full bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg pl-9 pr-3 py-2 text-body text-white placeholder-[#a1a1a1] focus:outline-none focus:border-[#35c3e7]"
           />
         </div>
         <div className="flex gap-1 bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg p-1">
           <button
             onClick={() => setActiveTier('all')}
-            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${activeTier === 'all' ? 'bg-[#252525] text-white' : 'text-[#a1a1a1] hover:text-white'}`}
+            className={`px-3 py-1.5 rounded text-caption font-medium transition-colors ${activeTier === 'all' ? 'bg-[#252525] text-white' : 'text-[#a1a1a1] hover:text-white'}`}
           >
             <LayoutGrid className="w-3.5 h-3.5 inline mr-1" />
             All
@@ -112,7 +112,7 @@ export function Dashboard() {
             <button
               key={t}
               onClick={() => setActiveTier(t)}
-              className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${
+              className={`px-3 py-1.5 rounded text-caption font-bold transition-colors ${
                 activeTier === t
                   ? t === 'S'
                     ? 'bg-yellow-500/20 text-yellow-400'
@@ -132,7 +132,7 @@ export function Dashboard() {
 
       {/* Comp list */}
       <div className="space-y-2">
-        <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-[#a1a1a1]">
+        <div className="flex items-center gap-2 text-caption uppercase tracking-widest text-[#a1a1a1]">
           <TrendingUp className="w-3.5 h-3.5" />
           {filtered.length} comps shown
         </div>
@@ -140,7 +140,7 @@ export function Dashboard() {
           <CompCard key={comp.compName} comp={comp} />
         ))}
         {filtered.length === 0 && (
-          <div className="text-center py-12 text-[#a1a1a1] text-sm">No comps match your search.</div>
+          <div className="text-center py-12 text-[#a1a1a1] text-body">No comps match your search.</div>
         )}
       </div>
     </div>

@@ -5,6 +5,15 @@ const config: Config = {
   darkMode: 'class',
   theme: {
     extend: {
+      // Custom type scale aligned with design principles
+      // caption: small UI labels, body: main copy, subheading: secondary headings, heading: primary section titles, display: large page headings
+      fontSize: {
+        caption: ['0.75rem', { lineHeight: '1.2', letterSpacing: '0.02em' }], // 12px
+        body: ['1rem', { lineHeight: '1.5' }], // 16px
+        subheading: ['1.125rem', { lineHeight: '1.35' }], // 18px
+        heading: ['1.5rem', { lineHeight: '1.3', fontWeight: '700' }], // 24px
+        display: ['2rem', { lineHeight: '1.2', fontWeight: '700' }], // 32px
+      },
       colors: {
         ally: {
           bg:      '#181818', // background — hsl(0 0% 9%)
