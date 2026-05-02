@@ -755,7 +755,7 @@ export function DesktopApp() {
         )}
 
         {/* Page Content */}
-        <div className="flex-1 overflow-y-auto bg-[#0e0e0e] px-8 py-6 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto min-h-0 h-full bg-[#0e0e0e] px-8 py-6 custom-scrollbar">
           {activePage === 'in-game' ? (
             <div className="grid grid-cols-2 gap-3">
               {Array.from({ length: 8 }).map((_, i) => (

@@ -1,26 +1,22 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useAppStore } from '@/store/useAppStore'
-import { fetchPlayerMatchHistory } from '@/services/matchHistoryService'
+import {
+  fetchPlayerMatchHistory,
+  getCachedMatchHistory,
+  hasCachedMatchHistory,
+  isOnline,
+  getUserFriendlyErrorMessage,
+  getErrorActionText,
+  isRetryableError,
+} from '@/services/matchHistoryService'
 import { fetchPlayerCard } from '@/services/riotApiClient'
 import type { RiotRegion } from '@/types/riot'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, ReferenceLine,
+  Area,
 } from 'recharts'
 import type { Match } from '@/types/riot'
-
-const EXAMPLE_NAMES = [
-  'Setsuko#EUW',
-  'K3Soju#KR',
-  'DisguisedToast#NA',
-  'Doublelift#NA',
-  'RiotPhroxzon#RIOT',
-  'Faker#KR',
-  'Kurumx#NA',
-  'RiotMort#RIOT',
-  'Meepsie#NA',
-  'Dishsoap#EUW',
-]
 
 const REGIONS: { label: string; value: RiotRegion }[] = [
   { label: 'NA',  value: 'na1' },
@@ -33,9 +29,9 @@ const REGIONS: { label: string; value: RiotRegion }[] = [
 
 /* ─── Design tokens ─── */
 const C = {
-  bg:         '#181818',
+  bg:         '#0d0d0d',
   surface:    '#1f1f1f',
-  border:     '#2a2a2a',
+  border:     '#1a1a1a',
   accent:     '#00d4ff',
   accentDim:  'rgba(0,212,255,0.12)',
   win:        '#34d399',
@@ -50,27 +46,14 @@ const C = {
   chartCyan:  '#00d4ff',
 }
 
-const TIER_COLORS: Record<string, string> = {
-  iron:        '#6b7280',
-  bronze:      '#cd7f32',
-  silver:      '#9ca3af',
-  gold:        '#f59e0b',
-  platinum:    '#06b6d4',
-  emerald:     '#10b981',
-  diamond:     '#60a5fa',
-  master:      '#c084fc',
-  grandmaster: '#f97316',
-  challenger:  '#f43f5e',
-}
-
-const RANGE_OPTIONS = [
-  { label: 'Last 30',  value: 30  },
-  { label: 'Last 100', value: 100 },
-  { label: 'All',      value: -1  },
-] as const
-type RangeLimit = 30 | 100 | -1
-
 /* ─── Helpers ─── */
+// APPROXIMATE LP DELTA TABLE
+// This is a hardcoded approximation of TFT ranked LP changes.
+// The Riot API does not return actual LP gain/loss in match details.
+// Real LP tracking would require:
+// 1) Listening to Overwolf live events during ranked games, OR
+// 2) Querying the TFT League API before/after each match to compute delta
+// Until then, this table provides a reasonable estimate based on placement.
 function placementDelta(placement: number): number {
   switch (placement) {
     case 1: return  100; case 2: return  80; case 3: return  64; case 4: return  50;
@@ -84,6 +67,9 @@ function formatDuration(seconds: number): string {
   const s = seconds % 60
   return `${m}:${s.toString().padStart(2, '0')}`
 }
+
+// Unit icon URL helper
+const unitIconUrl = (name: string) => `/unit-icons/${name}.webp`
 
 function formatTimeAgo(isoStr: string): string {
   const diff = Date.now() - new Date(isoStr).getTime()
@@ -105,15 +91,19 @@ interface MatchRowData {
   lpChange: number; date: string; duration: number
   rank: string; tier: string; players: number
   comp: string | null; traits: string[]; lpAtEnd: number
+  level: number; augments: string[]; gameType: string
+  units: string[]
 }
 
 /* ─── Build row from Match ─── */
 function buildRow(m: Match, lpAtEnd: number): MatchRowData {
+  // Use real LP change if available, otherwise fall back to approximation
+  const lpChange = m.lpChange ?? placementDelta(m.placement)
   return {
     matchId:   m.matchId,
     placement: m.placement,
     result:    m.placement <= 4 ? 'win' : 'loss',
-    lpChange:  placementDelta(m.placement),
+    lpChange,
     date:      m.date instanceof Date ? m.date.toISOString() : String(m.date),
     duration:  Math.round(m.gameLength),
     rank:      '',
@@ -122,15 +112,28 @@ function buildRow(m: Match, lpAtEnd: number): MatchRowData {
     comp:      m.comp ?? null,
     traits:    m.traits ?? [],
     lpAtEnd,
+    level:     m.level,
+    augments:  m.augments ?? [],
+    gameType:  m.gameType,
+    units:     m.units ?? [],
   }
 }
 
-/* ─── LP dot per win/loss ─── */
-function LPDot(props: { cx?: number; cy?: number; payload?: MatchRowData }) {
+/* ─── Liquid LP dot with soft glow ─── */
+function LiquidLPDot(props: { cx?: number; cy?: number; payload?: MatchRowData }) {
   const { cx, cy, payload } = props
   if (!cx || !cy || !payload) return null
   const fill = payload.result === 'loss' ? C.chartRed : C.chartGreen
-  return <circle cx={cx} cy={cy} r={4} fill={fill} stroke={C.surface} strokeWidth={2} />
+  const glowColor = payload.result === 'loss' ? 'rgba(239,68,68,0.3)' : 'rgba(52,211,153,0.3)'
+  return (
+    <g>
+      <circle cx={cx} cy={cy} r={8} fill={glowColor} opacity={0.5}>
+        <animate attributeName="r" values="6;8;6" dur="2s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0.5;0.2;0.5" dur="2s" repeatCount="indefinite" />
+      </circle>
+      <circle cx={cx} cy={cy} r={4} fill={fill} stroke={C.surface} strokeWidth={2} />
+    </g>
+  )
 }
 
 /* ─── Chart tooltip ─── */
@@ -163,34 +166,203 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: Array<{
   )
 }
 
-/* ─── Tier badge ─── */
-function TierBadge({ tier, rank, lp }: {
-  tier: string | null; rank: string | null; lp: number | null
+/* ─── Error Display Component ─── */
+function ErrorDisplay({ error, onRetry, onLoadCached, isRetrying }: {
+  error: ErrorState
+  onRetry: () => void
+  onLoadCached: () => void
+  isRetrying: boolean
 }) {
-  const col = TIER_COLORS[(tier ?? 'iron').toLowerCase()] ?? C.muted
+  if (!error) return null
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      {tier && (
+    <div style={{
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 32,
+      gap: 16,
+    }}>
+      {/* Error Icon */}
+      <div style={{
+        width: 64,
+        height: 64,
+        borderRadius: '50%',
+        background: 'rgba(239,68,68,0.1)',
+        border: '2px solid rgba(239,68,68,0.3)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <svg viewBox="0 0 24 24" fill="none" stroke={C.loss} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ width: 32, height: 32 }}>
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+      </div>
+
+      {/* Error Message */}
+      <div style={{
+        textAlign: 'center',
+        maxWidth: 400,
+      }}>
         <div style={{
-          padding: '2px 9px', borderRadius: 5,
-          background: `${col}20`, border: `1px solid ${col}55`,
-          color: col, fontSize: 11, fontWeight: 700,
-          fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.04em',
-          textTransform: 'uppercase',
+          color: C.text,
+          fontFamily: 'Rajdhani, sans-serif',
+          fontSize: 16,
+          fontWeight: 700,
+          marginBottom: 8,
         }}>
-          {tier} {rank}
+          {error.isOffline && 'You appear to be offline'}
+          {!error.isOffline && 'Unable to load match history'}
         </div>
-      )}
-      {lp != null && (
-        <span style={{ color: C.accent, fontFamily: 'Rajdhani, sans-serif', fontSize: 13, fontWeight: 600 }}>
-          {lp} LP
-        </span>
+        <div style={{
+          color: C.muted,
+          fontFamily: 'Rajdhani, sans-serif',
+          fontSize: 13,
+          marginBottom: 4,
+        }}>
+          {error.message}
+        </div>
+        <div style={{
+          color: C.faint,
+          fontFamily: 'Rajdhani, sans-serif',
+          fontSize: 11,
+        }}>
+          {error.action}
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+        {error.retryable && (
+          <button
+            onClick={onRetry}
+            disabled={isRetrying}
+            style={{
+              padding: '8px 20px',
+              borderRadius: 6,
+              background: C.accent,
+              border: 'none',
+              color: '#000',
+              fontSize: 13,
+              fontFamily: 'Rajdhani, sans-serif',
+              fontWeight: 700,
+              cursor: isRetrying ? 'not-allowed' : 'pointer',
+              opacity: isRetrying ? 0.6 : 1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            {isRetrying ? (
+              <>
+                <span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #000', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                Retrying...
+              </>
+            ) : (
+              'Try Again'
+            )}
+          </button>
+        )}
+
+        {error.hasCachedData && (
+          <button
+            onClick={onLoadCached}
+            style={{
+              padding: '8px 20px',
+              borderRadius: 6,
+              background: 'transparent',
+              border: `1px solid ${C.border}`,
+              color: C.muted,
+              fontSize: 13,
+              fontFamily: 'Rajdhani, sans-serif',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = C.muted; e.currentTarget.style.color = C.text }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.muted }}
+          >
+            View Cached Data
+          </button>
+        )}
+      </div>
+
+      {/* Offline Indicator */}
+      {error.isOffline && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '6px 12px',
+          background: 'rgba(239,68,68,0.1)',
+          border: '1px solid rgba(239,68,68,0.2)',
+          borderRadius: 4,
+          marginTop: 8,
+        }}>
+          <div style={{
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            background: C.loss,
+            animation: 'pulse 2s infinite',
+          }} />
+          <span style={{
+            color: C.loss,
+            fontFamily: 'Rajdhani, sans-serif',
+            fontSize: 11,
+            fontWeight: 600,
+          }}>
+            Offline Mode
+          </span>
+        </div>
       )}
     </div>
   )
 }
 
-/* ─── Skeleton row ─── */
+/* ─── Empty State Component ─── */
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div style={{
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 32,
+      gap: 16,
+    }}>
+      <div style={{
+        width: 64,
+        height: 64,
+        borderRadius: '50%',
+        background: 'rgba(255,255,255,0.05)',
+        border: '2px solid rgba(255,255,255,0.1)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <svg viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ width: 32, height: 32 }}>
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+      </div>
+      <div style={{
+        color: C.muted,
+        fontFamily: 'Rajdhani, sans-serif',
+        fontSize: 14,
+        textAlign: 'center',
+      }}>
+        {message}
+      </div>
+    </div>
+  )
+}
 function RowSkeleton() {
   return (
     <div style={{
@@ -211,7 +383,10 @@ function RowSkeleton() {
 }
 
 /* ─── Match row ─── */
-function MatchRow({ match }: { match: MatchRowData }) {
+function MatchRow({ match, index }: { match: MatchRowData; index: number }) {
+  const isNonStandard = match.gameType !== 'standard'
+  const gameTypeLabel = match.gameType === 'doubleup' ? 'Double Up' : match.gameType
+
   return (
     <div
       style={{
@@ -220,7 +395,13 @@ function MatchRow({ match }: { match: MatchRowData }) {
         gap: 10, alignItems: 'center',
         padding: '7px 12px',
         borderBottom: `1px solid ${C.border}`,
+        borderLeft: `3px solid ${
+          match.placement === 1 ? '#f59e0b'
+          : match.placement <= 4 ? '#34d399'
+          : '#ef4444'
+        }`,
         transition: 'background 0.1s',
+        animation: `fadeSlideUp 0.3s ease-out ${0.1 + index * 0.03}s both`,
       }}
       onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
       onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
@@ -228,7 +409,7 @@ function MatchRow({ match }: { match: MatchRowData }) {
       {/* Placement */}
       <div style={{
         width: 28, height: 28, borderRadius: 6,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         fontFamily: 'Rajdhani, sans-serif', fontSize: 12, fontWeight: 800,
         color:  match.placement === 1 ? '#f59e0b'
            : match.placement <= 4 ? C.chartGreen
@@ -241,29 +422,90 @@ function MatchRow({ match }: { match: MatchRowData }) {
           : match.placement <= 4 ? 'rgba(52,211,153,0.3)'
           : 'rgba(239,68,68,0.2)'
         }`,
-      }}>
-        {match.placement}
+        transition: 'transform 0.15s ease',
+        cursor: 'pointer',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.15)' }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
+      >
+        <span>{match.placement}</span>
+        <span style={{ fontSize: 8, fontWeight: 600, opacity: 0.7 }}>Lv.{match.level}</span>
       </div>
 
       {/* Meta */}
       <div>
-        <div style={{ fontSize: 10, color: C.muted, marginBottom: 1 }}>
-          {formatTimeAgo(match.date)} · {formatDuration(match.duration)}
+        <div style={{ fontSize: 10, color: C.muted, marginBottom: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span>{formatTimeAgo(match.date)} · {formatDuration(match.duration)}</span>
+          {isNonStandard && (
+            <span style={{
+              padding: '1px 5px', borderRadius: 3,
+              background: 'rgba(0,212,255,0.15)', border: '1px solid rgba(0,212,255,0.3)',
+              color: C.accent, fontSize: 8, fontWeight: 700, letterSpacing: '0.05em',
+            }}>
+              {gameTypeLabel}
+            </span>
+          )}
         </div>
-        <div style={{
-          fontSize: 11, color: C.text, fontWeight: 700,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          fontFamily: 'Rajdhani, sans-serif',
-        }}>
-          {match.comp ?? match.traits.slice(0, 3).join(' · ')}
-        </div>
-        {match.traits.length > 0 && (
+        {match.augments.length > 0 && (
           <div style={{
-            fontSize: 9, color: C.faint, overflow: 'hidden',
-            textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            fontFamily: 'Rajdhani, sans-serif',
+            display: 'flex', gap: 4, marginTop: 2,
+            overflow: 'hidden', flexWrap: 'nowrap',
           }}>
-            {match.traits.slice(0, 4).join(' · ')}
+            {match.augments.slice(0, 3).map((aug, i) => (
+              <span
+                key={i}
+                style={{
+                  padding: '1px 5px', borderRadius: 3,
+                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                  color: C.muted, fontSize: 8, fontWeight: 600,
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  fontFamily: 'Rajdhani, sans-serif',
+                }}
+              >
+                {aug}
+              </span>
+            ))}
+            {match.augments.length > 3 && (
+              <span style={{ fontSize: 8, color: C.faint }}>+{match.augments.length - 3}</span>
+            )}
+          </div>
+        )}
+        {match.traits.length > 0 && (
+          <div style={{display:'flex', gap:'3px', flexWrap:'wrap', marginTop:'4px'}}>
+            {match.traits.slice(0, 4).map(trait => {
+              const clean = trait.replace(/^TFT\d+_/, '').replace(/([A-Z])/g, ' $1').trim()
+              return (
+                <div key={trait} title={clean} style={{
+                  display:'flex', alignItems:'center', gap:'3px',
+                  padding:'2px 6px', borderRadius:'4px',
+                  background:'#1a1a2e', border:'1px solid #2a2a50',
+                  fontSize:'10px', color:'#aaa'
+                }}>
+                  {clean}
+                </div>
+              )
+            })}
+          </div>
+        )}
+        {match.units.length > 0 && (
+          <div style={{display:'flex', gap:'3px', flexWrap:'wrap', marginTop:'6px'}}>
+            {match.units.slice(0, 8).map(name => (
+              <div key={name} style={{position:'relative'}}>
+                <img
+                  src={unitIconUrl(name)}
+                  alt={name}
+                  title={name}
+                  style={{
+                    width:'32px', height:'32px',
+                    borderRadius:'6px',
+                    objectFit:'cover',
+                    border:'1px solid #2a2a2a',
+                    display:'block'
+                  }}
+                  onError={(e) => { e.currentTarget.style.display='none' }}
+                />
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -285,13 +527,11 @@ function MatchRow({ match }: { match: MatchRowData }) {
         {match.lpAtEnd} LP
       </div>
 
-      {/* Result pill */}
+      {/* Result text */}
       <div style={{
-        borderRadius: 4, textAlign: 'center', padding: '2px 0',
-        background: match.result === 'win' ? C.winDim : C.lossDim,
-        border: `1px solid ${match.result === 'win' ? 'rgba(52,211,153,0.3)' : 'rgba(239,68,68,0.2)'}`,
+        textAlign: 'center',
         fontFamily: 'Rajdhani, sans-serif',
-        fontSize: 9, fontWeight: 700, letterSpacing: '0.1em',
+        fontSize: 10, fontWeight: 700, letterSpacing: '0.1em',
         color: match.result === 'win' ? C.win : C.loss,
       }}>
         {match.result === 'win' ? 'TOP 4' : 'BOT 4'}
@@ -314,6 +554,15 @@ function useScrollSentinel(ref: React.RefObject<HTMLDivElement | null>, onInters
   }, [ref, onIntersect])
 }
 
+/* ─── Error State Types ─── */
+type ErrorState = {
+  message: string
+  action: string
+  retryable: boolean
+  isOffline: boolean
+  hasCachedData: boolean
+} | null
+
 /* ═══════════════════════════════════════════════════════════════
    MatchHistory
 ═══════════════════════════════════════════════════════════════ */
@@ -325,48 +574,15 @@ export function MatchHistory() {
   const [matches, setMatches]       = useState<MatchRowData[]>([])
   const [loading, setLoading]         = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
-  const [error, setError]             = useState<string | null>(null)
-  const [range, setRange]             = useState<RangeLimit>(30)
+  const [error, setError]             = useState<ErrorState>(null)
   const [hasMore, setHasMore]          = useState(true)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
   const [searchQuery, setSearchQuery]    = useState('')
   const [searchRegion, setSearchRegion]  = useState<RiotRegion>(storeRegion)
   const [searching, setSearching]        = useState(false)
   const [searchErr, setSearchErr]        = useState<string | null>(null)
-  const [placeholder, setPlaceholder]    = useState('')
-  const [isDeleting, setIsDeleting]      = useState(false)
-  const [paused, setPaused]              = useState(false)
-  const [curIdx, setCurIdx]               = useState(0)
-
-  /* ─── Typing animation ─── */
-  useEffect(() => { setPaused(false) }, [])
-  useEffect(() => {
-    if (paused) return
-    const speed    = isDeleting ? 65 : 105
-    const cur      = EXAMPLE_NAMES[curIdx % EXAMPLE_NAMES.length]
-    const waitTyping  = 1800
-    const waitDelete  = 500
-    const t = setTimeout(() => {
-      if (!isDeleting) {
-        if (placeholder.length < cur.length) {
-          setPlaceholder(cur.slice(0, placeholder.length + 1))
-        } else {
-          setPlaceholder(cur + '...')
-          setTimeout(() => setIsDeleting(true), waitTyping)
-        }
-      } else {
-        if (placeholder.length > 0) {
-          setPlaceholder(p => p.slice(0, -1))
-        } else {
-          setIsDeleting(false)
-          setCurIdx(i => (i + 1) % EXAMPLE_NAMES.length)
-          setPaused(true)
-          setTimeout(() => setPaused(false), waitDelete)
-        }
-      }
-    }, speed)
-    return () => clearTimeout(t)
-  }, [placeholder, isDeleting, paused, curIdx])
+  const [isRetrying, setIsRetrying]      = useState(false)
+  const [isShowingCached, setIsShowingCached] = useState(false)
 
   useEffect(() => { setSearchRegion(storeRegion) }, [storeRegion])
 
@@ -375,10 +591,15 @@ export function MatchHistory() {
     e.preventDefault()
     if (!searchQuery.trim()) return
     setSearching(true); setSearchErr(null)
+    console.log('[MH] handleSearch called:', { searchQuery: searchQuery.trim(), searchRegion })
     try {
       const card = await fetchPlayerCard(searchQuery.trim(), searchRegion)
+      console.log('[DEBUG] playerCard:', JSON.stringify(card))
+      console.log('[MH] fetchPlayerCard returned:', card)
       setSelectedPlayer(card)
+      console.log('[RANK DEBUG]', JSON.stringify(card))
     } catch (err) {
+      console.error('[MH] handleSearch error:', err)
       setSearchErr(err instanceof Error ? err.message : 'Player not found')
     } finally {
       setSearching(false)
@@ -387,25 +608,104 @@ export function MatchHistory() {
 
   const LIMIT = 30
 
+  /* ─── Error Handler ─── */
+  function handleError(err: unknown): ErrorState {
+    const error = err instanceof Error ? err : new Error(String(err))
+    const message = getUserFriendlyErrorMessage(error)
+    const action = getErrorActionText(error)
+    const retryable = isRetryableError(error)
+    const isOffline = !isOnline()
+    const hasCachedData = selectedPlayer?.puuid
+      ? hasCachedMatchHistory(selectedPlayer.puuid, storeRegion)
+      : false
+
+    return {
+      message,
+      action,
+      retryable,
+      isOffline,
+      hasCachedData,
+    }
+  }
+
+  /* ─── Retry Handler ─── */
+  async function handleRetry() {
+    if (!selectedPlayer?.puuid) return
+
+    setIsRetrying(true)
+    setError(null)
+
+    try {
+      await initialLoad()
+    } catch (err) {
+      setError(handleError(err))
+    } finally {
+      setIsRetrying(false)
+    }
+  }
+
+  /* ─── Load Cached Data ─── */
+  function loadCachedData() {
+    if (!selectedPlayer?.puuid) return
+
+    const cached = getCachedMatchHistory(selectedPlayer.puuid, storeRegion, LIMIT, 0)
+
+    if (cached && cached.length > 0) {
+      const startLp = (selectedPlayer.lp ?? 0) as number
+      const oldestFirst = [...cached].reverse()
+      let running = startLp - oldestFirst.reduce((s, m) => s + (m.lpChange ?? placementDelta(m.placement)), 0)
+      const computedRows: MatchRowData[] = oldestFirst.map(m => {
+        running += (m.lpChange ?? placementDelta(m.placement))
+        return { ...buildRow(m, running), rank: selectedPlayer?.rank ?? '', tier: selectedPlayer?.tier ?? '' }
+      })
+      setMatches(computedRows)
+      setHasMore(false) // Can't load more from cache
+      setError(null)
+      setIsShowingCached(true)
+    } else {
+      setError({
+        message: 'No cached data available',
+        action: 'Please connect to the internet to load match history',
+        retryable: true,
+        isOffline: true,
+        hasCachedData: false,
+      })
+    }
+  }
+
   /* ─── Initial load ─── */
   async function initialLoad() {
     if (!selectedPlayer?.puuid) { setLoading(false); return }
     setLoading(true); setError(null)
     try {
-      const history    = await fetchPlayerMatchHistory(selectedPlayer.puuid, storeRegion, LIMIT)
+      const history = await fetchPlayerMatchHistory(
+        selectedPlayer.puuid,
+        storeRegion,
+        LIMIT,
+        0,
+        () => {}, // no-op log function
+        { forceRefresh: false, offlineMode: false }
+      )
       const startLp    = (selectedPlayer.lp ?? 0) as number
       // Reverse to get oldest → newest order
       const oldestFirst = [...history].reverse()
       // Initial LP before the oldest match in this page
-      let running = startLp - oldestFirst.reduce((s, m) => s + placementDelta(m.placement), 0)
+      // Use real lpChange if available, otherwise fall back to approximation
+      let running = startLp - oldestFirst.reduce((s, m) => s + (m.lpChange ?? placementDelta(m.placement)), 0)
       const computedRows: MatchRowData[] = oldestFirst.map(m => {
-        running += placementDelta(m.placement)
+        running += (m.lpChange ?? placementDelta(m.placement))
         return { ...buildRow(m, running), rank: selectedPlayer?.rank ?? '', tier: selectedPlayer?.tier ?? '' }
       })
       setMatches(computedRows)
       setHasMore(history.length === LIMIT)
+      setIsShowingCached(false) // Reset cached flag on successful load
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load matches')
+      setError(handleError(err))
+
+      // Try to load cached data if available
+      if (selectedPlayer?.puuid && hasCachedMatchHistory(selectedPlayer.puuid, storeRegion)) {
+        loadCachedData()
+      }
     } finally {
       setLoading(false)
     }
@@ -416,17 +716,29 @@ export function MatchHistory() {
     if (loadingMore || !hasMore || !selectedPlayer?.puuid) return
     setLoadingMore(true)
     try {
-      const history = await fetchPlayerMatchHistory(selectedPlayer.puuid, storeRegion, LIMIT)
+      const offset = matches.length
+      const history = await fetchPlayerMatchHistory(
+        selectedPlayer.puuid,
+        storeRegion,
+        LIMIT,
+        offset,
+        () => {}, // no-op log function
+        { forceRefresh: false, offlineMode: false }
+      )
       if (history.length === 0) { setHasMore(false); return }
       const oldestFirst = [...history].reverse()
       const baseLPSet = matches.length > 0 ? (matches[matches.length - 1]?.lpAtEnd ?? 0) : (selectedPlayer.lp ?? 0)
-      let running = baseLPSet - oldestFirst.reduce((s, m) => s + placementDelta(m.placement), 0)
+      // Use real lpChange if available, otherwise fall back to approximation
+      let running = baseLPSet - oldestFirst.reduce((s, m) => s + (m.lpChange ?? placementDelta(m.placement)), 0)
       const newRows: MatchRowData[] = oldestFirst.map(m => {
-        running += placementDelta(m.placement)
+        running += (m.lpChange ?? placementDelta(m.placement))
         return { ...buildRow(m, running), rank: selectedPlayer?.rank ?? '', tier: selectedPlayer?.tier ?? '' }
       })
       setMatches(prev => [...prev, ...newRows])
       setHasMore(history.length === LIMIT)
+    } catch (err) {
+      // Don't set error state for loadMore failures, just stop loading
+      setHasMore(false)
     } finally {
       setLoadingMore(false)
     }
@@ -435,12 +747,63 @@ export function MatchHistory() {
   useEffect(() => { initialLoad() }, [selectedPlayer?.puuid, storeRegion])
   useScrollSentinel(loadMoreRef, loadMore)
 
+  /* ─── Queue filter tabs ─── */
+  const QUEUE_FILTERS = ['All', 'Ranked', 'Normal', 'Hyper Roll', 'Double Up'] as const
+  const [queueFilter, setQueueFilter] = useState<typeof QUEUE_FILTERS[number]>('All')
+
+  /* ─── Filtered matches ─── */
+  const filteredMatches = useMemo(() => {
+    if (queueFilter === 'All') return matches
+    return matches.filter(m => {
+      const gameType = m.gameType.toLowerCase()
+      switch (queueFilter) {
+        case 'Ranked': return gameType === 'standard'
+        case 'Normal': return gameType === 'normal'
+        case 'Hyper Roll': return gameType === 'hyperroll'
+        case 'Double Up': return gameType === 'doubleup'
+        default: return true
+      }
+    })
+  }, [matches, queueFilter])
+
+  /* ─── Stats calculations ─── */
+  const stats = useMemo(() => {
+    if (filteredMatches.length === 0) {
+      return { avgPlace: 0, top4Rate: 0, winRate: 0 }
+    }
+    const total = filteredMatches.length
+    const avgPlace = filteredMatches.reduce((sum, m) => sum + m.placement, 0) / total
+    const top4Count = filteredMatches.filter(m => m.placement <= 4).length
+    const winCount = filteredMatches.filter(m => m.placement === 1).length
+    return {
+      avgPlace: Math.round(avgPlace * 10) / 10,
+      top4Rate: Math.round((top4Count / total) * 100),
+      winRate: Math.round((winCount / total) * 100),
+    }
+  }, [filteredMatches])
+
+  /* ─── Placement badge color ─── */
+  function getPlacementBadgeColor(placement: number): string {
+    if (placement === 1) return '#f0b429' // gold
+    if (placement === 2) return '#ffd700' // yellow
+    if (placement <= 4) return '#1dc93d' // green
+    return '#ef4444' // red
+  }
+
+  /* ─── Placement distribution data ─── */
+  const placementDistribution = useMemo(() => {
+    const distribution = Array.from({ length: 8 }, (_, i) => ({
+      placement: i + 1,
+      count: filteredMatches.filter(m => m.placement === i + 1).length,
+    }))
+    return distribution
+  }, [filteredMatches])
+
   /* ─── LP chart data ─── */
-  const chartData = useMemo((): Array<MatchRowData & { game: string }> => {
-    const visible = range === -1 ? matches : matches.slice(-range)
-    if (!visible.length) return []
-    return visible.map(m => ({ ...m, game: m.matchId.slice(-4) }))
-  }, [matches, range])
+  const chartData = useMemo((): Array<MatchRowData & { x: number; label: string }> => {
+    if (!matches.length) return []
+    return matches.map((m, i) => ({ ...m, x: i + 1, label: `Game ${i + 1}` }))
+  }, [matches])
 
   /* ─── Guard: no player selected ─── */
   if (!selectedPlayer?.puuid) {
@@ -472,7 +835,7 @@ export function MatchHistory() {
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder={placeholder || 'Summoner name...'}
+              placeholder="Summoner name..."
               style={{
                 width: '100%', background: C.surface, border: `1px solid ${C.border}`,
                 borderRadius: 8, padding: '9px 12px 9px 34px',
@@ -534,79 +897,238 @@ export function MatchHistory() {
   return (
     <div style={{
       display: 'flex', flexDirection: 'column',
-      height: '100%', overflow: 'hidden',
       background: C.bg, fontFamily: 'Rajdhani, sans-serif',
     }}>
-
-      {/* Header */}
+      {/* Two-column header */}
       <div style={{
-        padding: '9px 16px',
+        display: 'flex',
         borderBottom: `1px solid ${C.border}`,
-        display: 'flex', alignItems: 'center', gap: 10,
-        background: C.surface, flexShrink: 0,
+        background: C.surface,
+        flexShrink: 0,
       }}>
-        <span style={{ color: C.text, fontSize: 14, fontWeight: 700, letterSpacing: '0.02em' }}>
-          {selectedPlayer.name}
-        </span>
-        <TierBadge
-          tier={selectedPlayer.tier}
-          rank={selectedPlayer.rank}
-          lp={selectedPlayer.lp}
-        />
-        <div style={{ flex: 1 }} />
-        {/* Range selector */}
-        <div style={{ display: 'flex', gap: 4 }}>
-          {RANGE_OPTIONS.map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => setRange(opt.value as RangeLimit)}
-              style={{
-                padding: '3px 11px', borderRadius: 5, fontSize: 10, fontWeight: 700,
-                border: `1px solid ${range === opt.value ? C.accent : C.border}`,
-                background: range === opt.value ? C.accentDim : 'transparent',
-                color: range === opt.value ? C.accent : C.muted,
-                cursor: 'pointer', transition: 'all 0.12s',
-                fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.04em',
-              }}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {loading ? (
-        <div>{Array.from({ length: 8 }).map((_, i) => <RowSkeleton key={i} />)}</div>
-      ) : error ? (
+        {/* LEFT PANEL - Player Profile */}
         <div style={{
-          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: C.loss, fontFamily: 'Rajdhani, sans-serif', fontSize: 13,
+          width: 220,
+          padding: '16px',
+          borderRight: `1px solid ${C.border}`,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
         }}>
-          {error}
-        </div>
-      ) : matches.length === 0 ? (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.muted, fontSize: 13, opacity: 0.5 }}>
-          No matches found
-        </div>
-      ) : (
-        <>
-          {/* LP Chart */}
-          <div style={{ borderBottom: `1px solid ${C.border}`, padding: '10px 0 6px', flexShrink: 0 }}>
+          {/* Avatar */}
+          <div style={{
+            width: 80,
+            height: 80,
+            borderRadius: '50%',
+            background: '#1a1a2e',
+            margin: '0 auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: `2px solid ${C.border}`,
+            animation: 'glow 3s infinite',
+          }}>
+            {selectedPlayer.profileIconId ? (
+              <img
+                src={`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${selectedPlayer.profileIconId}.png`}
+                style={{width:'80px', height:'80px', borderRadius:'50%', objectFit:'cover', border:'2px solid #35c3e740'}}
+                onError={(e) => { e.currentTarget.style.display='none' }}
+              />
+            ) : (
+              <span style={{ color: C.muted, fontSize: 24, fontWeight: 700 }}>
+                {selectedPlayer.name.charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
+
+          {/* Player name */}
+          <div style={{ textAlign: 'center' }}>
             <div style={{
-              padding: '0 16px',
-              fontSize: 9, fontWeight: 700, letterSpacing: '0.1em',
-              textTransform: 'uppercase', color: C.muted, marginBottom: 6,
+              color: C.text,
+              fontSize: 18,
+              fontWeight: 800,
+              letterSpacing: '0.02em',
+              marginBottom: 2,
             }}>
-              LP Progression · {chartData.length} games
+              {selectedPlayer.name}
+            </div>
+            <div style={{ color: C.muted, fontSize: 11 }}>
+              {selectedPlayer.tier && selectedPlayer.rank ? `${selectedPlayer.tier} ${selectedPlayer.rank}` : 'Unranked'}
+            </div>
+          </div>
+
+          {/* Rank display - clean text */}
+          <div style={{ textAlign: 'center' }}>
+            <div style={{
+              color: '#35c3e7',
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              marginBottom: 2,
+            }}>
+              {selectedPlayer.tier || 'Unranked'} {selectedPlayer.rank || ''}
+            </div>
+            <div style={{ color: '#888', fontSize: 11 }}>
+              {selectedPlayer.lp ?? 0} LP
+            </div>
+          </div>
+
+          {/* Debug display */}
+          <pre style={{fontSize:'8px',color:'#aaa',background:'#111',padding:'4px',maxHeight:'60px',overflow:'auto'}}>
+            {JSON.stringify(selectedPlayer)}
+          </pre>
+
+          {/* Region badge */}
+          <div style={{
+            padding: '3px 10px',
+            borderRadius: 4,
+            background: 'rgba(255,255,255,0.05)',
+            border: `1px solid ${C.border}`,
+            color: C.muted,
+            fontSize: 10,
+            fontWeight: 600,
+            textAlign: 'center',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+          }}>
+            {REGIONS.find(r => r.value === storeRegion)?.label || storeRegion}
+          </div>
+
+          {/* Summary stats */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-around',
+            padding: '8px 0',
+            borderTop: `1px solid ${C.border}`,
+            borderBottom: `1px solid ${C.border}`,
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ color: '#f59e0b', fontSize: 28, fontWeight: 700 }}>
+                {stats.avgPlace}
+              </div>
+              <div style={{ color: '#555', fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                AVG PLACE
+              </div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ color: C.accent, fontSize: 28, fontWeight: 700 }}>
+                {stats.top4Rate}%
+              </div>
+              <div style={{ color: '#555', fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                TOP 4%
+              </div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ color: C.win, fontSize: 28, fontWeight: 700 }}>
+                {stats.winRate}%
+              </div>
+              <div style={{ color: '#555', fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                WIN%
+              </div>
+            </div>
+          </div>
+
+          {/* "Last X Games" label */}
+          <div style={{
+            color: C.faint,
+            fontSize: 10,
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            textAlign: 'center',
+          }}>
+            Last {filteredMatches.length} Games
+          </div>
+        </div>
+
+        {/* RIGHT PANEL - Stats & Charts */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '16px',
+          gap: 16,
+        }}>
+          {/* Queue filter tabs */}
+          <div style={{ display: 'flex', gap: 6 }}>
+            {QUEUE_FILTERS.map(filter => (
+              <button
+                key={filter}
+                onClick={() => setQueueFilter(filter)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 0,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  border: 'none',
+                  background: 'transparent',
+                  color: queueFilter === filter ? '#35c3e7' : '#555',
+                  cursor: 'pointer',
+                  transition: 'all 0.12s',
+                  fontFamily: 'Rajdhani, sans-serif',
+                  letterSpacing: '0.04em',
+                  borderBottom: queueFilter === filter ? '2px solid #35c3e7' : '2px solid transparent',
+                }}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+
+          {/* LP History chart */}
+          <div style={{
+            borderBottom: `1px solid ${C.border}`,
+            paddingBottom: 12,
+          }}>
+            <div style={{
+              fontSize: 9, fontWeight: 700, letterSpacing: '0.1em',
+              textTransform: 'uppercase', color: C.muted, marginBottom: 8,
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              <span>LP Progression · {chartData.length} games</span>
+              {isShowingCached && (
+                <span style={{
+                  padding: '2px 6px',
+                  background: 'rgba(255,193,7,0.1)',
+                  border: '1px solid rgba(255,193,7,0.3)',
+                  color: '#ffc107',
+                  borderRadius: 3,
+                  fontSize: 8,
+                  fontWeight: 600,
+                }}>
+                  CACHED DATA
+                </span>
+              )}
             </div>
             {chartData.length > 1 ? (
-              <ResponsiveContainer width="100%" height={180}>
+              <ResponsiveContainer width="100%" height={140}>
                 <LineChart data={chartData} margin={{ top: 4, right: 12, bottom: 0, left: -16 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+                  <defs>
+                    <linearGradient id="liquidGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={C.chartCyan} stopOpacity="0.3" />
+                      <stop offset="50%" stopColor="#00d4ff" stopOpacity="0.15" />
+                      <stop offset="100%" stopColor={C.chartCyan} stopOpacity="0" />
+                    </linearGradient>
+                    <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor={C.chartCyan} />
+                      <stop offset="50%" stopColor="#00d4ff" />
+                      <stop offset="100%" stopColor={C.chartCyan} />
+                    </linearGradient>
+                    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+                      <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                      <feMerge>
+                        <feMergeNode in="coloredBlur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} opacity={0.3} />
                   <XAxis
-                    dataKey="game"
-                    tick={{ fontSize: 9, fill: C.muted, fontFamily: 'Rajdhani, sans-serif' }}
+                    dataKey="x"
+                    tick={{ fontSize: 9, fill: '#555', fontFamily: 'Rajdhani, sans-serif' }}
                     tickLine={false} axisLine={false}
+                    tickFormatter={(v) => `G${v}`}
                     interval="preserveStartEnd"
                   />
                   <YAxis
@@ -614,26 +1136,212 @@ export function MatchHistory() {
                     tickLine={false} axisLine={false} width={38}
                   />
                   <Tooltip content={<ChartTooltip />} />
-                  <ReferenceLine y={0} stroke={C.border} strokeDasharray="2 2" />
+                  <ReferenceLine y={0} stroke={C.border} strokeDasharray="2 2" opacity={0.5} />
+                  <Area
+                    type="monotone"
+                    dataKey="lpAtEnd"
+                    stroke="none"
+                    fill="url(#liquidGradient)"
+                    animationDuration={800}
+                    animationEasing="ease-in-out"
+                  />
                   <Line
                     type="monotone"
                     dataKey="lpAtEnd"
-                    stroke={C.chartCyan}
-                    strokeWidth={2}
-                    dot={<LPDot />}
-                    activeDot={{ r: 5, fill: C.accent }}
-                    isAnimationActive={false}
+                    stroke="url(#lineGradient)"
+                    strokeWidth={3}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    dot={<LiquidLPDot />}
+                    activeDot={{ r: 6, fill: C.accent, stroke: C.chartCyan, strokeWidth: 2 }}
+                    animationDuration={800}
+                    animationEasing="ease-in-out"
+                    filter="url(#softGlow)"
                   />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
               <div style={{
-                height: 180, display: 'flex', alignItems: 'center',
+                height: 140, display: 'flex', alignItems: 'center',
                 justifyContent: 'center', color: C.muted, fontSize: 12,
               }}>
                 Not enough data for graph
               </div>
             )}
+          </div>
+
+          {/* Last 20 Games placement badge grid */}
+          <div>
+            <div style={{
+              fontSize: 9, fontWeight: 700, letterSpacing: '0.1em',
+              textTransform: 'uppercase', color: C.muted, marginBottom: 8,
+            }}>
+              Last 20 Games
+            </div>
+            <div style={{
+              display: 'flex',
+              gap: 4,
+              flexWrap: 'wrap',
+            }}>
+              {filteredMatches.slice(-20).reverse().map((match, idx) => (
+                <div
+                  key={match.matchId}
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 4,
+                    background: getPlacementBadgeColor(match.placement) + '20',
+                    border: `1px solid ${getPlacementBadgeColor(match.placement)}60`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 11,
+                    fontWeight: 800,
+                    color: getPlacementBadgeColor(match.placement),
+                    fontFamily: 'Rajdhani, sans-serif',
+                  }}
+                >
+                  {match.placement}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Stat pills */}
+          <div style={{
+            display: 'flex',
+            gap: 12,
+            justifyContent: 'center',
+          }}>
+            <div style={{
+              padding: '6px 16px',
+              borderRadius: 20,
+              background: 'rgba(245,158,11,0.1)',
+              border: '1px solid rgba(245,158,11,0.3)',
+              color: '#f59e0b',
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              transition: 'box-shadow 0.15s ease',
+              cursor: 'default',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 0 12px #f59e0b' }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none' }}
+            >
+              Avg Place · {stats.avgPlace}
+            </div>
+            <div style={{
+              padding: '6px 16px',
+              borderRadius: 20,
+              background: C.accentDim,
+              border: `1px solid ${C.accent}40`,
+              color: C.accent,
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              transition: 'box-shadow 0.15s ease',
+              cursor: 'default',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 0 12px #00d4ff' }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none' }}
+            >
+              Top 4 Rate · {stats.top4Rate}%
+            </div>
+            <div style={{
+              padding: '6px 16px',
+              borderRadius: 20,
+              background: C.winDim,
+              border: '1px solid rgba(52,211,153,0.3)',
+              color: C.win,
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              transition: 'box-shadow 0.15s ease',
+              cursor: 'default',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 0 12px #34d399' }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none' }}
+            >
+              Win Rate · {stats.winRate}%
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {loading ? (
+        <div>{Array.from({ length: 8 }).map((_, i) => <RowSkeleton key={i} />)}</div>
+      ) : error ? (
+        <ErrorDisplay
+          error={error}
+          onRetry={handleRetry}
+          onLoadCached={loadCachedData}
+          isRetrying={isRetrying}
+        />
+      ) : filteredMatches.length === 0 ? (
+        <EmptyState message="No matches found for this player" />
+      ) : (
+        <>
+          {/* Placement distribution chart */}
+          <div style={{
+            padding: '12px 16px',
+            borderBottom: `1px solid ${C.border}`,
+            background: '#0f0f1a',
+            borderRadius: 8,
+          }}>
+            <div style={{
+              fontSize: 9, fontWeight: 700, letterSpacing: '0.1em',
+              textTransform: 'uppercase', color: C.muted, marginBottom: 8,
+            }}>
+              Placement Distribution
+            </div>
+            <div style={{display:'flex', alignItems:'flex-end', gap:'6px', height:'80px', padding:'0 4px'}}>
+              {[1,2,3,4,5,6,7,8].map(p => {
+                const entry = placementDistribution.find(d => d.placement === p)
+                const count = entry?.count ?? 0
+                const maxCount = Math.max(...placementDistribution.map(d => d.count), 1)
+                const height = count > 0 ? Math.min((count / maxCount) * 80, 80) : 0
+                let color = '#4a4a6a' // gray for 5-8
+                if (p === 1) color = '#f0b429' // gold for 1st
+                else if (p === 2) color = '#fbbf24' // yellow for 2nd
+                else if (p <= 4) color = '#22c55e' // green for 3-4
+                return (
+                  <div
+                    key={p}
+                    style={{
+                      width: '40px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}
+                  >
+                    <div style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: color,
+                    }}>
+                      {count}
+                    </div>
+                    <div
+                      style={{
+                        width: '100%',
+                        height: `${height}px`,
+                        background: color,
+                        borderRadius: '3px 3px 0 0',
+                        minHeight: count > 0 ? 4 : 0,
+                      }}
+                    />
+                    <div style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      color: '#555',
+                    }}>
+                      {p}{p === 1 ? 'st' : p === 2 ? 'nd' : p === 3 ? 'rd' : 'th'}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
 
           {/* Match list */}
@@ -656,14 +1364,14 @@ export function MatchHistory() {
               <span style={{ textAlign: 'center' }}>Result</span>
             </div>
 
-            {matches.map(m => <MatchRow key={m.matchId} match={m} />)}
+            {filteredMatches.map((m, idx) => <MatchRow key={m.matchId} match={m} index={idx} />)}
 
             {/* Infinite scroll sentinel */}
             <div ref={loadMoreRef} style={{ padding: '12px', textAlign: 'center' }}>
               {loadingMore && (
                 <span style={{ color: C.muted, fontSize: 11 }}>Loading more…</span>
               )}
-              {!hasMore && matches.length > 0 && (
+              {!hasMore && filteredMatches.length > 0 && (
                 <span style={{ color: C.faint, fontSize: 11 }}>All games loaded</span>
               )}
             </div>
@@ -675,6 +1383,32 @@ export function MatchHistory() {
         .scroll-memo ::-webkit-scrollbar { width: 4px; }
         .scroll-memo ::-webkit-scrollbar-track { background: transparent; }
         .scroll-memo ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        @keyframes fadeSlideUp {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes glow {
+          0%, 100% { box-shadow: 0 0 8px #35c3e740; }
+          50% { box-shadow: 0 0 20px #35c3e7aa; }
+        }
+        @keyframes liquidWave {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-2px); }
+        }
+        @keyframes softBloom {
+          0% { transform: scale(0.8); opacity: 0; }
+          50% { transform: scale(1.1); opacity: 0.8; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes ripple {
+          0% { transform: scale(1); opacity: 0.6; }
+          100% { transform: scale(1.5); opacity: 0; }
+        }
       `}</style>
     </div>
   )

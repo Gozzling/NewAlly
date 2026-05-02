@@ -330,8 +330,8 @@ export function TeamBuilder() {
     const strokeBase = boardName === 'enemy' ? '#3a1515' : C.border
 
     const fill = unit ? fillOcc : fillBase
-    const strokeCol = isSrc ? costCol : isOver ? C.accent : strokeBase
-    const strokeW = isSrc || isOver ? 2 : 1
+    const strokeCol = isSrc ? costCol : isOver ? C.accent : (unit ? costCol : strokeBase)
+    const strokeW = isSrc || isOver ? 2 : (unit ? 1.5 : 1)
 
     return (
       <>
@@ -351,17 +351,23 @@ export function TeamBuilder() {
         />
         {showNames && unit && uData && (
           <>
-            <text x={pos.cx} y={pos.cy - 2} textAnchor="middle" dominantBaseline="middle"
-              fontSize={7} fontWeight={700} fill={costCol}
-              pointerEvents="none"
-              style={{ userSelect: 'none', fontFamily: 'Rajdhani, sans-serif' }}>
-              {unit}
-            </text>
-            <text x={pos.cx} y={pos.cy + 7} textAnchor="middle" dominantBaseline="middle"
-              fontSize={6.5} fill={costCol} opacity={0.6}
-              pointerEvents="none" style={{ userSelect: 'none', fontFamily: 'Rajdhani, sans-serif' }}>
-              ${uData.cost}
-            </text>
+            <title>{unit}</title>
+            {(() => {
+              const iconSize = R * 1.8
+              const iconX = pos.cx - iconSize / 2
+              const iconY = pos.cy - iconSize / 2
+              return (
+                <image
+                  href={`/unit-icons/${unit}.webp`}
+                  x={iconX}
+                  y={iconY}
+                  width={iconSize}
+                  height={iconSize}
+                  clipPath={`url(#hex-clip-${HEX_POSITIONS.indexOf(pos)})`}
+                  preserveAspectRatio="xMidYMid slice"
+                />
+              )
+            })()}
           </>
         )}
       </>
@@ -399,6 +405,11 @@ export function TeamBuilder() {
               <stop offset="0%"   stopColor="rgba(0,0,0,0)" />
               <stop offset="100%" stopColor="rgba(0,0,0,0.3)" />
             </linearGradient>
+            {HEX_POSITIONS.map((pos, idx) => (
+              <clipPath key={idx} id={`hex-clip-${idx}`}>
+                <polygon points={hexPts(pos.cx, pos.cy)} />
+              </clipPath>
+            ))}
           </defs>
           <rect width={VW} height={VH} fill={bgCol} rx={4} />
 
