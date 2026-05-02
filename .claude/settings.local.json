@@ -17,7 +17,8 @@
       "Bash(git pull *)",
       "Bash(git checkout *)",
       "Bash(npx skills *)",
-      "Bash(Copy-Item *)"
+      "Bash(Copy-Item *)",
+      "Bash(gh pr *)"
     ]
   }
 }
