@@ -759,6 +759,7 @@ export function DesktopApp() {
           {activePage === 'in-game' ? (
             <div className="grid grid-cols-2 gap-3">
               {Array.from({ length: 8 }).map((_, i) => (
+
                 <div
                   key={i}
                   className="bg-[#1a1a1a] rounded-xl flex flex-col items-start gap-2 min-h-[200px]" style={{ boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.4), inset -1px -1px 2px rgba(255,255,255,0.03)', padding: '16px' }}
@@ -769,6 +770,7 @@ export function DesktopApp() {
                     <div className="text-[#555] text-xs">Rank {i + 1}</div>
                   </div>
                 </div>
+
               ))}
             </div>
           ) : activePage === 'comps' ? (
