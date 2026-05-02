@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@theme {
+:root {
   --color-ally-bg:     #181818;
   --color-ally-card:   #1f1f1f;
   --color-ally-accent: #35c3e7;
