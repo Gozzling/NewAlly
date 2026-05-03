@@ -36,14 +36,14 @@ jobs:
       - run: npm ci
 
       # Lint the code (ESLint) – fails on any warning
-- name: Lint
-         run: npx eslint "src/**/*.ts*" --max-warnings=0
-         continue-on-error: true
+      - name: Lint
+        run: npx eslint "src/**/*.ts*" --max-warnings=0
+        continue-on-error: true
 
       # TypeScript type‑check (no emit)
-- name: Type check
-         run: npx tsc --noEmit
-         continue-on-error: true
+      - name: Type check
+        run: npx tsc --noEmit
+        continue-on-error: true
 
       # Run unit tests with coverage (Vitest)
       - name: Test
@@ -56,9 +56,9 @@ jobs:
           path: coverage/
 
       # npm audit for known vulnerable packages (fail on high severity)
-- name: npm audit
-         run: npm audit --audit-level=high
-         continue-on-error: true
+      - name: npm audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
 
       # Build the app (Vite)
       - run: npm run build
