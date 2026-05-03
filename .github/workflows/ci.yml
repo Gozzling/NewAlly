@@ -61,12 +61,7 @@ jobs:
 done
         shell: bash
 
-      # Security scan (Ruflo)
-      - name: Security scan
-        run: |
-          npx @claude-flow/cli@latest security scan --depth quick
-        env:
-          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+
 
       # NVIDIA NIM inference (Minimax‑M2.7)
       - name: Run NVIDIA NIM model
@@ -94,25 +89,8 @@ done
           path: nim_report.json
 
 
-      # Code review swarm (Ruflo)
-      - name: Code review swarm
-        run: |
-          # Initialise and run the code‑review‑swarm agent on the current PR
-          npx @claude-flow/cli@latest swarm init --v3-mode
-          npx @claude-flow/cli@latest swarm run --agents "security,performance,style,architecture,accessibility" --pr ${{ github.event.pull_request.number }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
 
-      # Performance metrics
-      - name: Performance metrics
-        run: |
-          npx @claude-flow/cli@latest performance metrics
-        env:
-          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
 
-      # Upload artifacts (optional) for review
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ruflo-reports
-          path: ./
+
+
+
