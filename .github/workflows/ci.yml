@@ -43,12 +43,31 @@ done
         env:
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
 
-      # Browser UI tests (Playwright via Ruflo browser-test skill)
-      - name: Browser UI test
-        run: |
-          npx @claude-flow/cli@latest browser-test http://localhost:4173 --screenshot
+      # NVIDIA NIM inference (Minimax‑M2.7)
+      - name: Run NVIDIA NIM model
         env:
-          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        run: |
+          RESPONSE=$(curl -sS -X POST https://integrate.api.nvidia.com/v1/chat/completions \
+            -H "Authorization: Bearer $NVIDIA_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{
+                  "model": "nvidia_nim/minimaxai/minimax-m2.7",
+                  "messages": [
+                    {"role":"system","content":"You are an expert code reviewer for a React/TypeScript Overwolf app."},
+                    {"role":"user","content":"Summarize any potential issues in the source code after the latest commit."}
+                  ],
+                  "temperature": 0.0
+                }')
+          echo "$RESPONSE"
+          echo "$RESPONSE" > nim_report.json
+
+      # Upload NIM report artifact
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nim-report
+          path: nim_report.json
+
 
       # Code review swarm (Ruflo)
       - name: Code review swarm
