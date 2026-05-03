@@ -52,30 +52,28 @@ jobs:
       - run: npm run build
 
       # Start a preview server in background (Vite preview serves static files)
-      - name: Start preview server
-        run: npm run preview & sleep 5
-        shell: bash
+        # preview server step removed
 
 
 
       # NVIDIA NIM inference (Minimax‑M2.7)
-      - name: Run NVIDIA NIM model
-        env:
-          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
-        run: |
-          RESPONSE=$(curl -sS -X POST https://integrate.api.nvidia.com/v1/chat/completions \
-            -H "Authorization: Bearer $NVIDIA_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d '{
-                  "model": "nvidia_nim/minimaxai/minimax-m2.7",
-                  "messages": [
-                    {"role":"system","content":"You are an expert code reviewer for a React/TypeScript Overwolf app."},
-                    {"role":"user","content":"Summarize any potential issues in the source code after the latest commit."}
-                  ],
-                  "temperature": 0.0
+        - name: Run NVIDIA NIM model
+          env:
+            NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          run: |
+            RESPONSE=$(curl -sS -X POST https://integrate.api.nvidia.com/v1/chat/completions \
+              -H "Authorization: Bearer $NVIDIA_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "model": "nvidia_nim/minimaxai/minimax-m2.7",
+                "messages": [
+                  {"role":"system","content":"You are an expert code reviewer for a React/TypeScript Overwolf app."},
+                  {"role":"user","content":"Summarize any potential issues in the source code after the latest commit."}
+                ],
+                "temperature": 0.0
                 }')
-          echo "$RESPONSE"
-          echo "$RESPONSE" > nim_report.json
+            echo "$RESPONSE"
+            echo "$RESPONSE" > nim_report.json
 
       # Upload NIM report artifact
       - uses: actions/upload-artifact@v4
