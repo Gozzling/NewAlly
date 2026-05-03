@@ -60,8 +60,7 @@ jobs:
         run: npm audit --audit-level=high
         continue-on-error: true
 
-      # Build the app (Vite)
-      - run: npm run build
+
       # Start a preview server on port 5173
       - name: Start preview server
         run: npm run preview -- --port 5173 &
