@@ -242,7 +242,7 @@ export async function fetchMatchIds(
   log(`[MH] Has API key: ${!!import.meta.env.VITE_RIOT_API_KEY}`)
 
   const data = await trySupabase(
-    () => fetchMatchIdsSupabase(puuid, riotRegion, count, offset, log),
+    () => fetchMatchIdsSupabase(puuid, matchRegion, count),
     async () => {
       log('[FALLBACK] Using direct Riot API')
       const fullUrl = `https://${matchRegion}.api.riotgames.com${url}`

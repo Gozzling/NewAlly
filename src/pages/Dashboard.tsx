@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import type { MetaComp } from '../types/tft'
-import { CompCard } from '../components/CompCard'
+import { CompCardNew as CompCard } from '../components/CompCardNew'
 import { StatCard } from '../components/StatCard'
 import { Search, TrendingUp, LayoutGrid, Rocket, BadgeCheck } from 'lucide-react'
 import { SET_17_PATCH } from '../services/dataFetchService'
@@ -23,7 +23,16 @@ export function Dashboard() {
   const [activeTier, setActiveTier] = useState<Tier | 'all'>('all')
   const [search, setSearch] = useState('')
   const [comps, setComps] = useState<Array<MetaComp & { tier: Tier; winRate: number; pickRate: number }>>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true);
+  const [pinnedCompNames, setPinnedCompNames] = useState<Set<string>>(new Set());
+  const handlePinToggle = (compName: string) => {
+    setPinnedCompNames(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(compName)) newSet.delete(compName);
+      else newSet.add(compName);
+      return newSet;
+    });
+  };
 
   useEffect(() => {
     fetch('./metaComps.json')
@@ -49,7 +58,13 @@ export function Dashboard() {
       )
     }
     return list
-  }, [comps, activeTier, search])
+   }, [comps, activeTier, search]);
+
+  const sortedFiltered = useMemo(() => {
+    const pinned = filtered.filter(c => pinnedCompNames.has(c.compName));
+    const others = filtered.filter(c => !pinnedCompNames.has(c.compName));
+    return [...pinned, ...others];
+  }, [filtered, pinnedCompNames]);
 
   const avgWinRate = useMemo(() => {
     if (comps.length === 0) return 0
@@ -136,9 +151,14 @@ export function Dashboard() {
           <TrendingUp className="w-3.5 h-3.5" />
           {filtered.length} comps shown
         </div>
-        {filtered.map((comp) => (
-          <CompCard key={comp.compName} comp={comp} />
-        ))}
+          {sortedFiltered.map((comp) => (
+            <CompCard
+              key={comp.compName}
+              comp={comp}
+              isPinned={pinnedCompNames.has(comp.compName)}
+              onPinToggle={handlePinToggle}
+            />
+          ))}
         {filtered.length === 0 && (
           <div className="text-center py-12 text-[#a1a1a1] text-body">No comps match your search.</div>
         )}

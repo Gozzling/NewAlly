@@ -86,6 +86,8 @@ export interface Match {
   augments: string[]
   traits: string[]
   comp: string | null
+  lpChange?: number
+  gameType?: string
 }
 
 export interface PlayerCard {

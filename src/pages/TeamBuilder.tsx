@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { UNITS } from '@/data/units'
 import { SYNERGIES } from '@/data/synergies'
 import { useAppStore } from '@/store/useAppStore'
+import type { MetaComp } from '@/types/tft'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -92,7 +93,7 @@ function UnitPill({ name, traits, cost, placed, onClick }: {
 /* ═══════════════════════════════════════════════════════════════
    TeamBuilder
 ═══════════════════════════════════════════════════════════════ */
-export function TeamBuilder() {
+export function TeamBuilder({ importComp }: { importComp?: MetaComp }) {
   const savedComps      = useAppStore(s => s.savedComps)
   const addSavedComp    = useAppStore(s => s.addSavedComp)
   const removeSavedComp = useAppStore(s => s.removeSavedComp)
@@ -113,6 +114,19 @@ export function TeamBuilder() {
   const [augs, setAugs]             = useState<string[]>([])
   const [comps, setComps]           = useState<string[]>([])
   const [unitPanelBoard, setUnitPanelBoard] = useState<'player' | 'enemy'>('player')
+
+  // Import a comp's required units when triggered from outside
+  useEffect(() => {
+    if (importComp) {
+      const nb = Array(BOARD_LEN).fill(null);
+      importComp.requiredUnits.slice(0, BOARD_LEN).forEach((u, i) => {
+        nb[i] = u;
+      });
+      // Reset history to start with imported composition
+      setHist([{ pBoard: nb, eBoard: Array(BOARD_LEN).fill(null) }]);
+      setHi(0);
+    }
+  }, [importComp]);
 
   /* Drag state */
   type DragItem  = { board: 'player' | 'enemy'; idx: number } | null

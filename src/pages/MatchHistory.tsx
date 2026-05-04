@@ -114,7 +114,7 @@ function buildRow(m: Match, lpAtEnd: number): MatchRowData {
     lpAtEnd,
     level:     m.level,
     augments:  m.augments ?? [],
-    gameType:  m.gameType,
+    gameType: m.gameType ?? 'standard',
     units:     m.units ?? [],
   }
 }
