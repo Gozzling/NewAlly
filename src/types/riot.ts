@@ -82,12 +82,14 @@ export interface Match {
   level: number
   date: Date
   gameLength: number
+  gameType: string
   units: string[]
   augments: string[]
   traits: string[]
   comp: string | null
+  // Optional: Real LP gain/loss from ranked games
+  // Not currently populated by Riot API — would require live event tracking
   lpChange?: number
-  gameType?: string
 }
 
 export interface PlayerCard {

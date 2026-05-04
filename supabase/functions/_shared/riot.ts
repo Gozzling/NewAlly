@@ -15,17 +15,23 @@ function regionToContinent(region: string): string {
     case "la1":
     case "la2":
     case "na1":
+    case "americas":
       return "americas";
     case "eun1":
     case "euw1":
     case "tr1":
     case "ru":
+    case "europe":
       return "europe";
     case "jp1":
     case "kr":
+    case "asia":
       return "asia";
-    default:
+    case "sea":
+    case "oc1":
       return "sea";
+    default:
+      return "europe";
   }
 }
 
@@ -35,9 +41,6 @@ function getApiKey(): string {
   return key;
 }
 
-// Simple in-memory sliding-window rate limiter per instance.
-// For a true global 20 req/sec bucket across all Edge Function instances,
-// replace this with an Upstash Redis / Deno KV implementation.
 const windowMs = 1000;
 const maxRequests = 20;
 let timestamps: number[] = [];
@@ -54,6 +57,21 @@ async function waitForRateLimit(): Promise<void> {
   timestamps.push(Date.now());
 }
 
+export async function riotAccountFetch(
+  region: string,
+  gameName: string,
+  tagLine: string,
+): Promise<{ puuid: string; gameName: string; tagLine: string }> {
+  await waitForRateLimit();
+  const continent = regionToContinent(region);
+  const url = `https://${continent}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`;
+  const res = await fetch(url, { headers: { "X-Riot-Token": getApiKey() } });
+  if (res.status === 404) throw new RiotError("Player not found", "NOT_FOUND", 404);
+  if (res.status === 403) throw new RiotError("Invalid API key", "FORBIDDEN", 403);
+  if (!res.ok) throw new RiotError(`Riot API error ${res.status}`, "API_ERROR", res.status);
+  return res.json();
+}
+
 export async function riotPlatformFetch<T>(
   region: string,
   endpoint: string,
@@ -66,22 +84,10 @@ export async function riotPlatformFetch<T>(
     headers: { "X-Riot-Token": apiKey },
   });
 
-  if (res.status === 404) {
-    throw new RiotError("Player not found", "NOT_FOUND", 404);
-  }
-  if (res.status === 429) {
-    throw new RiotError("Rate limited by Riot", "RATE_LIMIT", 429);
-  }
-  if (res.status === 403) {
-    throw new RiotError("Invalid API key", "FORBIDDEN", 403);
-  }
-  if (!res.ok) {
-    throw new RiotError(
-      `Riot API error ${res.status}`,
-      "API_ERROR",
-      res.status,
-    );
-  }
+  if (res.status === 404) throw new RiotError("Player not found", "NOT_FOUND", 404);
+  if (res.status === 429) throw new RiotError("Rate limited by Riot", "RATE_LIMIT", 429);
+  if (res.status === 403) throw new RiotError("Invalid API key", "FORBIDDEN", 403);
+  if (!res.ok) throw new RiotError(`Riot API error ${res.status}`, "API_ERROR", res.status);
 
   return (await res.json()) as T;
 }
@@ -99,22 +105,10 @@ export async function riotRegionalFetch<T>(
     headers: { "X-Riot-Token": apiKey },
   });
 
-  if (res.status === 404) {
-    throw new RiotError("Data not found", "NOT_FOUND", 404);
-  }
-  if (res.status === 429) {
-    throw new RiotError("Rate limited by Riot", "RATE_LIMIT", 429);
-  }
-  if (res.status === 403) {
-    throw new RiotError("Invalid API key", "FORBIDDEN", 403);
-  }
-  if (!res.ok) {
-    throw new RiotError(
-      `Riot API error ${res.status}`,
-      "API_ERROR",
-      res.status,
-    );
-  }
+  if (res.status === 404) throw new RiotError("Data not found", "NOT_FOUND", 404);
+  if (res.status === 429) throw new RiotError("Rate limited by Riot", "RATE_LIMIT", 429);
+  if (res.status === 403) throw new RiotError("Invalid API key", "FORBIDDEN", 403);
+  if (!res.ok) throw new RiotError(`Riot API error ${res.status}`, "API_ERROR", res.status);
 
   return (await res.json()) as T;
 }
