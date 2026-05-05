@@ -3,8 +3,13 @@ import { useAppStore } from '@/store/useAppStore';
 import { subscribeToStateSnapshots } from '@/services/ipcService';
 import { TeamBuilder } from '@/pages/TeamBuilder';
 import { CompCard } from '@/components/CompCard';
-import { Units } from '@/pages/Units';
 import { MatchHistory } from '@/pages/MatchHistory';
+import { UnitGuide } from '@/pages/UnitGuide';
+import { SynergyGuide } from '@/pages/SynergyGuide';
+import { ItemsGuide } from '@/pages/ItemsGuide';
+import { AugmentGuide } from '@/pages/AugmentGuide';
+import { Settings } from '@/pages/Settings';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 import { META_COMPS } from '@/data/metaComps';
 
@@ -17,70 +22,6 @@ function getCurrentWindowId(): Promise<string> {
     });
   });
 }
-
-// Skeleton loader for Items tab
-function ItemsSkeleton() {
-  return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="w-6 h-6 bg-ally-hover rounded-full animate-pulse" />
-        <h1 className="text-xl font-bold text-white animate-pulse">Items Guide</h1>
-      </div>
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 bg-ally-hover rounded-full animate-pulse" />
-          <input
-            type="text"
-            placeholder="Search item or component..."
-            className="w-full bg-ally-bg border border-ally-border rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-ally-muted focus:outline-none focus:ring-2 focus:ring-ally-accent"
-            readOnly
-          />
-        </div>
-        <select
-          className="bg-ally-bg border border-ally-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-ally-accent"
-        >
-          <option value="offense">Offense</option>
-          <option value="defense">Defense</option>
-          <option value="AP">Ability Power</option>
-          <option value="tank">Tank</option>
-          <option value="sustain">Sustain</option>
-          <option value="mana">Mana</option>
-          <option value="hybrid">Hybrid</option>
-        </select>
-      </div>
-      <div className="grid grid-cols-2 gap-4 py-4">
-        {/* Item card skeletons */}
-        {[1, 2, 3, 4, 5, 6, 7, 8].map((_, index) => (
-          <div key={index} className="bg-ally-card border border-ally-border rounded-xl hover:shadow-lg transition-shadow duration-300" style={{ padding: '16px' }}>
-            <div className="flex items-center justify-between">
-              <div className="w-8 h-8 bg-ally-hover rounded-full animate-pulse" />
-              <div className="flex-1 space-y-1">
-                <div className="h-2 w-full bg-ally-hover rounded animate-pulse" />
-                <div className="h-1.5 w-3/4 bg-ally-hover rounded animate-pulse" />
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {[1, 2].map((_, tagIndex) => (
-                <span key={tagIndex} className="flex items-center gap-2 px-2 py-0.5 bg-ally-hover rounded text-[9px] text-neutral-400 animate-pulse">
-                  <div className="w-3 h-3 bg-ally-bg rounded" />
-                  <span className="w-4 h-1 bg-ally-hover rounded animate-pulse" />
-                </span>
-              ))}
-              <div className="col-span-3">
-                <div className="h-2 w-full bg-ally-hover rounded animate-pulse" />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              <div className="h-1.5 w-full bg-ally-hover rounded animate-pulse" />
-              <div className="h-2 w-full bg-ally-hover rounded animate-pulse" />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 
 // TFT data for typing animation
 const CHAMPIONS = [
@@ -407,16 +348,307 @@ const NAV_TABS = [
   },
 ];
 
+/* ─── Quick Tips Component ─── */
+function QuickTips() {
+  const [currentTip, setCurrentTip] = useState(0)
+  const [fadeState, setFadeState] = useState<'in' | 'out'>('in')
+
+  const TIPS = [
+    "Position your units to maximize trait synergies",
+    "Reroll at level 5 for 1-2 cost carries, level 7 for 3 costs",
+    "Save gold early to hit interest thresholds (10/20/30/40/50)",
+    "Losing streaks give bonus gold — don't panic sell",
+    "Position your tank in front of your backline carry",
+    "Check opponent boards each round to predict their comp",
+  ]
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFadeState('out')
+      setTimeout(() => {
+        setCurrentTip((prev) => (prev + 1) % TIPS.length)
+        setFadeState('in')
+      }, 300)
+    }, 8000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div
+      style={{
+        opacity: fadeState === 'in' ? 1 : 0,
+        transition: 'opacity 0.3s ease',
+        fontSize: '10px',
+        color: '#888',
+        lineHeight: 1.4,
+        minHeight: '42px',
+        display: 'flex',
+        alignItems: 'center',
+      }}
+    >
+      {TIPS[currentTip]}
+    </div>
+  )
+}
+
+/* ─── In Game Page ─── */
+function InGamePage() {
+  const MOCK_PLAYERS = [
+    { name: 'Gozling', tagline: 'Goz', rank: 'Platinum II', lp: 93, recentPlacements: [2,4,1], avgPlace: 3.8, predictedComp: 'N.O.V.A. Sniper', profileIconId: 4568 },
+    { name: 'DoubleUp61', tagline: 'DU', rank: 'Diamond I', lp: 45, recentPlacements: [1,3,2], avgPlace: 2.1, predictedComp: 'Arcanist Academy', profileIconId: 3456 },
+    { name: 'TFTMaster', tagline: 'TFT', rank: 'Master IV', lp: 12, recentPlacements: [1,1,2], avgPlace: 1.3, predictedComp: 'Fated Academy', profileIconId: 2345 },
+    { name: 'SynergyKing', tagline: 'SK', rank: 'Emerald I', lp: 78, recentPlacements: [3,2,4], avgPlace: 3.2, predictedComp: 'Storyweaver', profileIconId: 5678 },
+    { name: 'CompBuilder', tagline: 'CB', rank: 'Platinum I', lp: 56, recentPlacements: [4,3,2], avgPlace: 3.5, predictedComp: 'Behemoth', profileIconId: 6789 },
+    { name: 'RankChaser', tagline: 'RC', rank: 'Diamond III', lp: 34, recentPlacements: [2,1,3], avgPlace: 2.4, predictedComp: 'Umbral', profileIconId: 7890 },
+    { name: 'MetaSlave', tagline: 'MS', rank: 'Emerald II', lp: 67, recentPlacements: [3,4,2], avgPlace: 3.1, predictedComp: 'Inkshadow', profileIconId: 8901 },
+    { name: 'LuckySeven', tagline: 'LS', rank: 'Platinum III', lp: 89, recentPlacements: [4,2,3], avgPlace: 3.6, predictedComp: 'Mythic', profileIconId: 9012 },
+  ]
+
+  const [searchName, setSearchName] = useState('')
+  const [region, setRegion] = useState('na1')
+  const [loading, setLoading] = useState(false)
+  const [gameFound, setGameFound] = useState(true)
+  const [showingDemo, setShowingDemo] = useState(true)
+  const [players] = useState(MOCK_PLAYERS)
+
+  const handleSearch = () => {
+    setLoading(true)
+    setShowingDemo(false)
+    setTimeout(() => {
+      setLoading(false)
+      setGameFound(true)
+    }, 1500)
+  }
+
+  const getPlacementColor = (place: number) => {
+    if (place === 1) return '#fbbf24'
+    if (place <= 4) return '#4ade80'
+    return '#ef4444'
+  }
+
+  const displayPlayers = showingDemo ? MOCK_PLAYERS : players
+
+  return (
+    <div style={{ padding: '16px' }}>
+      {/* Demo Banner */}
+      {showingDemo && (
+        <div style={{
+          background: '#1a1a0a',
+          border: '1px solid #f0b42930',
+          borderRadius: '6px',
+          padding: '8px 12px',
+          fontSize: '11px',
+          color: '#f0b429',
+          marginBottom: '12px',
+        }}>
+          ⚡ Live game detection requires the Overwolf desktop app. Showing demo data.
+        </div>
+      )}
+
+      {/* Search Bar */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+        <input
+          type="text"
+          placeholder="Enter summoner name to view live game"
+          value={searchName}
+          onChange={(e) => setSearchName(e.target.value)}
+          style={{
+            flex: 1,
+            background: '#1a1a1a',
+            border: '1px solid #2a2a2a',
+            borderRadius: '6px',
+            padding: '8px 12px',
+            fontSize: '13px',
+            color: 'white',
+            outline: 'none',
+          }}
+        />
+        <select
+          value={region}
+          onChange={(e) => setRegion(e.target.value)}
+          style={{
+            background: '#1a1a1a',
+            border: '1px solid #2a2a2a',
+            borderRadius: '6px',
+            padding: '8px 12px',
+            fontSize: '13px',
+            color: 'white',
+            outline: 'none',
+          }}
+        >
+          <option value="na1">NA</option>
+          <option value="euw1">EUW</option>
+          <option value="kr">KR</option>
+          <option value="jp1">JP</option>
+        </select>
+        <button
+          onClick={handleSearch}
+          style={{
+            background: '#35c3e7',
+            border: 'none',
+            borderRadius: '6px',
+            padding: '8px 16px',
+            fontSize: '13px',
+            color: 'white',
+            cursor: 'pointer',
+            fontWeight: 600,
+          }}
+        >
+          Search
+        </button>
+      </div>
+
+      {/* Content */}
+      {loading ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              style={{
+                height: '120px',
+                borderRadius: '10px',
+                background: 'linear-gradient(90deg, #111827 25%, #1f2937 50%, #111827 75%)',
+                backgroundSize: '200% 100%',
+                animation: 'shimmer 1.5s infinite',
+              }}
+            />
+          ))}
+        </div>
+      ) : gameFound ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+          {displayPlayers.map((player, i) => (
+            <div
+              key={i}
+              style={{
+                background: '#0f0f1c',
+                border: '1px solid #1a1a2e',
+                borderRadius: '10px',
+                padding: '12px',
+                transition: 'all 0.15s ease',
+                cursor: 'pointer',
+                display: 'flex',
+                gap: '12px',
+                alignItems: 'center',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#35c3e730'
+                e.currentTarget.style.transform = 'translateY(-1px)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#1a1a2e'
+                e.currentTarget.style.transform = 'translateY(0)'
+              }}
+            >
+              <div
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  background: '#1a1a1a',
+                  border: '2px solid #2a2a2a',
+                  overflow: 'hidden',
+                  flexShrink: 0,
+                }}
+              >
+                <img
+                  src={`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${player.profileIconId}.png`}
+                  alt={player.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={(e) => { e.currentTarget.style.display = 'none' }}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'white', marginBottom: '2px' }}>
+                  {player.name}
+                </div>
+                <div style={{ fontSize: '11px', color: '#555', marginBottom: '6px' }}>{player.rank} · {player.lp} LP</div>
+                <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
+                  {player.recentPlacements.map((place, j) => (
+                    <div
+                      key={j}
+                      style={{
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '4px',
+                        background: getPlacementColor(place),
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: 'white',
+                      }}
+                    >
+                      {place}
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontSize: '11px', color: '#555' }}>
+                    Avg: <span style={{ color: 'white', fontWeight: 600 }}>{player.avgPlace.toFixed(1)}</span>
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#35c3e7', fontWeight: 600 }}>
+                    {player.predictedComp}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '200px',
+          color: '#555',
+          fontSize: '14px',
+        }}>
+          No live game found for this summoner
+        </div>
+      )}
+
+      <style>{`
+        @keyframes shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+      `}</style>
+    </div>
+  )
+}
+
 export function DesktopApp() {
   const state = useAppStore((s: any) => s.gameState);
+  const accentColor = useAppStore((s: any) => s.settings.accentColor) ?? '#35c3e7';
   const lastRawRef = useRef<string>('');
   const [activePage, setActivePage] = useState<string>('in-game');
+  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [typingText, setTypingText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentTerm, setCurrentTerm] = useState('');
   const [isPaused, setIsPaused] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  // Unit Guide filters
+  const [unitQuery, setUnitQuery] = useState('');
+  const [unitCostFilter, setUnitCostFilter] = useState<number | 'all'>('all');
+  const [unitTierFilter, setUnitTierFilter] = useState('all');
+
+  // Synergy Guide filters
+  const [synergyQuery, setSynergyQuery] = useState('');
+  const [synergyTypeFilter, setSynergyTypeFilter] = useState('all');
+
+  // Items Guide filters
+  const [itemQuery, setItemQuery] = useState('');
+  const [itemTagFilter, setItemTagFilter] = useState('all');
+  const [itemTierFilter, setItemTierFilter] = useState('all');
+
+  // Augment Guide filters
+  const [augmentQuery, setAugmentQuery] = useState('');
+  const [augmentTierFilter, setAugmentTierFilter] = useState('all');
+  const [augmentTagFilter, setAugmentTagFilter] = useState('all');
   const sortedMetaComps = useMemo(() => {
     return META_COMPS.map((comp, index) => {
       const tier = index < 2 ? 'S' : index < 6 ? 'A' : index < 8 ? 'B' : index < 9 ? 'C' : 'D';
@@ -491,23 +723,13 @@ export function DesktopApp() {
     overwolf.windows.maximize(await getCurrentWindowId(), () => {});
   }
 
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.remove('light');
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.classList.add('light');
-    }
-  }, [isDarkMode]);
-
   const rawJson = state
     ? JSON.stringify(state.raw, null, 2)
     : 'Waiting for data...';
   if (rawJson !== lastRawRef.current) lastRawRef.current = rawJson;
 
   return (
-    <>
+    <ThemeProvider>
       <style>{`
         html { scroll-behavior: smooth; }
 
@@ -532,10 +754,8 @@ export function DesktopApp() {
         .filter-sidebar-enter {
           animation: slideInLeft 250ms cubic-bezier(0.25, 1, 0.5, 1);
         }
+        .smooth-scroll { scroll-behavior: smooth; }
         @keyframes slideInLeft {
-          }
-          .smooth-scroll { scroll-behavior: smooth; }
-          @keyframes slideInLeft {
           from {
             opacity: 0;
             transform: translateX(-20px);
@@ -545,8 +765,12 @@ export function DesktopApp() {
             transform: translateX(0);
           }
         }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
       `}</style>
-      <div className="w-full h-full flex flex-col bg-[#0e0e0e] text-white font-sans smooth-scroll">
+      <div className="w-full h-full flex flex-col bg-[#0e0e0e] text-white font-sans smooth-scroll" style={{ '--color-ally-accent': accentColor } as React.CSSProperties}>
       {/* Top Bar */}
       <div
         className="h-12 bg-[#111111] flex items-center px-4 flex-shrink-0 relative"
@@ -601,22 +825,7 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
             {/* Settings Dropdown */}
             {settingsOpen && (
               <div className="absolute right-0 top-10 w-56 bg-[#1a1a1a] rounded-lg p-4 z-50" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.5), inset 1px 1px 2px rgba(255,255,255,0.03), inset -1px -1px 2px rgba(0,0,0,0.3)' }}>
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col">
-                    <span className="text-white font-medium text-sm">Dark Mode</span>
-                    <span className="text-[#666] text-xs mt-0.5">Toggle theme appearance</span>
-                  </div>
-                  <button
-                    onClick={() => setIsDarkMode(!isDarkMode)}
-                    className="w-12 h-6 rounded-full relative transition-colors"
-                    style={{ backgroundColor: isDarkMode ? '#35c3e7' : '#2a2a2a' }}
-                  >
-                    <div
-                      className="absolute w-5 h-5 bg-white rounded-full top-0.5 transition-all duration-300 ease-out shadow-sm"
-                      style={{ transform: isDarkMode ? 'translateX(26px)' : 'translateX(2px)' }}
-                    />
-                  </button>
-                </div>
+                <div className="text-white text-sm">Settings</div>
               </div>
             )}
           </div>
@@ -651,7 +860,10 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
           {NAV_TABS.map((tab) => (
             <div key={tab.id} className="relative group">
               <button
-                onClick={() => setActivePage(tab.id)}
+                onClick={() => {
+                  setActivePage(tab.id)
+                  setSelectedUnitId(null)
+                }}
                 className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ease-out focus-visible:ring-2 focus-visible:ring-[#35c3e7] hover:shadow-lg ${
                   activePage === tab.id
                     ? 'bg-[#1a1a1a] text-[#35c3e7]'
@@ -666,6 +878,25 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
             </div>
           ))}
           <div className="flex-1" />
+          {/* Settings */}
+          <div className="relative group">
+            <button
+              onClick={() => setActivePage('settings')}
+              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ease-out focus-visible:ring-2 focus-visible:ring-[#35c3e7] hover:shadow-lg ${
+                activePage === 'settings'
+                  ? 'bg-[#1a1a1a] text-[#35c3e7]'
+                  : 'text-[#555] hover:bg-[#1a1a1a] hover:text-white hover:scale-105'
+              }`}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </button>
+            <div className="absolute left-12 top-1/2 -translate-y-1/2 bg-[#1a1a1a] text-white text-[12px] px-4 py-2 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50" style={{ boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.05), inset -1px -1px 2px rgba(0,0,0,0.4)' }}>
+              Settings
+            </div>
+          </div>
           {/* Profile */}
           <div className="relative group">
             <button className="w-10 h-10 rounded-lg flex items-center justify-center text-[#555] hover:bg-[#1a1a1a] hover:text-white transition-colors">
@@ -680,35 +911,14 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
           </div>
         </div>
 
-        {/* Secondary Sidebar (conditional) */}
-        {(activePage === 'comps' || activePage === 'items' || activePage === 'units' || activePage === 'traits' || activePage === 'augments') && (
-          <div className="w-52 bg-[#111111] flex-shrink-0 p-4 flex flex-col gap-3 filter-sidebar-enter" style={{ boxShadow: 'inset -1px 0 2px rgba(0,0,0,0.3)' }}>
-            <div className="text-[11px] uppercase tracking-widest text-[#444] mb-1">Filters</div>
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-8 rounded-lg bg-[#1a1a1a] animate-pulse" style={{ boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.4), inset -1px -1px 2px rgba(255,255,255,0.03)' }} />
-            ))}
-          </div>
-        )}
-
         {/* Page Content */}
-        <div className="flex-1 overflow-y-auto min-h-0 h-full bg-[#0e0e0e] px-8 py-6 custom-scrollbar">
+        <div key={activePage} className={`flex-1 overflow-y-auto min-h-0 h-full bg-[#0e0e0e] custom-scrollbar ${
+          ['units','traits','items','augments','team-builder','match-history'].includes(activePage)
+            ? ''
+            : 'px-8 py-6'
+        }`} style={{animation:'fadeIn 0.15s ease'}}>
           {activePage === 'in-game' ? (
-            <div className="grid grid-cols-1 gap-3">
-              {Array.from({ length: 8 }).map((_, i) => (
-
-                <div
-                  key={i}
-                  className="bg-[#1a1a1a] rounded-xl flex flex-col items-start gap-2 min-h-[200px]" style={{ boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.4), inset -1px -1px 2px rgba(255,255,255,0.03)', padding: '16px' }}
-                >
-                  <div className="w-16 h-16 rounded-full bg-[#222] flex-shrink-0" />
-                  <div className="flex-1">
-                    <div className="text-white text-sm font-semibold mb-0.5">Player {i + 1}</div>
-                    <div className="text-[#555] text-xs">Rank {i + 1}</div>
-                  </div>
-                </div>
-
-              ))}
-            </div>
+            <InGamePage />
           ) : activePage === 'comps' ? (
             <div className="flex flex-col gap-2">
               <div className="text-[11px] uppercase tracking-widest text-white mb-4">Meta Comps</div>
@@ -729,13 +939,53 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
               </div>
             </div>
           ) : activePage === 'items' ? (
-            <ItemsSkeleton />
+            <ItemsGuide
+              query={itemQuery}
+              setQuery={setItemQuery}
+              tagFilter={itemTagFilter}
+              setTagFilter={setItemTagFilter}
+              tierFilter={itemTierFilter}
+              setTierFilter={setItemTierFilter}
+              onItemSelect={(itemName) => console.log('Selected item:', itemName)}
+            />
           ) : activePage === 'team-builder' ? (
-            <TeamBuilder />
+            <TeamBuilder onNavigate={(page, id) => {
+              setActivePage(page)
+              if (page === 'units' && id) setSelectedUnitId(id)
+            }} />
           ) : activePage === 'match-history' ? (
             <MatchHistory />
           ) : activePage === 'units' ? (
-            <Units />
+            <UnitGuide
+              query={unitQuery}
+              setQuery={setUnitQuery}
+              costFilter={unitCostFilter}
+              setCostFilter={setUnitCostFilter}
+              tierFilter={unitTierFilter}
+              setTierFilter={setUnitTierFilter}
+              onUnitSelect={(unitId) => console.log('Selected unit:', unitId)}
+              initialUnit={selectedUnitId}
+            />
+          ) : activePage === 'traits' ? (
+            <SynergyGuide
+              query={synergyQuery}
+              setQuery={setSynergyQuery}
+              typeFilter={synergyTypeFilter}
+              setTypeFilter={setSynergyTypeFilter}
+              onSynergySelect={(synergyId) => console.log('Selected synergy:', synergyId)}
+            />
+          ) : activePage === 'augments' ? (
+            <AugmentGuide
+              query={augmentQuery}
+              setQuery={setAugmentQuery}
+              tierFilter={augmentTierFilter}
+              setTierFilter={setAugmentTierFilter}
+              tagFilter={augmentTagFilter}
+              setTagFilter={setAugmentTagFilter}
+              onAugmentSelect={(augmentId) => console.log('Selected augment:', augmentId)}
+            />
+          ) : activePage === 'settings' ? (
+            <Settings />
           ) : (
             <div className="flex items-center justify-center h-full">
               <span className="text-white text-sm capitalize">{activePage.replace('-', ' ')}</span>
@@ -743,50 +993,90 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
           )}
         </div>
 
-        {/* Right Sidebar (fixed) */}
-        <div className="w-80 bg-[#111111] flex-shrink-0 px-6 py-4 flex flex-col gap-4 items-center overflow-y-auto" style={{ boxShadow: 'inset 1px 0 2px rgba(0,0,0,0.3)' }}>
-          {/* Ad Space */}
-          <div className="bg-[#1a1a1a] rounded-xl flex items-center justify-center" style={{ width: '260px', height: '96px', padding: '16px' }}>
-            <span className="text-[#555] text-xs uppercase tracking-widest">Advertisement</span>
-          </div>
-
-          {/* Tip Box */}
-          <div className="bg-[#1a1a1a] rounded-xl flex flex-col" style={{ width: '260px', padding: '16px' }}>
-            <div className="text-[11px] uppercase tracking-widest text-[#35c3e7] mb-2">Tip</div>
-            <div className="text-white text-sm leading-relaxed">
-              Position your units in a way that maximizes trait synergies for optimal performance.
+        {/* Right Sidebar (fixed) - always visible */}
+        <div className="w-45 bg-[#080810] flex-shrink-0 px-3 py-3 flex flex-col gap-4 items-center overflow-y-auto" style={{ boxShadow: 'inset 1px 0 2px rgba(0,0,0,0.3)', borderLeft: '1px solid #111120', width: '180px' }}>
+          {/* Player Card Section */}
+          <div style={{ width: '100%' }}>
+            <div style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#333', marginBottom: '8px' }}>
+              Player
+            </div>
+            <div style={{
+              background: '#0f0f1c',
+              border: '1px solid #1a1a2e',
+              borderRadius: '8px',
+              padding: '10px',
+            }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: '#35c3e7', marginBottom: '4px' }}>
+                {state.gameName || 'Unknown'}
+              </div>
+              <div style={{ fontSize: '10px', color: '#555', marginBottom: '8px' }}>
+                {state.region?.toUpperCase() || 'NA'}
+              </div>
+              <div style={{ display: 'flex', gap: '2px', marginBottom: '8px' }}>
+                {[1,2,3,4,5,6,7,8,1,2].map((place, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      width: '16px',
+                      height: '16px',
+                      borderRadius: '3px',
+                      background: place === 1 ? '#fbbf24' : place <= 4 ? '#4ade80' : '#ef4444',
+                      border: place === 1 ? '2px solid #fbbf24' : 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '9px',
+                      fontWeight: 700,
+                      color: 'white',
+                    }}
+                  >
+                    {place}
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: '9px', color: '#555' }}>Avg</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: 'white' }}>3.2</div>
+              </div>
             </div>
           </div>
 
-          {/* Info Box */}
-          <div className="bg-[#1a1a1a] rounded-xl flex flex-col" style={{ width: '260px', padding: '16px' }}>
-            <div className="text-[11px] uppercase tracking-widest text-[#35c3e7] mb-2">Info</div>
-            <div className="text-white text-sm leading-relaxed">
-              Check the meta comps page for the latest team compositions that are performing well in the current patch.
+          {/* Divider */}
+          <div style={{ width: '100%', height: '1px', background: '#111120' }} />
+
+          {/* Live Game Status */}
+          <div style={{ width: '100%' }}>
+            <div style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#333', marginBottom: '8px' }}>
+              Status
+            </div>
+            <div style={{
+              background: '#0a0a12',
+              border: '1px solid #111120',
+              borderRadius: '8px',
+              padding: '12px',
+              textAlign: 'center',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '4px' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80', animation: 'pulse 2s infinite' }} />
+                <span style={{ fontSize: '11px', fontWeight: 600, color: '#4ade80' }}>LIVE</span>
+              </div>
+              <div style={{ fontSize: '10px', color: '#555' }}>Round 3-2</div>
             </div>
           </div>
 
-          {/* Stats Box */}
-          <div className="bg-[#1a1a1a] rounded-xl flex flex-col" style={{ width: '260px', padding: '16px' }}>
-            <div className="text-[11px] uppercase tracking-widest text-[#35c3e7] mb-2">Stats</div>
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-[#555]">Win Rate</span>
-                <span className="text-white font-semibold">52%</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-[#555]">Pick Rate</span>
-                <span className="text-white font-semibold">18%</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-[#555]">Top 4 Rate</span>
-                <span className="text-white font-semibold">65%</span>
-              </div>
+          {/* Divider */}
+          <div style={{ width: '100%', height: '1px', background: '#111120' }} />
+
+          {/* Quick Tips Section */}
+          <div style={{ width: '100%' }}>
+            <div style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#333', marginBottom: '8px' }}>
+              Tips
             </div>
+            <QuickTips />
           </div>
         </div>
       </div>
-    </div>
-    </>
+      </div>
+    </ThemeProvider>
   );
 }

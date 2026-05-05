@@ -25,9 +25,10 @@ export interface DataPreferences {
 }
 
 export interface NotificationPrefs {
-  patchNotes: boolean;
-  compTierBump: boolean;
-  friendOnline: boolean;
+  matchStart: boolean;
+  roundEnd: boolean;
+  compUpdate: boolean;
+  itemReminder: boolean;
 }
 
 export interface PrivacySettings {
@@ -48,15 +49,10 @@ export interface ActiveGuideComp {
 }
 
 export interface OverlayPanels {
-  comps: boolean;
-  boardScanner: boolean;
-  shopAdvisor: boolean;
-  itemSheet: boolean;
-  damageCalc: boolean;
-  opponentTracker: boolean;
-  stageTimer: boolean;
-  augmentAdvisor: boolean;
-  miniLeaderboard: boolean;
+  compTracker: boolean;
+  itemBuilder: boolean;
+  augmentGuide: boolean;
+  unitStats: boolean;
 }
 
 export interface AppState {
@@ -67,13 +63,15 @@ export interface AppState {
   selectedMatch: Match | null;
   settings: {
     region: RiotRegion;
-    theme: 'dark' | 'light';
     compFilters: CompFilters;
     dataPrefs: DataPreferences;
     notifications: NotificationPrefs;
     privacy: PrivacySettings;
     dataSource: 'live' | 'static';
     overlayOpacity: number;
+    accentColor: string;
+    density: 'compact' | 'comfortable';
+    fontSize: number;
   };
   overlayPanels: OverlayPanels;
   favoriteComps: string[];
@@ -87,6 +85,7 @@ export interface AppState {
   setSelectedPlayer: (player: PlayerCard | null) => void;
   addRecentSearch: (search: RecentSearch) => void;
   setSettings: (settings: Partial<AppState['settings']>) => void;
+  updateAccentColor: (color: string) => void;
   setSelectedMatch: (match: Match | null) => void;
   toggleOverlayPanel: (panel: keyof OverlayPanels) => void;
   setOverlayPanels: (panels: Partial<OverlayPanels>) => void;
@@ -133,9 +132,10 @@ const DEFAULT_DATA_PREFS: DataPreferences = {
 };
 
 const DEFAULT_NOTIFICATIONS: NotificationPrefs = {
-  patchNotes: true,
-  compTierBump: true,
-  friendOnline: false,
+  matchStart: true,
+  roundEnd: true,
+  compUpdate: true,
+  itemReminder: false,
 };
 
 const DEFAULT_PRIVACY: PrivacySettings = {
@@ -144,26 +144,23 @@ const DEFAULT_PRIVACY: PrivacySettings = {
 };
 
 const DEFAULT_OVERLAY_PANELS: OverlayPanels = {
-  comps: true,
-  boardScanner: false,
-  shopAdvisor: false,
-  itemSheet: true,
-  damageCalc: false,
-  opponentTracker: false,
-  stageTimer: false,
-  augmentAdvisor: false,
-  miniLeaderboard: false,
+  compTracker: true,
+  itemBuilder: true,
+  augmentGuide: false,
+  unitStats: true,
 };
 
 const DEFAULT_SETTINGS = {
   region: 'euw1' as RiotRegion,
-  theme: 'dark' as const,
   compFilters: DEFAULT_COMP_FILTERS,
   dataPrefs: DEFAULT_DATA_PREFS,
   notifications: DEFAULT_NOTIFICATIONS,
   privacy: DEFAULT_PRIVACY,
   dataSource: 'static' as const,
   overlayOpacity: 90,
+  accentColor: '#35c3e7',
+  density: 'comfortable' as const,
+  fontSize: 14,
 };
 
 function loadStoredSettings(): typeof DEFAULT_SETTINGS {
@@ -228,6 +225,14 @@ export const useAppStore = create<AppState>(
     setSettings: (partial: Partial<AppState['settings']>) =>
       set((s: AppState) => {
         const next = { settings: { ...s.settings, ...partial } };
+        try { localStorage.setItem('tft-ally::settings', JSON.stringify(next.settings)); } catch { /* ignore */ }
+        return next;
+      }),
+
+    updateAccentColor: (color: string) =>
+      set((s: AppState) => {
+        const next = { settings: { ...s.settings, accentColor: color } };
+        document.documentElement.style.setProperty('--color-ally-accent', color);
         try { localStorage.setItem('tft-ally::settings', JSON.stringify(next.settings)); } catch { /* ignore */ }
         return next;
       }),
