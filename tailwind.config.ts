@@ -16,22 +16,21 @@ const config: Config = {
       },
       colors: {
         ally: {
-          bg:      '#181818', // background — hsl(0 0% 9%)
-          card:    '#1f1f1f', // card surfaces — hsl(0 0% 12%)
-          accent:  '#00d4ff', // primary accent — vibrant cyan (more gaming)
-          accentDark: '#0099cc', // darker variant for hover/pressed
-          accentLight: '#33e0ff', // lighter variant for glows
-          text:    '#ffffff', // primary text — pure white
-          textDim:   '#e0e0e0', // slightly dimmed text for secondary info
-          muted:   '#a1a1a1', // secondary text
-          border:  '#2a2a2a', // subtle borders
-          borderBright: '#35c3e7', // bright borders for active states
-          hover:   '#252525', // hover states on cards
-          success: '#10b981', // success states (green)
-          warning: '#f59e0b', // warning states (amber)
-          error:   '#ef4444', // error states (red)
-          // Gradient definitions for dynamic backgrounds
-          gradientPrimary: 'from-[#00d4ff] to-[#0099cc]',
+          bg:      'var(--color-ally-bg)',
+          card:    'var(--color-ally-card)',
+          accent:  'var(--color-ally-accent)',
+          accentDark: 'var(--color-ally-accent)',
+          accentLight: 'var(--color-ally-accent)',
+          text:    'var(--color-ally-text)',
+          textDim:   'var(--color-ally-text)',
+          muted:   'var(--color-ally-muted)',
+          border:  'var(--color-ally-border)',
+          borderBright: 'var(--color-ally-accent)',
+          hover:   'var(--color-ally-hover)',
+          success: '#10b981',
+          warning: '#f59e0b',
+          error:   '#ef4444',
+          gradientPrimary: 'from-[var(--color-ally-accent)] to-[var(--color-ally-accent)]',
           gradientSecondary: 'from-[#10b981] to-[#059669]',
         },
       },

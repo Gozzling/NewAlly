@@ -366,16 +366,21 @@ function EmptyState({ message }: { message: string }) {
 function RowSkeleton() {
   return (
     <div style={{
-      display: 'grid',
-      gridTemplateColumns: '32px 1fr 70px 70px 90px',
-      gap: 10, padding: '8px 12px',
-      borderBottom: `1px solid ${C.border}`,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px',
+      padding: '16px',
     }}>
       {[1,2,3,4,5].map(i => (
         <div
           key={i}
-          className="animate-pulse"
-          style={{ height: 8, borderRadius: 4, background: C.border }}
+          style={{
+            height: '80px',
+            borderRadius: '8px',
+            background: 'linear-gradient(90deg, #111827 25%, #1f2937 50%, #111827 75%)',
+            backgroundSize: '200% 100%',
+            animation: 'shimmer 1.5s infinite',
+          }}
         />
       ))}
     </div>
@@ -799,10 +804,33 @@ export function MatchHistory() {
     return distribution
   }, [filteredMatches])
 
+  /* ─── Rank abbreviation helper ─── */
+  function formatRankAbbreviation(tier: string, rank: string): string {
+    if (!tier || !rank) return ''
+    const tierMap: Record<string, string> = {
+      'Challenger': 'C',
+      'Grandmaster': 'GM',
+      'Master': 'M',
+      'Diamond': 'D',
+      'Platinum': 'P',
+      'Gold': 'G',
+      'Silver': 'S',
+      'Bronze': 'B',
+      'Iron': 'I',
+    }
+    const tierAbbr = tierMap[tier] || tier.charAt(0)
+    return `${tierAbbr}${rank}`
+  }
+
   /* ─── LP chart data ─── */
-  const chartData = useMemo((): Array<MatchRowData & { x: number; label: string }> => {
+  const chartData = useMemo((): Array<MatchRowData & { x: string; label: string; rankAbbr: string }> => {
     if (!matches.length) return []
-    return matches.map((m, i) => ({ ...m, x: i + 1, label: `Game ${i + 1}` }))
+    return matches.map((m, i) => ({
+      ...m,
+      x: m.date,
+      label: new Date(m.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      rankAbbr: formatRankAbbreviation(m.tier, m.rank)
+    }))
   }, [matches])
 
   /* ─── Guard: no player selected ─── */
@@ -974,11 +1002,6 @@ export function MatchHistory() {
             </div>
           </div>
 
-          {/* Debug display */}
-          <pre style={{fontSize:'8px',color:'#aaa',background:'#111',padding:'4px',maxHeight:'60px',overflow:'auto'}}>
-            {JSON.stringify(selectedPlayer)}
-          </pre>
-
           {/* Region badge */}
           <div style={{
             padding: '3px 10px',
@@ -1128,12 +1151,16 @@ export function MatchHistory() {
                     dataKey="x"
                     tick={{ fontSize: 9, fill: '#555', fontFamily: 'Rajdhani, sans-serif' }}
                     tickLine={false} axisLine={false}
-                    tickFormatter={(v) => `G${v}`}
+                    tickFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     interval="preserveStartEnd"
                   />
                   <YAxis
                     tick={{ fontSize: 9, fill: C.muted, fontFamily: 'Rajdhani, sans-serif' }}
                     tickLine={false} axisLine={false} width={38}
+                    tickFormatter={(v) => {
+                      const match = chartData.find(m => m.lpAtEnd === v)
+                      return match?.rankAbbr || ''
+                    }}
                   />
                   <Tooltip content={<ChartTooltip />} />
                   <ReferenceLine y={0} stroke={C.border} strokeDasharray="2 2" opacity={0.5} />
@@ -1285,7 +1312,7 @@ export function MatchHistory() {
           <div style={{
             padding: '12px 16px',
             borderBottom: `1px solid ${C.border}`,
-            background: '#0f0f1a',
+            background: C.surface,
             borderRadius: 8,
           }}>
             <div style={{
@@ -1300,10 +1327,10 @@ export function MatchHistory() {
                 const count = entry?.count ?? 0
                 const maxCount = Math.max(...placementDistribution.map(d => d.count), 1)
                 const height = count > 0 ? Math.min((count / maxCount) * 80, 80) : 0
-                let color = '#4a4a6a' // gray for 5-8
-                if (p === 1) color = '#f0b429' // gold for 1st
-                else if (p === 2) color = '#fbbf24' // yellow for 2nd
-                else if (p <= 4) color = '#22c55e' // green for 3-4
+                let color = C.faint // gray for 5-8
+                if (p === 1) color = C.accent // cyan for 1st
+                else if (p === 2) color = C.chartCyan // lighter cyan for 2nd
+                else if (p <= 4) color = C.win // green for 3-4
                 return (
                   <div
                     key={p}
@@ -1334,7 +1361,7 @@ export function MatchHistory() {
                     <div style={{
                       fontSize: 10,
                       fontWeight: 600,
-                      color: '#555',
+                      color: C.muted,
                     }}>
                       {p}{p === 1 ? 'st' : p === 2 ? 'nd' : p === 3 ? 'rd' : 'th'}
                     </div>
@@ -1408,6 +1435,10 @@ export function MatchHistory() {
         @keyframes ripple {
           0% { transform: scale(1); opacity: 0.6; }
           100% { transform: scale(1.5); opacity: 0; }
+        }
+        @keyframes shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
         }
       `}</style>
     </div>

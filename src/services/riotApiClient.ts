@@ -242,7 +242,7 @@ export async function fetchMatchIds(
   log(`[MH] Has API key: ${!!import.meta.env.VITE_RIOT_API_KEY}`)
 
   const data = await trySupabase(
-    () => fetchMatchIdsSupabase(puuid, matchRegion, count),
+    () => fetchMatchIdsSupabase(puuid, riotRegion, count),
     async () => {
       log('[FALLBACK] Using direct Riot API')
       const fullUrl = `https://${matchRegion}.api.riotgames.com${url}`
@@ -296,14 +296,29 @@ export async function fetchMatchDetail(matchId: string, matchRegion: MatchRegion
 }
 
 export async function fetchPlayerCard(name: string, region: RiotRegion): Promise<PlayerCard> {
-  console.log('[RIOT] fetchPlayerCard called:', { name, region, hasSupabase: hasSupabase() })
   if (hasSupabase()) {
     try {
       const card = await fetchPlayerCardSupabase(name, region)
-      console.log('[RIOT] fetchPlayerCardSupabase returned:', card)
+
+      // Check if Supabase card has league data, if not try to fetch it
+      if (!card.tier && !card.rank && !card.lp) {
+        try {
+          const entries = await fetchLeagueEntries(card.puuid, region)
+          const ranked = entries.find((e) => e.queueType === 'RANKED_TFT')
+          return {
+            ...card,
+            rank: ranked?.rank ?? null,
+            tier: ranked?.tier ?? null,
+            lp: ranked?.leaguePoints ?? null,
+          }
+        } catch {
+          // League fetch failed, return card without league data
+          return card
+        }
+      }
+
       return card
     } catch (err) {
-      console.error('[RIOT] fetchPlayerCardSupabase error:', err)
       if (err instanceof SupabaseError && err.code === 'NO_CONFIG') {
         // Supabase not configured — fall through to direct
       } else if (err instanceof SupabaseError) {
@@ -314,11 +329,8 @@ export async function fetchPlayerCard(name: string, region: RiotRegion): Promise
     }
   }
 
-  console.log('[RIOT] Falling back to direct Riot API')
   const summoner = await fetchSummonerByName(name, region)
-  console.log('[RIOT] fetchSummonerByName returned:', { id: summoner.id, name: summoner.name, puuid: summoner.puuid })
   const entries = await fetchLeagueEntries(summoner.id, region)
-  console.log('[RANK] Raw league entries:', JSON.stringify(entries))
   const ranked = entries.find((e) => e.queueType === 'RANKED_TFT')
 
   const card = {
@@ -330,7 +342,6 @@ export async function fetchPlayerCard(name: string, region: RiotRegion): Promise
     tier: ranked?.tier ?? null,
     lp: ranked?.leaguePoints ?? null,
   }
-  console.log('[RIOT] fetchPlayerCard returning:', card)
   return card
 }
 

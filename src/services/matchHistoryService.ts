@@ -241,7 +241,6 @@ export async function fetchPlayerMatchHistory(
       return cached.map((m) => ({ ...m, date: new Date(m.date) }))
     } else if (cached) {
       log('[MH] Found cached matches but validation failed, will refetch')
->>>>>>> 3881140 (Update overlay, lobby, and desktop components with enhanced match history and Supabase integration)
     }
   }
 

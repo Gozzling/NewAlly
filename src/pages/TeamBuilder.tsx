@@ -93,7 +93,7 @@ function UnitPill({ name, traits, cost, placed, onClick }: {
 /* ═══════════════════════════════════════════════════════════════
    TeamBuilder
 ═══════════════════════════════════════════════════════════════ */
-export function TeamBuilder({ importComp }: { importComp?: MetaComp }) {
+export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp; onNavigate?: (page: string, id?: string) => void }) {
   const savedComps      = useAppStore(s => s.savedComps)
   const addSavedComp    = useAppStore(s => s.addSavedComp)
   const removeSavedComp = useAppStore(s => s.removeSavedComp)
@@ -113,7 +113,13 @@ export function TeamBuilder({ importComp }: { importComp?: MetaComp }) {
   const [sid, setSid]               = useState('')
   const [augs, setAugs]             = useState<string[]>([])
   const [comps, setComps]           = useState<string[]>([])
+  const [shareToast, setShareToast] = useState(false)
+  const [unitDetail, setUnitDetail] = useState<string | null>(null)
+  const [selHex, setSelHex]         = useState<string | null>(null)
   const [unitPanelBoard, setUnitPanelBoard] = useState<'player' | 'enemy'>('player')
+
+  // Double-click detection
+  const lastClickRef = useRef<{ time: number; idx: number | null }>({ time: 0, idx: null })
 
   // Import a comp's required units when triggered from outside
   useEffect(() => {
@@ -242,16 +248,44 @@ export function TeamBuilder({ importComp }: { importComp?: MetaComp }) {
     if (dragItem) setDragTarget(null)
   }
 
-  /* ─── Hex click: remove unit ─── */
-  const handleHexClick = (board: 'player' | 'enemy', idx: number) => {
-    const jd = justDroppedRef.current
-    if (jd?.board === board && jd?.idx === idx) return
-    if (dragItem) return
-    const arr = board === 'player' ? pBoard : eBoard
-    if (!arr[idx]) return
-    const nb = [...arr]; nb[idx] = null
-    if (board === 'player') pushHistory({ pBoard: nb, eBoard: [...eBoard] })
-    else pushHistory({ pBoard: [...pBoard], eBoard: nb })
+  /* ─── Hex click: select for swapping or show detail on double-click ─── */
+  const handleHexClick = (hexId: string) => {
+    const idx = parseInt(hexId, 10)
+    const unit = pBoard[idx]
+    if (!unit) return // empty hex - do nothing (units added via + Units panel)
+
+    const now = Date.now()
+    const lastClick = lastClickRef.current
+
+    console.log('[HEX CLICK]', { hexId, idx, unit, now, lastClick, timeDiff: now - lastClick.time })
+
+    // Check for double-click (within 300ms and same hex)
+    if (lastClick.idx !== null && now - lastClick.time < 300 && lastClick.idx === idx) {
+      console.log('[DOUBLE CLICK DETECTED]', { unit })
+      // Double-click detected - show unit detail
+      setUnitDetail(unit)
+      setSelHex(null)
+      lastClickRef.current = { time: 0, idx: null }
+      return
+    }
+
+    // Single click - select for swapping
+    if (selHex === hexId) {
+      console.log('[DESELECT HEX]', { hexId })
+      setSelHex(null);
+      return
+    }
+    if (selHex) { // swap mode - do the swap
+      console.log('[SWAP MODE]', { selHex, hexId })
+      const selIdx = parseInt(selHex, 10)
+      const tmp = pBoard[selIdx]; pBoard[selIdx] = pBoard[idx]; pBoard[idx] = tmp
+      setSelHex(null)
+      return
+    }
+    // first click on occupied hex - select for swapping
+    console.log('[SELECT HEX]', { hexId })
+    setSelHex(hexId)
+    lastClickRef.current = { time: now, idx }
   }
 
   /* ─── Board computed data ─── */
@@ -322,10 +356,17 @@ export function TeamBuilder({ importComp }: { importComp?: MetaComp }) {
     if (window.confirm(`Delete "${savedComps.find(x => x.id === sid)?.name}"?`)) { removeSavedComp(sid); setSid('') }
   }
   const shareComp = () => {
-    if (!sid) return
-    const c = savedComps.find(x => x.id === sid)
-    if (!c) return
-    window.prompt('Share URL:', `${window.location.origin}${window.location.pathname}?comp=${btoa(JSON.stringify(c))}`)
+    const units = Object.values(pBoard).filter(Boolean) as string[]
+    if (!units.length) { alert('Add some units first!'); return }
+    const data = btoa(JSON.stringify({ units }))
+    const url = `${window.location.origin}?comp=${data}`
+    try {
+      navigator.clipboard.writeText(url)
+    } catch {
+      window.prompt('Copy this link:', url)
+    }
+    setShareToast(true)
+    setTimeout(() => setShareToast(false), 2000)
   }
 
   /* ─── Hex glyph ─── */
@@ -396,6 +437,7 @@ export function TeamBuilder({ importComp }: { importComp?: MetaComp }) {
 
     return (
       <div style={{
+        position: 'relative',
         background: bgCol,
         borderRadius: 8,
         border: `1px solid ${isEnemy ? '#3a1515' : C.border}`,
@@ -440,21 +482,19 @@ export function TeamBuilder({ importComp }: { importComp?: MetaComp }) {
               <g
                 key={idx}
                 onMouseDown={() => unit && (isSrc ? undefined : startDrag(bName, idx))}
-                onDoubleClick={() => !dragItem && handleHexClick(bName, idx)}
                 style={{
                   cursor: unit ? 'grab' : 'default',
                   opacity: isSrc ? 0.45 : 1,
                 }}
               >
                 <HexGlyph pos={pos} unit={unit} uData={uData} boardName={bName} />
-                {unit === null && (
-                  <polygon
-                    points={hexPts(pos.cx, pos.cy)}
-                    fill="transparent"
-                    stroke="transparent"
-                    strokeWidth={8}
-                  />
-                )}
+                {/* Transparent click overlay - captures all clicks */}
+                <polygon
+                  points={hexPts(pos.cx, pos.cy)}
+                  fill="transparent"
+                  onClick={() => unit && handleHexClick(idx.toString())}
+                  style={{ cursor: unit ? 'pointer' : 'default' }}
+                />
               </g>
             )
           })}
@@ -570,8 +610,8 @@ export function TeamBuilder({ importComp }: { importComp?: MetaComp }) {
             style={{ ...btnBase, background: 'transparent', border: `1px solid ${C.border}`, color: !sid ? C.muted : C.danger, padding: '4px 12px', fontSize: 10, fontWeight: 600, opacity: !sid ? 0.35 : 1 }}>
             Delete
           </button>
-          <button disabled={!sid} onClick={shareComp}
-            style={{ ...btnBase, background: 'transparent', border: `1px solid ${C.border}`, color: !sid ? C.muted : C.accent, padding: '4px 12px', fontSize: 10, fontWeight: 600, opacity: !sid ? 0.35 : 1 }}>
+          <button onClick={shareComp}
+            style={{ background:'transparent', border:'none', color:'#35c3e7', fontSize:'11px', cursor:'pointer', padding:'4px 8px' }}>
             Share
           </button>
         </div>
@@ -791,6 +831,38 @@ export function TeamBuilder({ importComp }: { importComp?: MetaComp }) {
           color: #d0d0d0 !important;
         }
       `}</style>
+
+      {shareToast && (
+        <div style={{position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)', background:'#1a1a2e', border:'1px solid #35c3e740', color:'#35c3e7', padding:'8px 20px', borderRadius:'8px', fontSize:'12px', zIndex:1000, animation:'fadeIn 0.2s ease'}}>
+          Link copied to clipboard!
+        </div>
+      )}
+
+      {unitDetail && (
+        <div style={{
+          position:'absolute', top:'50px', left:'50%',
+          transform:'translateX(-50%)',
+          background:'#0f0f1e', border:'1px solid #35c3e740',
+          borderRadius:'10px', padding:'12px 16px', zIndex:100,
+          display:'flex', alignItems:'center', gap:'12px',
+          minWidth:'220px', boxShadow:'0 4px 24px #00000080'
+        }}>
+          <img src={`/unit-icons/${unitDetail}.webp`}
+            style={{width:'44px',height:'44px',borderRadius:'8px',objectFit:'cover'}} />
+          <div style={{flex:1}}>
+            <div style={{color:'white',fontWeight:600,fontSize:'13px'}}>{unitDetail}</div>
+            <div style={{color:'#444',fontSize:'10px',marginTop:'2px'}}>Double-click to view · Single-click to swap</div>
+          </div>
+          <button onClick={() => { onNavigate?.('units', unitDetail); setUnitDetail(null) }}
+            style={{background:'#35c3e715',border:'1px solid #35c3e740',color:'#35c3e7',fontSize:'11px',padding:'5px 12px',borderRadius:'6px',cursor:'pointer'}}>
+            View →
+          </button>
+          <button onClick={() => setUnitDetail(null)}
+            style={{background:'transparent',border:'none',color:'#444',cursor:'pointer',fontSize:'16px',lineHeight:1}}>
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   )
 }
