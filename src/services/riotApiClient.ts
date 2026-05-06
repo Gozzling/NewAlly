@@ -330,7 +330,7 @@ export async function fetchPlayerCard(name: string, region: RiotRegion): Promise
   }
 
   const summoner = await fetchSummonerByName(name, region)
-  const entries = await fetchLeagueEntries(summoner.id, region)
+  const entries = await fetchLeagueEntries(summoner.puuid, region)
   const ranked = entries.find((e) => e.queueType === 'RANKED_TFT')
 
   const card = {
