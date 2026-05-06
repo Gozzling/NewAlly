@@ -213,7 +213,7 @@ export async function fetchLeagueEntries(summonerId: string, region: RiotRegion)
 
   const data = await trySupabase(
     () => fetchLeagueEntriesSupabase(summonerId, region),
-    () => riotFetch<LeagueEntry[]>(`/tft/league/v1/entries/by-summoner/${summonerId}`, region),
+    () => riotFetch<LeagueEntry[]>(`/tft/league/v1/by-puuid/${summonerId}`, region),
   )
   setCache(cacheKey, data, ONE_HOUR)
   return data

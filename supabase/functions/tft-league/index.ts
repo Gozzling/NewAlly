@@ -24,7 +24,7 @@ Deno.serve(async (req: Request) => {
 
     const data = await riotPlatformFetch(
       region,
-      `/tft/league/v1/entries/by-summoner/${encodeURIComponent(summonerId)}`,
+      `/tft/league/v1/by-puuid/${encodeURIComponent(summonerId)}`,
     );
 
     return jsonResponse(data);
