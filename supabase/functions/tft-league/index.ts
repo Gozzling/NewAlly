@@ -15,6 +15,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
+
     const summonerId = String(body.summonerId ?? "").trim();
     const region = String(body.region ?? "euw1").toLowerCase();
 

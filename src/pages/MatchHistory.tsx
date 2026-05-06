@@ -602,7 +602,6 @@ export function MatchHistory() {
       console.log('[DEBUG] playerCard:', JSON.stringify(card))
       console.log('[MH] fetchPlayerCard returned:', card)
       setSelectedPlayer(card)
-      console.log('[RANK DEBUG]', JSON.stringify(card))
     } catch (err) {
       console.error('[MH] handleSearch error:', err)
       setSearchErr(err instanceof Error ? err.message : 'Player not found')

@@ -209,7 +209,9 @@ export async function fetchSummonerByName(name: string, region: RiotRegion, logF
 export async function fetchLeagueEntries(summonerId: string, region: RiotRegion): Promise<LeagueEntry[]> {
   const cacheKey = `league:${region}:${summonerId}`
   const cached = getCache<LeagueEntry[]>(cacheKey)
-  if (cached) return cached
+  if (cached) {
+    return cached
+  }
 
   const data = await trySupabase(
     () => fetchLeagueEntriesSupabase(summonerId, region),
