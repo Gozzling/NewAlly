@@ -770,10 +770,10 @@ export function DesktopApp() {
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
-      <div className="w-full h-full flex flex-col bg-[#0e0e0e] text-white font-sans smooth-scroll" style={{ '--color-ally-accent': accentColor } as React.CSSProperties}>
+      <div className="w-full h-full flex flex-col bg-[#0d0d0d] text-white font-sans smooth-scroll" style={{ '--color-ally-accent': accentColor } as React.CSSProperties}>
       {/* Top Bar */}
       <div
-        className="h-12 bg-[#111111] flex items-center px-4 flex-shrink-0 relative"
+        className="h-12 bg-[#1f1f1f] flex items-center px-4 flex-shrink-0 relative"
         style={{ WebkitAppRegion: 'drag', boxShadow: 'inset 0 -1px 2px rgba(0,0,0,0.3)' } as Record<string, string>}
       >
         {/* Left: ALLY Logo */}
@@ -831,7 +831,7 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
           </div>
 
           {/* Divider */}
-          <div className="w-px h-5 bg-[#2a2a2a] mx-1" />
+          <div className="w-px h-5 bg-[#1a1a1a] mx-1" />
 
           {/* Window Controls */}
           <button onClick={handleMinimize} className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:bg-[#1a1a1a] hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-[#35c3e7] transition-all duration-200">
@@ -856,7 +856,7 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Icon Sidebar */}
-        <div className="w-14 bg-[#111111] flex flex-col items-center py-3 gap-1 flex-shrink-0" style={{ boxShadow: 'inset -1px 0 2px rgba(0,0,0,0.3)' }}>
+        <div className="w-14 bg-[#1f1f1f] flex flex-col items-center py-3 gap-1 flex-shrink-0" style={{ boxShadow: 'inset -1px 0 2px rgba(0,0,0,0.3)' }}>
           {NAV_TABS.map((tab) => (
             <div key={tab.id} className="relative group">
               <button
@@ -912,7 +912,7 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
         </div>
 
         {/* Page Content */}
-        <div key={activePage} className={`flex-1 overflow-y-auto min-h-0 h-full bg-[#0e0e0e] custom-scrollbar ${
+        <div key={activePage} className={`flex-1 overflow-y-auto min-h-0 h-full bg-[#0d0d0d] custom-scrollbar ${
           ['units','traits','items','augments','team-builder','match-history'].includes(activePage)
             ? ''
             : 'px-8 py-6'
@@ -994,22 +994,22 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
         </div>
 
         {/* Right Sidebar (fixed) - always visible */}
-        <div className="w-45 bg-[#080810] flex-shrink-0 px-3 py-3 flex flex-col gap-4 items-center overflow-y-auto" style={{ boxShadow: 'inset 1px 0 2px rgba(0,0,0,0.3)', borderLeft: '1px solid #111120', width: '180px' }}>
+        <div className="w-45 bg-[#0d0d0d] flex-shrink-0 px-3 py-3 flex flex-col gap-4 items-center overflow-y-auto" style={{ boxShadow: 'inset 1px 0 2px rgba(0,0,0,0.3)', borderLeft: '1px solid #1a1a1a', width: '180px' }}>
           {/* Player Card Section */}
           <div style={{ width: '100%' }}>
-            <div style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#333', marginBottom: '8px' }}>
+            <div style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a1a1a1', marginBottom: '8px' }}>
               Player
             </div>
             <div style={{
-              background: '#0f0f1c',
-              border: '1px solid #1a1a2e',
+              background: '#1f1f1f',
+              border: '1px solid #1a1a1a',
               borderRadius: '8px',
               padding: '10px',
             }}>
               <div style={{ fontSize: '12px', fontWeight: 700, color: '#35c3e7', marginBottom: '4px' }}>
                 {state.gameName || 'Unknown'}
               </div>
-              <div style={{ fontSize: '10px', color: '#555', marginBottom: '8px' }}>
+              <div style={{ fontSize: '10px', color: '#a1a1a1', marginBottom: '8px' }}>
                 {state.region?.toUpperCase() || 'NA'}
               </div>
               <div style={{ display: 'flex', gap: '2px', marginBottom: '8px' }}>
@@ -1035,23 +1035,23 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
                 ))}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: '9px', color: '#555' }}>Avg</div>
+                <div style={{ fontSize: '9px', color: '#a1a1a1' }}>Avg</div>
                 <div style={{ fontSize: '16px', fontWeight: 700, color: 'white' }}>3.2</div>
               </div>
             </div>
           </div>
 
           {/* Divider */}
-          <div style={{ width: '100%', height: '1px', background: '#111120' }} />
+          <div style={{ width: '100%', height: '1px', background: '#1a1a1a' }} />
 
           {/* Live Game Status */}
           <div style={{ width: '100%' }}>
-            <div style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#333', marginBottom: '8px' }}>
+            <div style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a1a1a1', marginBottom: '8px' }}>
               Status
             </div>
             <div style={{
-              background: '#0a0a12',
-              border: '1px solid #111120',
+              background: '#1f1f1f',
+              border: '1px solid #1a1a1a',
               borderRadius: '8px',
               padding: '12px',
               textAlign: 'center',
@@ -1060,16 +1060,16 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80', animation: 'pulse 2s infinite' }} />
                 <span style={{ fontSize: '11px', fontWeight: 600, color: '#4ade80' }}>LIVE</span>
               </div>
-              <div style={{ fontSize: '10px', color: '#555' }}>Round 3-2</div>
+              <div style={{ fontSize: '10px', color: '#a1a1a1' }}>Round 3-2</div>
             </div>
           </div>
 
           {/* Divider */}
-          <div style={{ width: '100%', height: '1px', background: '#111120' }} />
+          <div style={{ width: '100%', height: '1px', background: '#1a1a1a' }} />
 
           {/* Quick Tips Section */}
           <div style={{ width: '100%' }}>
-            <div style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#333', marginBottom: '8px' }}>
+            <div style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a1a1a1', marginBottom: '8px' }}>
               Tips
             </div>
             <QuickTips />
