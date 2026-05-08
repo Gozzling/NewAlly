@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { SYNERGIES } from '../data/synergies'
 import { unitIconUrl } from '@/utils/unitDisplay'
 import { Shield, Swords, Zap, Hexagon } from 'lucide-react'
@@ -30,12 +30,20 @@ interface SynergyGuideProps {
   typeFilter: string
   setTypeFilter: (value: string) => void
   onSynergySelect: (synergyId: string) => void
+  /** Open this trait (name or id), e.g. from global search */
+  initialTrait?: string | null
 }
 
 const TRAIT_GUIDE_PLACEHOLDER_WORDS = ['Bastion', 'Rogue', 'Sniper', 'Brawler', 'Dark Star']
 
-export function SynergyGuide({ query, setQuery, typeFilter, setTypeFilter, onSynergySelect }: SynergyGuideProps) {
+export function SynergyGuide({ query, setQuery, typeFilter, setTypeFilter, onSynergySelect, initialTrait }: SynergyGuideProps) {
   const [selectedSynergy, setSelectedSynergy] = useState<(typeof SYNERGIES)[0] | null>(null)
+
+  useEffect(() => {
+    if (!initialTrait) return
+    const syn = SYNERGIES.find((s) => s.name === initialTrait || s.id === initialTrait)
+    if (syn) setSelectedSynergy(syn)
+  }, [initialTrait])
 
   const { placeholderAnimated: traitsSearchPlaceholder } = useTypewriterPlaceholder(
     TRAIT_GUIDE_PLACEHOLDER_WORDS,

@@ -511,6 +511,9 @@ export function DesktopApp() {
   const lastRawRef = useRef<string>('');
   const [activePage, setActivePage] = useState<string>('in-game');
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [selectedTraitId, setSelectedTraitId] = useState<string | null>(null);
+  const [selectedAugmentId, setSelectedAugmentId] = useState<string | null>(null);
   const [headerSearch, setHeaderSearch] = useState('');
   const [matchHistorySummonerPrefill, setMatchHistorySummonerPrefill] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -565,6 +568,10 @@ export function DesktopApp() {
   }, [])
 
   function handleGlobalSearchPick(s: SearchSuggestion) {
+    setSelectedUnitId(null)
+    setSelectedItemId(null)
+    setSelectedTraitId(null)
+    setSelectedAugmentId(null)
     switch (s.kind) {
       case 'unit': {
         setActivePage('units')
@@ -576,14 +583,17 @@ export function DesktopApp() {
       case 'item':
         setActivePage('items')
         setItemQuery(s.label)
+        setSelectedItemId(s.label)
         break
       case 'trait':
         setActivePage('traits')
         setSynergyQuery(s.label)
+        setSelectedTraitId(s.label)
         break
       case 'augment':
         setActivePage('augments')
         setAugmentQuery(s.label)
+        setSelectedAugmentId(s.label)
         break
       case 'summoner':
         setActivePage('match-history')
@@ -667,7 +677,7 @@ export function DesktopApp() {
       <div className="w-full h-full flex flex-col bg-[#0d0d0d] text-white font-sans smooth-scroll" style={{ '--color-ally-accent': accentColor } as React.CSSProperties}>
       {/* Top Bar */}
       <div
-        className="h-12 bg-[#1f1f1f] flex items-center px-4 flex-shrink-0 relative"
+        className="h-12 bg-[#1f1f1f] flex items-center px-4 flex-shrink-0 relative z-20 overflow-visible"
         style={{ WebkitAppRegion: 'drag', boxShadow: 'inset 0 -1px 2px rgba(0,0,0,0.3)' } as Record<string, string>}
       >
         {/* Left: ALLY Logo */}
@@ -679,7 +689,7 @@ export function DesktopApp() {
         </div>
 
         {/* Center: Search Bar */}
-        <div className="flex-1 flex justify-center" style={{ WebkitAppRegion: 'no-drag' } as Record<string, string>}>
+        <div className="flex-1 flex justify-center overflow-visible relative z-30" style={{ WebkitAppRegion: 'no-drag' } as Record<string, string>}>
           <SearchInputWithSuggestions
             value={headerSearch}
             onChange={setHeaderSearch}
@@ -764,6 +774,9 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
                 onClick={() => {
                   setActivePage(tab.id)
                   setSelectedUnitId(null)
+                  setSelectedItemId(null)
+                  setSelectedTraitId(null)
+                  setSelectedAugmentId(null)
                 }}
                 className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ease-out focus-visible:ring-2 focus-visible:ring-[#35c3e7] hover:shadow-lg ${
                   activePage === tab.id
@@ -848,6 +861,7 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
               tierFilter={itemTierFilter}
               setTierFilter={setItemTierFilter}
               onItemSelect={(itemName) => console.log('Selected item:', itemName)}
+              initialItem={selectedItemId}
             />
           ) : activePage === 'team-builder' ? (
             <TeamBuilder onNavigate={(page, id) => {
@@ -877,6 +891,7 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
               typeFilter={synergyTypeFilter}
               setTypeFilter={setSynergyTypeFilter}
               onSynergySelect={(synergyId) => console.log('Selected synergy:', synergyId)}
+              initialTrait={selectedTraitId}
             />
           ) : activePage === 'augments' ? (
             <AugmentGuide
@@ -887,6 +902,7 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
               tagFilter={augmentTagFilter}
               setTagFilter={setAugmentTagFilter}
               onAugmentSelect={(augmentId) => console.log('Selected augment:', augmentId)}
+              initialAugment={selectedAugmentId}
             />
           ) : activePage === 'settings' ? (
             <Settings />

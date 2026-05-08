@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { unitIconUrl } from '@/utils/unitDisplay'
 import { itemIconUrl } from '@/utils/itemDisplay'
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
@@ -61,12 +61,19 @@ interface ItemsGuideProps {
   tierFilter: string
   setTierFilter: (value: string) => void
   onItemSelect: (itemName: string) => void
+  initialItem?: string | null
 }
 
 const ITEMS_GUIDE_PLACEHOLDER_WORDS = ['Rabadon', 'Blue Buff', 'Warmog', 'Infinity Edge']
 
-export function ItemsGuide({ query, setQuery, tagFilter, setTagFilter, tierFilter, setTierFilter, onItemSelect }: ItemsGuideProps) {
+export function ItemsGuide({ query, setQuery, tagFilter, setTagFilter, tierFilter, setTierFilter, onItemSelect, initialItem }: ItemsGuideProps) {
   const [selectedItem, setSelectedItem] = useState<ItemRecipe | null>(null)
+
+  useEffect(() => {
+    if (!initialItem) return
+    const it = ITEMS.find((i) => i.name === initialItem)
+    if (it) setSelectedItem(it)
+  }, [initialItem])
 
   const { placeholderAnimated: itemsSearchPlaceholder } = useTypewriterPlaceholder(
     ITEMS_GUIDE_PLACEHOLDER_WORDS,

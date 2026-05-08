@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, type CSSProperties, type InputHTMLAttributes
 import type { SearchSuggestion, SearchSuggestionKind } from '@/utils/searchSuggestions'
 import {
   filterSearchSuggestions,
+  labelMatchesQuery,
   normalizeSearchText,
   suggestionKindLabel,
 } from '@/utils/searchSuggestions'
@@ -49,9 +50,10 @@ export function SearchInputWithSuggestions({
   const suggestions = useMemo(() => {
     if (!enableSuggestions) return []
     const n = normalizeSearchText(value)
-    if (n.length < minQueryLength) return []
+    const nk = n.replace(/[^a-z0-9]/g, '')
+    if (n.length < minQueryLength && nk.length < minQueryLength) return []
     const base = filterSearchSuggestions(value, kinds, maxSuggestions)
-    const prep = prependSuggestions.filter((s) => normalizeSearchText(s.label).includes(n))
+    const prep = prependSuggestions.filter((s) => labelMatchesQuery(s.label, value))
     const seen = new Set(prep.map((s) => `${s.kind}:${s.label}`))
     const rest = base.filter((s) => !seen.has(`${s.kind}:${s.label}`))
     return [...prep, ...rest].slice(0, maxSuggestions)

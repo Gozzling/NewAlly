@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { augmentIconUrl } from '@/utils/augmentDisplay'
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
@@ -397,12 +397,19 @@ interface AugmentGuideProps {
   tagFilter: string
   setTagFilter: (value: string) => void
   onAugmentSelect: (augmentId: string) => void
+  initialAugment?: string | null
 }
 
 const AUGMENT_GUIDE_PLACEHOLDER_WORDS = ['Prismatic', 'Divine Right', 'Space Groove']
 
-export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFilter, setTagFilter, onAugmentSelect }: AugmentGuideProps) {
+export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFilter, setTagFilter, onAugmentSelect, initialAugment }: AugmentGuideProps) {
   const [selectedAugment, setSelectedAugment] = useState<Augment | null>(null)
+
+  useEffect(() => {
+    if (!initialAugment) return
+    const a = AUGMENTS.find((x) => x.name === initialAugment || x.id === initialAugment)
+    if (a) setSelectedAugment(a)
+  }, [initialAugment])
 
   const { placeholderAnimated: augmentsSearchPlaceholder } = useTypewriterPlaceholder(
     AUGMENT_GUIDE_PLACEHOLDER_WORDS,
