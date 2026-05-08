@@ -2,3 +2,8 @@ node_modules/
 dist/
 .env
 .env.local
+
+# Agent / swarm tooling (local-only; do not commit)
+.claude/
+.swarm/
+.claude-flow/
