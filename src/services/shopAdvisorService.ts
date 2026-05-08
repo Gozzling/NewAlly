@@ -1,4 +1,5 @@
 import { UNITS } from '../data/units'
+import { unitMatchKey } from '../utils/unitDisplay'
 
 export interface ShopRecommendation {
   name: string
@@ -16,13 +17,13 @@ export function analyzeShop(
   rerollFrequency: 'fast' | 'standard' | 'slow' = 'standard'
 ): ShopRecommendation[] {
   const recs: ShopRecommendation[] = []
-  const owned = new Set(currentUnits.map((u) => u.toLowerCase()))
+  const owned = new Set(currentUnits.map((u) => unitMatchKey(u)))
 
   for (const unitName of shopUnits) {
-    const unit = UNITS.find((u) => u.name.toLowerCase() === unitName.toLowerCase())
+    const unit = UNITS.find((u) => unitMatchKey(u.name) === unitMatchKey(unitName))
     if (!unit) continue
 
-    const isOwned = owned.has(unit.name.toLowerCase())
+    const isOwned = owned.has(unitMatchKey(unit.name))
     const isInComp = activeComp ? unit.bestComps.includes(activeComp) : false
 
     let priority: ShopRecommendation['priority']

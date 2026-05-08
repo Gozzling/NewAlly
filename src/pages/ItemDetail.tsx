@@ -1,4 +1,6 @@
 import { ArrowLeft, Box } from 'lucide-react'
+import { unitIconUrl } from '@/utils/unitDisplay'
+import { itemIconUrl } from '@/utils/itemDisplay'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -110,6 +112,14 @@ export function ItemDetail({ itemName, onBack }: ItemDetailProps) {
           <ArrowLeft style={{ width: '16px', height: '16px' }} />
           <span style={{ fontSize: '13px', fontWeight: 600 }}>Back</span>
         </button>
+        <img
+          src={itemIconUrl(item.name)}
+          alt=""
+          width={44}
+          height={44}
+          style={{ borderRadius: 8, objectFit: 'cover', border: `1px solid ${C.border}` }}
+          onError={(e) => { e.currentTarget.style.display = 'none' }}
+        />
         <h1 style={{ fontSize: '24px', fontWeight: 700, color: C.text }}>{item.name}</h1>
         <span
           style={{
@@ -205,7 +215,7 @@ export function ItemDetail({ itemName, onBack }: ItemDetailProps) {
               {item.bestOn.map((unit) => (
                 <div key={unit} style={{ position: 'relative' }} title={unit}>
                   <img
-                    src={`/unit-icons/${unit}.webp`}
+                    src={unitIconUrl(unit)}
                     alt={unit}
                     style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover' }}
                     onError={(e) => { e.currentTarget.style.display = 'none' }}

@@ -1,4 +1,7 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
+import { augmentIconUrl } from '@/utils/augmentDisplay'
+import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
+import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -366,17 +369,17 @@ const AUGMENTS: Augment[] = [
     pickRate: 6.5,
     winRate: 49.7,
     avgPlacement: 4.4,
-    synergies: ["Dark Star's Embrace", "Channeler's Flow"],
+    synergies: ["Dark Star's Embrace", "Conduit's Flow"],
     counters: [],
     tags: ["trait", "silver", "offense", "defense"]
   },
   {
-    id: "aug_channeler_flow",
-    name: "Channeler's Flow",
+    id: "aug_conduit_flow",
+    name: "Conduit's Flow",
     tier: "silver",
-    description: "Channeler units gain +10% damage and +15% ability power. Channeler abilities chain to nearby enemies.",
-    effect: "+10% damage, +15% AP, chain abilities",
-    bestComps: ["Channeler Mecha", "Mecha's Might"],
+    description: "Trait-focused augment for Conduit (TFT mana trait). Verify exact numbers in-game — not from Riot string tables.",
+    effect: "Conduit synergy (see client)",
+    bestComps: ["Conduit Mecha", "Mecha's Might"],
     pickRate: 5.8,
     winRate: 50.0,
     avgPlacement: 4.1,
@@ -396,56 +399,15 @@ interface AugmentGuideProps {
   onAugmentSelect: (augmentId: string) => void
 }
 
+const AUGMENT_GUIDE_PLACEHOLDER_WORDS = ['Prismatic', 'Divine Right', 'Space Groove']
+
 export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFilter, setTagFilter, onAugmentSelect }: AugmentGuideProps) {
   const [selectedAugment, setSelectedAugment] = useState<Augment | null>(null)
-  const [typingText, setTypingText] = useState('')
-  const [showCursor, setShowCursor] = useState(true)
 
-  const EXAMPLE_NAMES = ['Prismatic', 'Divine Right', 'Space Groove']
-
-  useEffect(() => {
-    let wordIndex = 0
-    let charIndex = 0
-    let isDeleting = false
-    let timeout: NodeJS.Timeout
-
-    const type = () => {
-      const currentWord = EXAMPLE_NAMES[wordIndex]
-
-      if (isDeleting) {
-        setTypingText(currentWord.substring(0, charIndex - 1))
-        charIndex--
-        if (charIndex === 0) {
-          isDeleting = false
-          wordIndex = (wordIndex + 1) % EXAMPLE_NAMES.length
-          timeout = setTimeout(type, 500)
-        } else {
-          timeout = setTimeout(type, 50)
-        }
-      } else {
-        setTypingText(currentWord.substring(0, charIndex + 1))
-        charIndex++
-        if (charIndex === currentWord.length) {
-          isDeleting = true
-          timeout = setTimeout(type, 2800)
-        } else {
-          timeout = setTimeout(type, 80)
-        }
-      }
-    }
-
-    type()
-
-    return () => clearTimeout(timeout)
-  }, [])
-
-  useEffect(() => {
-    const cursorInterval = setInterval(() => {
-      setShowCursor(prev => !prev)
-    }, 530)
-
-    return () => clearInterval(cursorInterval)
-  }, [])
+  const { placeholderAnimated: augmentsSearchPlaceholder } = useTypewriterPlaceholder(
+    AUGMENT_GUIDE_PLACEHOLDER_WORDS,
+    query.length > 0,
+  )
 
   const filtered = useMemo(() => {
     let list = query ? AUGMENTS.filter(a =>
@@ -492,13 +454,15 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
         animation: 'sidebarEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.1s both',
       }}>
         {/* Search Input */}
-        <input
-          type="text"
-          placeholder={typingText ? `${typingText}${showCursor ? '|' : ''}` : 'Search augments...'}
+        <SearchInputWithSuggestions
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full mb-6"
-          style={{
+          onChange={setQuery}
+          placeholder={augmentsSearchPlaceholder || 'Search augments…'}
+          kinds={['augment']}
+          wrapperClassName="w-full mb-6"
+          listZIndex={80}
+          inputClassName="w-full"
+          inputStyle={{
             width: '100%',
             background: C.surface,
             border: `1px solid ${C.border}`,
@@ -669,8 +633,17 @@ function AugmentCard({ augment, index, onClick }: { augment: Augment; index: num
         {augment.tier.charAt(0).toUpperCase() + augment.tier.slice(1)}
       </div>
 
-      {/* Augment Name */}
-      <div style={{ fontSize: '13px', fontWeight: 600, color: 'white', marginBottom: '6px', paddingLeft: '8px' }}>{augment.name}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, paddingLeft: 8 }}>
+        <img
+          src={augmentIconUrl(augment.name)}
+          alt=""
+          width={36}
+          height={36}
+          style={{ borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
+          onError={(e) => { e.currentTarget.style.display = 'none' }}
+        />
+        <div style={{ fontSize: '13px', fontWeight: 600, color: 'white' }}>{augment.name}</div>
+      </div>
 
       {/* Description */}
       <div style={{ fontSize: '11px', color: '#555', lineHeight: '1.4', marginBottom: '8px', paddingLeft: '8px' }}>
@@ -755,6 +728,14 @@ function AugmentDetail({ augment, onBack }: { augment: Augment; onBack: () => vo
             background: tierColors.accent,
             borderRadius: '2px',
           }}
+        />
+        <img
+          src={augmentIconUrl(augment.name)}
+          alt=""
+          width={44}
+          height={44}
+          style={{ borderRadius: 8, objectFit: 'cover', border: '1px solid #2a2a2a' }}
+          onError={(e) => { e.currentTarget.style.display = 'none' }}
         />
         <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'white' }}>{augment.name}</h2>
         <div

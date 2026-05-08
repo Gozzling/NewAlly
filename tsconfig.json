@@ -17,10 +17,11 @@
     "ignoreDeprecations": "5.0",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@ally/shared-types": ["packages/shared-types/src/index.ts"]
     },
     "types": ["@overwolf/types", "node"]
   },
-  "include": ["src", "vite.config.ts"],
+  "include": ["src", "packages/shared-types/src", "vite.config.ts"],
   "exclude": ["src/server.ts", "src/lib", "supabase/functions"]
 }

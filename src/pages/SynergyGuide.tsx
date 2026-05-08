@@ -1,6 +1,9 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { SYNERGIES } from '../data/synergies'
+import { unitIconUrl } from '@/utils/unitDisplay'
 import { Shield, Swords, Zap, Hexagon } from 'lucide-react'
+import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
+import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -29,56 +32,15 @@ interface SynergyGuideProps {
   onSynergySelect: (synergyId: string) => void
 }
 
+const TRAIT_GUIDE_PLACEHOLDER_WORDS = ['Bastion', 'Rogue', 'Sniper', 'Brawler', 'Dark Star']
+
 export function SynergyGuide({ query, setQuery, typeFilter, setTypeFilter, onSynergySelect }: SynergyGuideProps) {
   const [selectedSynergy, setSelectedSynergy] = useState<(typeof SYNERGIES)[0] | null>(null)
-  const [typingText, setTypingText] = useState('')
-  const [showCursor, setShowCursor] = useState(true)
 
-  const EXAMPLE_NAMES = ['Bastion', 'Rogue', 'Sniper', 'Brawler', 'Dark Star']
-
-  useEffect(() => {
-    let wordIndex = 0
-    let charIndex = 0
-    let isDeleting = false
-    let timeout: NodeJS.Timeout
-
-    const type = () => {
-      const currentWord = EXAMPLE_NAMES[wordIndex]
-
-      if (isDeleting) {
-        setTypingText(currentWord.substring(0, charIndex - 1))
-        charIndex--
-        if (charIndex === 0) {
-          isDeleting = false
-          wordIndex = (wordIndex + 1) % EXAMPLE_NAMES.length
-          timeout = setTimeout(type, 500)
-        } else {
-          timeout = setTimeout(type, 50)
-        }
-      } else {
-        setTypingText(currentWord.substring(0, charIndex + 1))
-        charIndex++
-        if (charIndex === currentWord.length) {
-          isDeleting = true
-          timeout = setTimeout(type, 2800)
-        } else {
-          timeout = setTimeout(type, 80)
-        }
-      }
-    }
-
-    type()
-
-    return () => clearTimeout(timeout)
-  }, [])
-
-  useEffect(() => {
-    const cursorInterval = setInterval(() => {
-      setShowCursor(prev => !prev)
-    }, 530)
-
-    return () => clearInterval(cursorInterval)
-  }, [])
+  const { placeholderAnimated: traitsSearchPlaceholder } = useTypewriterPlaceholder(
+    TRAIT_GUIDE_PLACEHOLDER_WORDS,
+    query.length > 0,
+  )
 
   const filtered = useMemo(() => {
     let list = query ? SYNERGIES.filter((s) => s.name.toLowerCase().includes(query.toLowerCase()) || s.bestUnits.some((u) => u.toLowerCase().includes(query.toLowerCase()))) : SYNERGIES
@@ -112,13 +74,15 @@ export function SynergyGuide({ query, setQuery, typeFilter, setTypeFilter, onSyn
         animation: 'sidebarEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.1s both',
       }}>
         {/* Search Input */}
-        <input
-          type="text"
-          placeholder={typingText ? `${typingText}${showCursor ? '|' : ''}` : 'Search synergies...'}
+        <SearchInputWithSuggestions
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full mb-6"
-          style={{
+          onChange={setQuery}
+          placeholder={traitsSearchPlaceholder || 'Search traits…'}
+          kinds={['trait']}
+          wrapperClassName="w-full mb-6"
+          listZIndex={80}
+          inputClassName="w-full"
+          inputStyle={{
             width: '100%',
             background: C.surface,
             border: `1px solid ${C.border}`,
@@ -403,7 +367,7 @@ function SynergyDetail({ synergy, onBack }: { synergy: (typeof SYNERGIES)[0]; on
                 }}
               >
                 <img
-                  src={`/unit-icons/${unit}.webp`}
+                  src={unitIconUrl(unit)}
                   alt={unit}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   onError={(e) => { e.currentTarget.style.display = 'none' }}

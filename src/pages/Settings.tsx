@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import type { RiotRegion } from '../types/riot'
-import { Layers, User, Palette, Bell, Info, Save, ChevronRight, Trash2 } from 'lucide-react'
+import { Layers, User, Palette, Bell, Info, Save, ChevronRight, Trash2, Activity } from 'lucide-react'
 
 type Tab = 'overlay' | 'profile' | 'appearance' | 'notifications' | 'about'
 
@@ -12,6 +12,8 @@ export function Settings() {
   const setStoreSettings = useAppStore((s) => s.setSettings)
   const overlayPanels = useAppStore((s) => s.overlayPanels)
   const setOverlayPanels = useAppStore((s) => s.setOverlayPanels)
+  const pipeline = useAppStore((s) => s.pipeline)
+  const visionCapture = useAppStore((s) => s.visionCapture)
 
   const [summonerName, setSummonerName] = useState('')
   const [region, setRegion] = useState<string>(storeSettings.region)
@@ -496,6 +498,53 @@ export function Settings() {
               <div style={{ fontSize: '11px', color: '#555' }}>
                 Data: Riot Games API + Community Dragon
               </div>
+            </div>
+
+            <div className="rounded-lg border border-ally-border bg-ally-card p-4">
+              <div className="mb-3 flex items-center gap-2 text-caption font-medium uppercase tracking-wider text-ally-muted">
+                <Activity className="h-3.5 w-3.5 text-ally-accent" aria-hidden />
+                Live diagnostics
+              </div>
+              <p className="mb-3 text-xs text-ally-muted">
+                Game Events (GEP), meta load, and the vision stub (FPS throttle only — no screen pixels yet).
+              </p>
+              <dl className="space-y-2 text-sm text-ally-text">
+                <div className="flex justify-between gap-4">
+                  <dt className="text-ally-muted shrink-0">GEP</dt>
+                  <dd className="text-right font-medium text-ally-text">
+                    {pipeline.gepReady ? (
+                      <span className="text-ally-success">Ready</span>
+                    ) : (
+                      <span className="text-ally-warning">Not ready</span>
+                    )}
+                  </dd>
+                </div>
+                {pipeline.lastGepError ? (
+                  <div className="rounded-md bg-ally-bg px-2 py-1.5 text-xs text-ally-error">
+                    GEP: {pipeline.lastGepError}
+                  </div>
+                ) : null}
+                {pipeline.lastBackgroundError ? (
+                  <div className="rounded-md bg-ally-bg px-2 py-1.5 text-xs text-ally-muted">
+                    <span className="font-mono text-ally-accent">{pipeline.lastBackgroundError.code}</span>
+                    {' — '}
+                    {pipeline.lastBackgroundError.message}
+                  </div>
+                ) : null}
+                <div className="flex justify-between gap-4 border-t border-ally-border pt-2">
+                  <dt className="text-ally-muted shrink-0">Vision capture</dt>
+                  <dd className="text-right">
+                    {visionCapture.running ? (
+                      <span className="text-ally-accent">Running</span>
+                    ) : (
+                      <span className="text-ally-muted">Idle</span>
+                    )}
+                    <span className="ml-2 font-mono text-xs text-ally-muted">
+                      {visionCapture.framesThisSession} frames
+                    </span>
+                  </dd>
+                </div>
+              </dl>
             </div>
 
             <div style={{ fontSize: '10px', color: '#333', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>

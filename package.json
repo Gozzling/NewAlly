@@ -5,9 +5,18 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "data:unit-icons": "node scripts/download-unit-icons.mjs",
+    "data:item-icons": "node scripts/download-item-icons.mjs",
+    "data:icons": "node scripts/download-unit-icons.mjs && node scripts/download-item-icons.mjs",
+    "data:tft-cd": "node scripts/download-tft-community-dragon.mjs",
+    "data:list-cd-augments": "node scripts/list-cd-augments-set17.mjs",
+    "data:tft-riot-sync": "node scripts/generate-tft-from-riot.mjs"
   },
   "dependencies": {
+    "@ally/shared-types": "file:./packages/shared-types",
     "@supabase/supabase-js": "^2.104.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",
@@ -17,6 +26,7 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.14.2",
     "recharts": "^3.8.1",
+    "rxjs": "^7.8.2",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
@@ -31,6 +41,7 @@
     "@typescript-eslint/parser": "^8.59.1",
     "@vitejs/plugin-react": "^4.7.0",
     "eslint": "^10.3.0",
+    "jsdom": "^29.1.1",
     "tailwindcss": "^4.1.4",
     "typescript": "^5.7.3",
     "vite": "^6.3.2",

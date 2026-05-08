@@ -1,4 +1,8 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
+import { unitIconUrl } from '@/utils/unitDisplay'
+import { itemIconUrl } from '@/utils/itemDisplay'
+import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
+import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -59,56 +63,15 @@ interface ItemsGuideProps {
   onItemSelect: (itemName: string) => void
 }
 
+const ITEMS_GUIDE_PLACEHOLDER_WORDS = ['Rabadon', 'Blue Buff', 'Warmog', 'Infinity Edge']
+
 export function ItemsGuide({ query, setQuery, tagFilter, setTagFilter, tierFilter, setTierFilter, onItemSelect }: ItemsGuideProps) {
   const [selectedItem, setSelectedItem] = useState<ItemRecipe | null>(null)
-  const [typingText, setTypingText] = useState('')
-  const [showCursor, setShowCursor] = useState(true)
 
-  const EXAMPLE_NAMES = ['Rabadon', 'Blue Buff', 'Warmog', 'Infinity Edge']
-
-  useEffect(() => {
-    let wordIndex = 0
-    let charIndex = 0
-    let isDeleting = false
-    let timeout: NodeJS.Timeout
-
-    const type = () => {
-      const currentWord = EXAMPLE_NAMES[wordIndex]
-
-      if (isDeleting) {
-        setTypingText(currentWord.substring(0, charIndex - 1))
-        charIndex--
-        if (charIndex === 0) {
-          isDeleting = false
-          wordIndex = (wordIndex + 1) % EXAMPLE_NAMES.length
-          timeout = setTimeout(type, 500)
-        } else {
-          timeout = setTimeout(type, 50)
-        }
-      } else {
-        setTypingText(currentWord.substring(0, charIndex + 1))
-        charIndex++
-        if (charIndex === currentWord.length) {
-          isDeleting = true
-          timeout = setTimeout(type, 2800)
-        } else {
-          timeout = setTimeout(type, 80)
-        }
-      }
-    }
-
-    type()
-
-    return () => clearTimeout(timeout)
-  }, [])
-
-  useEffect(() => {
-    const cursorInterval = setInterval(() => {
-      setShowCursor(prev => !prev)
-    }, 530)
-
-    return () => clearInterval(cursorInterval)
-  }, [])
+  const { placeholderAnimated: itemsSearchPlaceholder } = useTypewriterPlaceholder(
+    ITEMS_GUIDE_PLACEHOLDER_WORDS,
+    query.length > 0,
+  )
 
   const filtered = useMemo(() => {
     let list = query ? ITEMS.filter(i => i.name.toLowerCase().includes(query.toLowerCase()) || i.components.some(c => c.toLowerCase().includes(query.toLowerCase()))) : [...ITEMS]
@@ -146,13 +109,15 @@ export function ItemsGuide({ query, setQuery, tagFilter, setTagFilter, tierFilte
         animation: 'sidebarEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.1s both',
       }}>
         {/* Search Input */}
-        <input
-          type="text"
-          placeholder={typingText ? `${typingText}${showCursor ? '|' : ''}` : 'Search items...'}
+        <SearchInputWithSuggestions
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full mb-6"
-          style={{
+          onChange={setQuery}
+          placeholder={itemsSearchPlaceholder || 'Search items…'}
+          kinds={['item']}
+          wrapperClassName="w-full mb-6"
+          listZIndex={80}
+          inputClassName="w-full"
+          inputStyle={{
             width: '100%',
             background: C.surface,
             border: `1px solid ${C.border}`,
@@ -308,8 +273,17 @@ function ItemCard({ item, index, onClick }: { item: ItemRecipe; index: number; o
         {item.tier}
       </div>
 
-      {/* Item Name */}
-      <div className="text-white text-sm font-bold mb-2">{item.name}</div>
+      <div className="flex items-start gap-3 mb-2">
+        <img
+          src={itemIconUrl(item.name)}
+          alt=""
+          width={40}
+          height={40}
+          style={{ borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
+          onError={(e) => { e.currentTarget.style.display = 'none' }}
+        />
+        <div className="text-white text-sm font-bold">{item.name}</div>
+      </div>
 
       {/* Components */}
       <div className="text-gray-400 text-[10px] mb-2">{item.components.join(' + ')}</div>
@@ -327,7 +301,7 @@ function ItemCard({ item, index, onClick }: { item: ItemRecipe; index: number; o
             style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'2px'}}
           >
             <img
-              src={`/unit-icons/${unit}.webp`}
+              src={unitIconUrl(unit)}
               alt={unit}
               title={unit}
               style={{width:'28px',height:'28px',borderRadius:'4px',objectFit:'cover'}}
@@ -378,6 +352,14 @@ function ItemDetail({ item, onBack, onItemSelect }: { item: ItemRecipe; onBack: 
 
       {/* Item Name + Tier */}
       <div className="flex items-center gap-4 mb-8" style={{ animation: 'statCardEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.1s both' }}>
+        <img
+          src={itemIconUrl(item.name)}
+          alt=""
+          width={48}
+          height={48}
+          style={{ borderRadius: 8, objectFit: 'cover', border: `1px solid ${C.border}` }}
+          onError={(e) => { e.currentTarget.style.display = 'none' }}
+        />
         <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'white' }}>{item.name}</h2>
         <div
           style={{
@@ -468,7 +450,7 @@ function ItemDetail({ item, onBack, onItemSelect }: { item: ItemRecipe; onBack: 
               onClick={() => onItemSelect(unit)}
             >
               <img
-                src={`/unit-icons/${unit}.webp`}
+                src={unitIconUrl(unit)}
                 alt={unit}
                 title={unit}
                 style={{width:'48px',height:'48px',borderRadius:'8px',objectFit:'cover'}}

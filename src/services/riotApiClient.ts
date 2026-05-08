@@ -7,6 +7,8 @@ import {
   fetchMatchIdsSupabase,
   fetchMatchDetailSupabase,
   fetchPlayerCardSupabase,
+  fetchServerStatusSupabase,
+  fetchActiveGameSupabase,
   SupabaseError,
 } from './supabaseService'
 
@@ -345,6 +347,20 @@ export async function fetchPlayerCard(name: string, region: RiotRegion): Promise
     lp: ranked?.leaguePoints ?? null,
   }
   return card
+}
+
+export async function getServerStatus(region: RiotRegion): Promise<Record<string, unknown>> {
+  return await trySupabase(
+    () => fetchServerStatusSupabase(region),
+    () => riotFetch<Record<string, unknown>>('/tft/status/v1/platform-data', region),
+  )
+}
+
+export async function getActiveGame(puuid: string, region: RiotRegion): Promise<Record<string, unknown>> {
+  return await trySupabase(
+    () => fetchActiveGameSupabase(puuid, region),
+    () => riotFetch<Record<string, unknown>>(`/lol/spectator/v5/active-games/by-summoner/${puuid}`, region),
+  )
 }
 
 export { regionToMatchRegion }

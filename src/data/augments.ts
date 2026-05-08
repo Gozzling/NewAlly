@@ -1,4 +1,6 @@
-// TFT Augments data — Set 17: Space Gods (April 2026)
+// TFT Augments — curated guide copy for Set 17. Riot does not ship augment *descriptions*
+// in the same tftitems.json we use for icons; verify augments in the TFT client.
+// Icons: `npm run data:tft-cd` (Community Dragon tftitems augment paths).
 export interface Augment {
   id: string
   name: string

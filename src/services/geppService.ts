@@ -4,14 +4,32 @@
  * Service to simplify listening to Overwolf Game Events Processor (GEP) events.
  * Provides typed callbacks for info updates and new events.
  */
+export type GepRegistrationOutcome =
+  | { status: "ready" }
+  | { status: "failed"; error: string };
+
 export class GeppService {
   private requiredFeatures: string[] = [];
   private infoCallbacks: Map<string, ((info: any) => void)[]> = new Map();
   private eventCallbacks: Map<string, ((event: any) => void)[]> = new Map();
+  private registrationListeners: Array<(o: GepRegistrationOutcome) => void> = [];
+  private registrationSettled = false;
   private disposed = false;
   private retries = 0;
   private readonly maxRetries = 10;
   private readonly retryDelay = 2000;
+
+  /**
+   * Fires once when GEP `setRequiredFeatures` succeeds or after max retries.
+   * Subscribe before calling `register` to avoid missing a fast success.
+   */
+  onRegistrationResult(cb: (outcome: GepRegistrationOutcome) => void): () => void {
+    this.registrationListeners.push(cb);
+    return () => {
+      const i = this.registrationListeners.indexOf(cb);
+      if (i >= 0) this.registrationListeners.splice(i, 1);
+    };
+  }
 
   /**
    * Register required features and start listening.
@@ -79,20 +97,37 @@ export class GeppService {
 
   // ----- Private methods -----
 
+  private _emitRegistration(outcome: GepRegistrationOutcome): void {
+    if (this.registrationSettled) return;
+    this.registrationSettled = true;
+    for (const cb of this.registrationListeners) {
+      try {
+        cb(outcome);
+      } catch (e) {
+        console.error("[GEPP] registration listener error", e);
+      }
+    }
+  }
+
   private _tryRegister(): void {
     overwolf.games.events.setRequiredFeatures(this.requiredFeatures, (result: any) => {
       if (this.disposed) return;
-      if (result.status !== 'success') {
+      if (result.status !== "success") {
         if (this.retries < this.maxRetries) {
-          console.warn('[GEPP] GEP retry', ++this.retries, '/', this.maxRetries);
+          console.warn("[GEPP] GEP retry", ++this.retries, "/", this.maxRetries);
           setTimeout(() => this._tryRegister(), this.retryDelay);
         } else {
-          console.error('[GEPP] GEP registration failed:', result.error);
+          console.error("[GEPP] GEP registration failed:", result.error);
+          this._emitRegistration({
+            status: "failed",
+            error: String(result?.error ?? "gep_register_failed"),
+          });
         }
         return;
       }
       this.retries = 0;
-      console.log('[GEPP] GEP registered:', this.requiredFeatures);
+      console.log("[GEPP] GEP registered:", this.requiredFeatures);
+      this._emitRegistration({ status: "ready" });
     });
   }
 

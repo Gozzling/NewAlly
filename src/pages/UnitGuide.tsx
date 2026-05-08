@@ -1,5 +1,8 @@
 import { useMemo, useState, useEffect } from 'react'
 import { UNITS } from '../data/units'
+import { unitIconUrl } from '@/utils/unitDisplay'
+import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
+import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -39,64 +42,23 @@ interface UnitGuideProps {
   initialUnit?: string | null
 }
 
+const UNIT_GUIDE_PLACEHOLDER_WORDS = ['Ahri', 'Jinx', 'Aatrox', 'Samira', 'Jhin', 'Fiora', "Kai'Sa"]
+
 export function UnitGuide({ query, setQuery, costFilter, setCostFilter, tierFilter, setTierFilter, onUnitSelect, initialUnit }: UnitGuideProps) {
   const [selectedUnit, setSelectedUnit] = useState<(typeof UNITS)[0] | null>(null)
-  const [typingText, setTypingText] = useState('')
-  const [showCursor, setShowCursor] = useState(true)
 
   // Set initial unit when provided
   useEffect(() => {
     if (initialUnit) {
-      const unit = UNITS.find(u => u.name === initialUnit)
+      const unit = UNITS.find(u => u.name === initialUnit || u.id === initialUnit)
       if (unit) setSelectedUnit(unit)
     }
   }, [initialUnit])
 
-  const EXAMPLE_NAMES = ['Ahri', 'Jinx', 'Aatrox', 'Samira', 'Jhin', 'Fiora']
-
-  useEffect(() => {
-    let wordIndex = 0
-    let charIndex = 0
-    let isDeleting = false
-    let timeout: NodeJS.Timeout
-
-    const type = () => {
-      const currentWord = EXAMPLE_NAMES[wordIndex]
-
-      if (isDeleting) {
-        setTypingText(currentWord.substring(0, charIndex - 1))
-        charIndex--
-        if (charIndex === 0) {
-          isDeleting = false
-          wordIndex = (wordIndex + 1) % EXAMPLE_NAMES.length
-          timeout = setTimeout(type, 500)
-        } else {
-          timeout = setTimeout(type, 50)
-        }
-      } else {
-        setTypingText(currentWord.substring(0, charIndex + 1))
-        charIndex++
-        if (charIndex === currentWord.length) {
-          isDeleting = true
-          timeout = setTimeout(type, 2800)
-        } else {
-          timeout = setTimeout(type, 80)
-        }
-      }
-    }
-
-    type()
-
-    return () => clearTimeout(timeout)
-  }, [])
-
-  useEffect(() => {
-    const cursorInterval = setInterval(() => {
-      setShowCursor(prev => !prev)
-    }, 530)
-
-    return () => clearInterval(cursorInterval)
-  }, [])
+  const { placeholderAnimated: unitsSearchPlaceholder } = useTypewriterPlaceholder(
+    UNIT_GUIDE_PLACEHOLDER_WORDS,
+    query.length > 0,
+  )
 
   const filtered = useMemo(() => {
     let list = query ? UNITS.filter((u) => u.name.toLowerCase().includes(query.toLowerCase()) || u.traits.some((t) => t.toLowerCase().includes(query.toLowerCase()))) : UNITS
@@ -131,13 +93,15 @@ export function UnitGuide({ query, setQuery, costFilter, setCostFilter, tierFilt
         animation: 'sidebarEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.1s both',
       }}>
         {/* Search Input */}
-        <input
-          type="text"
-          placeholder={typingText ? `${typingText}${showCursor ? '|' : ''}` : 'Search units...'}
+        <SearchInputWithSuggestions
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full mb-6"
-          style={{
+          onChange={setQuery}
+          placeholder={unitsSearchPlaceholder || 'Search units…'}
+          kinds={['unit']}
+          wrapperClassName="w-full mb-6"
+          listZIndex={80}
+          inputClassName="w-full"
+          inputStyle={{
             width: '100%',
             background: '#1a1a1a',
             border: '1px solid #2a2a2a',
@@ -292,7 +256,7 @@ function UnitCard({ unit, index, onClick }: { unit: (typeof UNITS)[0]; index: nu
         }}
       >
         <img
-          src={`/unit-icons/${unit.name}.webp`}
+          src={unitIconUrl(unit.name)}
           alt={unit.name}
           style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
           onError={(e) => { e.currentTarget.style.display = 'none' }}
@@ -389,7 +353,7 @@ function UnitDetail({ unit, onBack }: { unit: (typeof UNITS)[0]; onBack: () => v
           }}
         >
           <img
-            src={`/unit-icons/${unit.name}.webp`}
+            src={unitIconUrl(unit.name)}
             alt={unit.name}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             onError={(e) => { e.currentTarget.style.display = 'none' }}

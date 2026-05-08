@@ -7,3 +7,6 @@ dist/
 .claude/
 .swarm/
 .claude-flow/
+
+# Supabase CLI cache
+supabase/.temp/

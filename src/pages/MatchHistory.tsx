@@ -17,6 +17,10 @@ import {
   Area,
 } from 'recharts'
 import type { Match } from '@/types/riot'
+import { unitIconUrl } from '@/utils/unitDisplay'
+import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
+import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
+import { EXAMPLE_SUMMONERS } from '@/data/exampleSummoners'
 
 const REGIONS: { label: string; value: RiotRegion }[] = [
   { label: 'NA',  value: 'na1' },
@@ -67,9 +71,6 @@ function formatDuration(seconds: number): string {
   const s = seconds % 60
   return `${m}:${s.toString().padStart(2, '0')}`
 }
-
-// Unit icon URL helper
-const unitIconUrl = (name: string) => `/unit-icons/${name}.webp`
 
 function formatTimeAgo(isoStr: string): string {
   const diff = Date.now() - new Date(isoStr).getTime()
@@ -571,7 +572,15 @@ type ErrorState = {
 /* ═══════════════════════════════════════════════════════════════
    MatchHistory
 ═══════════════════════════════════════════════════════════════ */
-export function MatchHistory() {
+export interface MatchHistoryProps {
+  summonerSearchPrefill?: string | null
+  onSummonerSearchPrefillApplied?: () => void
+}
+
+export function MatchHistory({
+  summonerSearchPrefill = null,
+  onSummonerSearchPrefillApplied,
+}: MatchHistoryProps) {
   const selectedPlayer = useAppStore(s => s.selectedPlayer)
   const storeRegion     = useAppStore(s => s.settings.region)
   const setSelectedPlayer = useAppStore(s => s.setSelectedPlayer)
@@ -589,7 +598,19 @@ export function MatchHistory() {
   const [isRetrying, setIsRetrying]      = useState(false)
   const [isShowingCached, setIsShowingCached] = useState(false)
 
+  const summonerExamples = useMemo(() => [...EXAMPLE_SUMMONERS], [])
+  const { placeholderAnimated: mhSearchPlaceholder } = useTypewriterPlaceholder(
+    summonerExamples,
+    searchQuery.length > 0,
+  )
+
   useEffect(() => { setSearchRegion(storeRegion) }, [storeRegion])
+
+  useEffect(() => {
+    if (summonerSearchPrefill == null || !String(summonerSearchPrefill).trim()) return
+    setSearchQuery(String(summonerSearchPrefill).trim())
+    onSummonerSearchPrefillApplied?.()
+  }, [summonerSearchPrefill, onSummonerSearchPrefillApplied])
 
   /* ─── Search ─── */
   async function handleSearch(e: React.FormEvent) {
@@ -852,27 +873,30 @@ export function MatchHistory() {
 
         {/* Search form */}
         <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8, width: '100%', maxWidth: 460 }}>
-          <div style={{ position: 'relative', flex: 1 }}>
-            <svg style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}
-              viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              className="w-4 h-4">
-              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Summoner name..."
-              style={{
-                width: '100%', background: C.surface, border: `1px solid ${C.border}`,
-                borderRadius: 8, padding: '9px 12px 9px 34px',
-                color: C.text, fontSize: 13, fontFamily: 'Rajdhani, sans-serif',
-                outline: 'none', transition: 'border-color 0.15s',
-              }}
-              onFocus={e => { e.target.style.borderColor = C.accent }}
-              onBlur={e => { e.target.style.borderColor = C.border }}
-            />
-          </div>
+          <SearchInputWithSuggestions
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder={mhSearchPlaceholder || 'Summoner name…'}
+            kinds={['summoner']}
+            wrapperClassName="relative flex-1"
+            listZIndex={300}
+            leftSlot={
+              <svg style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', opacity: 0.4, pointerEvents: 'none', zIndex: 1 }}
+                viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                className="w-4 h-4">
+                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            }
+            inputStyle={{
+              width: '100%', background: C.surface, border: `1px solid ${C.border}`,
+              borderRadius: 8, padding: '9px 12px 9px 34px',
+              color: C.text, fontSize: 13, fontFamily: 'Rajdhani, sans-serif',
+              outline: 'none', transition: 'border-color 0.15s',
+              boxSizing: 'border-box',
+            }}
+            onFocus={(e) => { e.target.style.borderColor = C.accent }}
+            onBlur={(e) => { e.target.style.borderColor = C.border }}
+          />
           <select
             value={searchRegion}
             onChange={e => setSearchRegion(e.target.value as RiotRegion)}

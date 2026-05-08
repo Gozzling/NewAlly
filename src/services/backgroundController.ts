@@ -9,11 +9,19 @@ import {
   calculateItemCrafting,
   detectCompFromUnits,
 } from "@/shared/gameEngine";
+import {
+  TFT_LIVE_CHANNEL,
+  createIpcGameStateMessage,
+  createIpcGepStatusMessage,
+  createIpcBackgroundErrorMessage,
+  type IpcTftPayload,
+} from "@/engine/events/ipcWire";
 import type { MetaComp, ItemRecipes, TftGameState } from "@/types/tft";
 import { openWindow, hideWindow, getWindowId } from "./overwolfWindowService";
 import { GeppService } from "./geppService";
 import { savePersonalMatch, markPersonalMatchSynced, type PersonalMatchRecord } from "./indexedDbService";
 import { syncPersonalMatchToSupabase } from "./matchHistoryService";
+import { createMatchVisionCapture } from "./backgroundVisionCapture";
 
 const TFT_CLASS_ID = 21570;
 const REQUIRED_FEATURES = [
@@ -33,17 +41,23 @@ function isTft(id: number): boolean {
   return Math.floor(id / 10) === TFT_CLASS_ID;
 }
 
-function notify(state: TftGameState): void {
+function broadcastPayload(payload: IpcTftPayload): void {
   if (overlayId) {
-    overwolf.windows.sendMessage(overlayId, "tft-overlay-live", { kind: "state", state }, () => void 0);
+    overwolf.windows.sendMessage(overlayId, TFT_LIVE_CHANNEL, payload, () => void 0);
   }
   if (lobbyId) {
-    overwolf.windows.sendMessage(lobbyId, "tft-overlay-live", { kind: "state", state }, () => void 0);
+    overwolf.windows.sendMessage(lobbyId, TFT_LIVE_CHANNEL, payload, () => void 0);
   }
   if (desktopId) {
-    overwolf.windows.sendMessage(desktopId, "tft-overlay-live", { kind: "state", state }, () => void 0);
+    overwolf.windows.sendMessage(desktopId, TFT_LIVE_CHANNEL, payload, () => void 0);
   }
 }
+
+function notify(state: TftGameState): void {
+  broadcastPayload(createIpcGameStateMessage(state));
+}
+
+const matchVision = createMatchVisionCapture(broadcastPayload);
 
 function setState(partial: Partial<TftGameState>): void {
   useAppStore.getState().setGameState(partial);
@@ -130,6 +144,13 @@ async function persistAndSyncPersonalMatch(eventData?: Record<string, unknown>):
 
 function setupGepService(): void {
   geppService = new GeppService();
+  geppService.onRegistrationResult((outcome) => {
+    if (outcome.status === "ready") {
+      broadcastPayload(createIpcGepStatusMessage(true, null));
+    } else {
+      broadcastPayload(createIpcGepStatusMessage(false, outcome.error));
+    }
+  });
   geppService.register(REQUIRED_FEATURES);
 
   // Info updates
@@ -213,11 +234,13 @@ function setupGepService(): void {
   // New events
   geppService.onNewEvent("match_start", () => {
     setState({ isInGame: true });
+    matchVision.start();
     hideLobby();
     showOverlay();
   });
 
   geppService.onNewEvent("match_end", (eventData) => {
+    matchVision.stop();
     void persistAndSyncPersonalMatch((eventData ?? {}) as Record<string, unknown>);
     hideOverlay();
     resetState();
@@ -281,6 +304,7 @@ function onHotkeyPressed(e: any): void {
 export async function initBackgroundController(): Promise<void> {
   console.log("[BG] TFT Companion starting...");
 
+  let metaBootstrapError: string | null = null;
   try {
     const [comps, recipes] = await Promise.all([
       fetch("./metaComps.json").then((r) => r.json()),
@@ -290,6 +314,7 @@ export async function initBackgroundController(): Promise<void> {
     itemRecipes = recipes && typeof recipes === "object" ? (recipes as ItemRecipes) : {};
     console.log("[BG] Loaded", metaComps.length, "comps,", Object.keys(itemRecipes).length, "recipes");
   } catch (err) {
+    metaBootstrapError = err instanceof Error ? err.message : String(err);
     console.error("[BG] Data load failed:", err);
   }
 
@@ -311,12 +336,23 @@ export async function initBackgroundController(): Promise<void> {
   if (!desktop) await openWindow("desktop");
   desktopId = getWindowId("desktop");
 
+  if (metaBootstrapError) {
+    broadcastPayload(createIpcBackgroundErrorMessage("meta_load", metaBootstrapError));
+  } else if (metaComps.length === 0 || Object.keys(itemRecipes).length === 0) {
+    broadcastPayload(
+      createIpcBackgroundErrorMessage(
+        "meta_unavailable",
+        "Comp or item recipe data missing; guides may be incomplete.",
+      ),
+    );
+  }
+
   overwolf.games.getRunningGameInfo((gameInfo: any) => {
     if (gameInfo && isTft(gameInfo.id)) {
       console.log("[BG] TFT already running");
       setState({ isInGame: true });
+      matchVision.start();
       showLobby();
-      // GEP service already set up
     } else {
       showDesktop();
     }

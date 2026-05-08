@@ -2,7 +2,9 @@ import { getCache, setCache, ONE_HOUR } from './storageService'
 
 const TWELVE_HOURS = 12 * ONE_HOUR
 const RIOT_DDRAGON = 'https://ddragon.leagueoflegends.com'
-const TFT_CDRAGON = 'https://raw.communitydragon.org/latest/cdragon/tft'
+/** Riot TFT game data (same tree the client uses), via Community Dragon raw. Not Summoner's Rift ddragon. */
+const TFT_GAME_V1 =
+  'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1'
 
 interface PatchInfo {
   patch: string
@@ -55,125 +57,176 @@ async function riotFetch<T>(url: string): Promise<T | null> {
   }
 }
 
+const TFT17_HUD = /\/Characters\/TFT17_[^/]+\/HUD\/TFT17_/
+
+function formatTraitConstants(constants: { name: string; value: number }[] | undefined): string {
+  if (!constants?.length) return ''
+  return constants
+    .map((c) => {
+      let v: string | number = c.value
+      if (typeof v === 'number' && Math.abs(v) > 0 && Math.abs(v) <= 1 && !Number.isInteger(v)) {
+        v = `${Math.round(v * 100)}%`
+      }
+      return `${c.name}: ${v}`
+    })
+    .join(' · ')
+}
+
 export async function fetchCurrentPatch(): Promise<PatchInfo | null> {
   const cacheKey = 'riot:current-patch'
   const cached = getCache<PatchInfo>(cacheKey)
   if (cached) return cached
 
-  // Try ddragon version endpoint
   const versions = await riotFetch<string[]>(`${RIOT_DDRAGON}/api/versions.json`)
   if (versions && versions.length > 0) {
     const latest = versions[0]
-    // TFT set info from community dragon
-    const setInfo = await riotFetch<any>(`${TFT_CDRAGON}/set-info.json`)
-    const setNumber = setInfo?.activeSet ?? 17
-    const setName = setInfo?.setName ?? 'Space Gods'
-    const info: PatchInfo = { patch: latest, setNumber, setName, tftPatch: latest }
+    const info: PatchInfo = {
+      patch: latest,
+      setNumber: 17,
+      setName: 'Space Gods',
+      tftPatch: latest,
+    }
     setCache(cacheKey, info, TWELVE_HOURS)
     return info
   }
   return null
 }
 
+/** TFT champions from tftchampions.json (TFT units, not LoL champions). */
 export async function fetchAllUnits(): Promise<FetchedUnit[] | null> {
   const cacheKey = 'riot:set17-units'
   const cached = getCache<FetchedUnit[]>(cacheKey)
   if (cached) return cached
 
-  const patch = await fetchCurrentPatch()
-  if (!patch) return null
-
-  const data = await riotFetch<any>(`${TFT_CDRAGON}/units.json`)
+  const data = await riotFetch<Record<string, { character_record?: Record<string, unknown> }>>(
+    `${TFT_GAME_V1}/tftchampions.json`,
+  )
   if (!data) return null
 
-  const units: FetchedUnit[] = (Array.isArray(data) ? data : data.units ?? [])
-    .map((u: any) => ({
-      id: u.character_id ?? u.apiName ?? u.name,
-      name: u.name,
-      cost: Number(u.cost) || 1,
-      traits: Array.isArray(u.traits) ? u.traits.map((t: any) => typeof t === 'string' ? t : t.name) : [],
-      abilityName: u.ability?.name ?? 'Ability',
-      abilityDesc: u.ability?.desc ?? '',
-      stats: {
-        hp: Number(u.stats?.hp ?? u.hp) || 500,
-        ad: Number(u.stats?.ad ?? u.damage) || 50,
-        ap: Number(u.stats?.ap) || 50,
-        armor: Number(u.stats?.armor) || 20,
-        mr: Number(u.stats?.mr) || 20,
-        atkSpeed: Number(u.stats?.attackSpeed) || 0.6,
-        range: Number(u.stats?.range) || 1,
-      },
-    }))
+  const units: FetchedUnit[] = []
+  for (const k of Object.keys(data)) {
+    const r = data[k]?.character_record as
+      | {
+          character_id?: string
+          display_name?: string
+          traits?: { name: string }[]
+          squareIconPath?: string
+        }
+      | undefined
+    if (!r?.character_id?.startsWith('TFT17_')) continue
+    if (!TFT17_HUD.test(r.squareIconPath ?? '')) continue
+    if (/_TraitClone$/i.test(r.character_id)) continue
+    if (!r.traits?.length) continue
 
+    units.push({
+      id: r.character_id,
+      name: r.display_name ?? r.character_id,
+      cost: 1,
+      traits: r.traits.map((t) => t.name),
+      abilityName: 'Ability',
+      abilityDesc: '',
+      stats: { hp: 500, ad: 50, ap: 50, armor: 20, mr: 20, atkSpeed: 0.6, range: 1 },
+    })
+  }
+
+  units.sort((a, b) => a.name.localeCompare(b.name))
   setCache(cacheKey, units, TWELVE_HOURS)
   return units
 }
 
+/** Augment *names* from tftitems rows under Augments/ (no descriptions in this JSON). */
 export async function fetchAllAugments(): Promise<FetchedAugment[] | null> {
   const cacheKey = 'riot:set17-augments'
   const cached = getCache<FetchedAugment[]>(cacheKey)
   if (cached) return cached
 
-  const data = await riotFetch<any>(`${TFT_CDRAGON}/augments.json`)
+  const data = await riotFetch<Record<string, { name?: string; squareIconPath?: string; nameId?: string }>>(
+    `${TFT_GAME_V1}/tftitems.json`,
+  )
   if (!data) return null
 
-  const augments: FetchedAugment[] = (Array.isArray(data) ? data : data.augments ?? [])
-    .map((a: any) => ({
-      id: a.apiName ?? a.id ?? a.name,
-      name: a.name,
-      tier: a.tier ?? a.rarity ?? 'gold',
-      description: a.desc ?? a.description ?? '',
-      icon: a.icon ?? '',
-    }))
+  const augments: FetchedAugment[] = []
+  for (const k of Object.keys(data)) {
+    const it = data[k]
+    if (!it?.name || !it.squareIconPath) continue
+    if (!/augments/i.test(it.squareIconPath)) continue
+    augments.push({
+      id: it.nameId ?? it.name,
+      name: it.name,
+      tier: 'gold',
+      description: '',
+      icon: it.squareIconPath,
+    })
+  }
 
+  augments.sort((a, b) => a.name.localeCompare(b.name))
   setCache(cacheKey, augments, TWELVE_HOURS)
   return augments
 }
 
+/** TFT traits from tfttraits.json (filter current set in-client). */
 export async function fetchAllTraits(): Promise<FetchedTrait[] | null> {
   const cacheKey = 'riot:set17-traits'
   const cached = getCache<FetchedTrait[]>(cacheKey)
   if (cached) return cached
 
-  const data = await riotFetch<any>(`${TFT_CDRAGON}/traits.json`)
+  const data = await riotFetch<
+    Record<
+      string,
+      {
+        display_name?: string
+        trait_id?: string
+        set?: string
+        icon_path?: string
+        tooltip_text?: string
+        conditional_trait_sets?: {
+          min_units: number
+          constants?: { name: string; value: number }[]
+        }[]
+      }
+    >
+  >(`${TFT_GAME_V1}/tfttraits.json`)
   if (!data) return null
 
-  const traits: FetchedTrait[] = (Array.isArray(data) ? data : data.traits ?? [])
-    .map((t: any) => ({
-      id: t.apiName ?? t.id ?? t.name,
-      name: t.name,
-      description: t.desc ?? t.description ?? '',
-      thresholds: Array.isArray(t.effects)
-        ? t.effects.map((e: any) => ({
-            count: Number(e.minUnits) || Number(e.requiredUnits) || 1,
-            effect: e.description ?? '',
-          }))
-        : [],
-      icon: t.icon ?? '',
-    }))
+  const byName = new Map<string, (typeof data)[string]>()
+  for (const key of Object.keys(data)) {
+    const tr = data[key]
+    if (!tr || tr.set !== 'TFTSet17') continue
+    if (String(tr.trait_id ?? '').includes('CarouselMarket')) continue
+    if (tr.display_name === 'God-Blessed') continue
+    if (tr.display_name === 'Stargazer' && tr.trait_id !== 'TFT17_Stargazer') continue
+    const name = tr.display_name ?? tr.trait_id ?? key
+    if (!byName.has(name)) byName.set(name, tr)
+  }
 
+  const traits: FetchedTrait[] = []
+  for (const tr of byName.values()) {
+    const sets = tr.conditional_trait_sets ?? []
+    const thresholds = sets
+      .filter((s) => typeof s.min_units === 'number' && s.min_units > 0)
+      .map((s) => ({
+        count: s.min_units,
+        effect: formatTraitConstants(s.constants) || 'Tier bonus',
+      }))
+      .sort((a, b) => a.count - b.count)
+
+    traits.push({
+      id: tr.trait_id ?? tr.display_name ?? '',
+      name: tr.display_name ?? '',
+      description: (tr.tooltip_text ?? '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
+      thresholds,
+      icon: tr.icon_path ?? '',
+    })
+  }
+
+  traits.sort((a, b) => a.name.localeCompare(b.name))
   setCache(cacheKey, traits, TWELVE_HOURS)
   return traits
 }
 
+/** tftitems.json does not include component recipes; use local items.ts or Data Dragon TFT when available. */
 export async function fetchItemRecipes(): Promise<Record<string, [string, string]> | null> {
-  const cacheKey = 'riot:set17-items'
-  const cached = getCache<Record<string, [string, string]>>(cacheKey)
-  if (cached) return cached
-
-  const data = await riotFetch<any>(`${TFT_CDRAGON}/items.json`)
-  if (!data) return null
-
-  const recipes: Record<string, [string, string]> = {}
-  for (const item of Array.isArray(data) ? data : data.items ?? []) {
-    if (item.recipe && Array.isArray(item.recipe) && item.recipe.length === 2) {
-      recipes[item.name] = [item.recipe[0], item.recipe[1]]
-    }
-  }
-
-  if (Object.keys(recipes).length === 0) return null
-  setCache(cacheKey, recipes, TWELVE_HOURS)
-  return recipes
+  return null
 }
 
 /** Full fetch with fallback to hardcoded data */

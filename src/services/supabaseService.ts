@@ -151,3 +151,11 @@ export async function fetchPlayerCardSupabase(name: string, region: RiotRegion):
 export async function fetchMatchHistorySupabase(puuid: string, region: RiotRegion, count = 20): Promise<Match[]> {
   return invoke<Match[]>('tft-match-history', { puuid, region, count })
 }
+
+export async function fetchServerStatusSupabase(region: RiotRegion): Promise<Record<string, unknown>> {
+  return invoke<Record<string, unknown>>('tft-status', { region })
+}
+
+export async function fetchActiveGameSupabase(puuid: string, region: RiotRegion): Promise<Record<string, unknown>> {
+  return invoke<Record<string, unknown>>('tft-spectator', { puuid, region })
+}

@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
+      '@ally/shared-types': resolve(__dirname, './packages/shared-types/src'),
     },
   },
   build: {

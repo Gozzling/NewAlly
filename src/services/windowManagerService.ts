@@ -1,5 +1,7 @@
+import { isIpcGameStateMessage } from '@/engine/events';
 import { openWindow, closeWindow, getWindowId } from './overwolfWindowService';
 import type { WindowName } from '@/types/overwolf';
+import type { TftGameState } from '@/types/tft';
 
 /**
  * Higher-level window management service with additional features.
@@ -48,7 +50,7 @@ export class WindowManagerService {
    * @param callback Called with the latest game state
    * @returns Unsubscribe function
    */
-  listenForGameStateChanges(callback: (state: any) => void): () => void {
+  listenForGameStateChanges(callback: (state: TftGameState) => void): () => void {
     // Use the existing IPC mechanism: overwolf.windows.onMessageReceived
     const ow = (typeof window !== 'undefined' ? (window as any).overwolf : undefined) as
       | undefined
@@ -65,15 +67,14 @@ export class WindowManagerService {
       return () => {};
     }
 
-    const handleMessage = (msg: any) => {
-      const payload = msg?.content ?? msg;
-      if (!payload || typeof payload !== 'object') return;
-      if (payload.kind === 'state' && payload.state) {
-        try {
-          callback(payload.state);
-        } catch (e) {
-          console.error('[WindowManager] Error in game state callback:', e);
-        }
+    const handleMessage = (msg: unknown) => {
+      const raw = msg as { content?: unknown } | null | undefined;
+      const payload = raw?.content ?? raw;
+      if (!isIpcGameStateMessage(payload)) return;
+      try {
+        callback(payload.state as TftGameState);
+      } catch (e) {
+        console.error('[WindowManager] Error in game state callback:', e);
       }
     };
 

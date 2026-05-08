@@ -55,8 +55,22 @@ export interface OverlayPanels {
   unitStats: boolean;
 }
 
+export interface LivePipelineStatus {
+  /** GEP `setRequiredFeatures` succeeded at least once for this session (renderer view). */
+  gepReady: boolean;
+  lastGepError: string | null;
+  lastBackgroundError: { code: string; message: string; atMs: number } | null;
+}
+
+export interface VisionCaptureStatus {
+  running: boolean;
+  framesThisSession: number;
+}
+
 export interface AppState {
   gameState: TftGameState;
+  pipeline: LivePipelineStatus;
+  visionCapture: VisionCaptureStatus;
   windows: Record<string, string | null>;
   selectedPlayer: PlayerCard | null;
   recentSearches: RecentSearch[];
@@ -81,6 +95,9 @@ export interface AppState {
   personalMatches: PersonalMatchRecord[];
   setGameState: (partial: Partial<TftGameState>) => void;
   resetGameState: () => void;
+  setPipelineGepStatus: (gepReady: boolean, lastGepError?: string | null) => void;
+  setPipelineBackgroundError: (err: { code: string; message: string; atMs: number } | null) => void;
+  setVisionCaptureStatus: (status: VisionCaptureStatus) => void;
   setWindowId: (name: string, id: string | null) => void;
   setSelectedPlayer: (player: PlayerCard | null) => void;
   addRecentSearch: (search: RecentSearch) => void;
@@ -193,6 +210,15 @@ const STORED_SAVED_COMPS = loadStoredSavedComps();
 export const useAppStore = create<AppState>(
   (set: (fn: (s: AppState) => Partial<AppState>) => void) => ({
     gameState: EMPTY_STATE,
+    pipeline: {
+      gepReady: false,
+      lastGepError: null,
+      lastBackgroundError: null,
+    },
+    visionCapture: {
+      running: false,
+      framesThisSession: 0,
+    },
     windows: {},
     selectedPlayer: null,
     recentSearches: [],
@@ -210,6 +236,28 @@ export const useAppStore = create<AppState>(
 
     resetGameState: () =>
       set(() => ({ gameState: EMPTY_STATE })),
+
+    setPipelineGepStatus: (gepReady: boolean, lastGepError?: string | null) =>
+      set((s: AppState) => ({
+        pipeline: {
+          ...s.pipeline,
+          gepReady,
+          lastGepError: lastGepError !== undefined ? lastGepError : s.pipeline.lastGepError,
+        },
+      })),
+
+    setPipelineBackgroundError: (err: { code: string; message: string; atMs: number } | null) =>
+      set((s: AppState) => ({
+        pipeline: { ...s.pipeline, lastBackgroundError: err },
+      })),
+
+    setVisionCaptureStatus: (status: VisionCaptureStatus) =>
+      set(() => ({
+        visionCapture: {
+          running: status.running,
+          framesThisSession: status.framesThisSession,
+        },
+      })),
 
     setWindowId: (name: string, id: string | null) =>
       set((s: AppState) => ({ windows: { ...s.windows, [name]: id } })),

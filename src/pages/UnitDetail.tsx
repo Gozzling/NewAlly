@@ -1,5 +1,6 @@
 import { ArrowLeft } from 'lucide-react'
 import { UNITS } from '../data/units'
+import { unitIconUrl } from '@/utils/unitDisplay'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -88,7 +89,7 @@ export function UnitDetail({ unitId, onBack }: UnitDetailProps) {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
               <img
-                src={`/unit-icons/${unit.name}.webp`}
+                src={unitIconUrl(unit.name)}
                 alt={unit.name}
                 style={{
                   width: '80px',

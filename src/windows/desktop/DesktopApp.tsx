@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { subscribeToStateSnapshots } from '@/services/ipcService';
+import { getServerStatus, fetchPlayerCard, getActiveGame } from '@/services/riotApiClient';
 import { TeamBuilder } from '@/pages/TeamBuilder';
 import { CompCard } from '@/components/CompCard';
 import { MatchHistory } from '@/pages/MatchHistory';
@@ -10,10 +11,15 @@ import { ItemsGuide } from '@/pages/ItemsGuide';
 import { AugmentGuide } from '@/pages/AugmentGuide';
 import { Settings } from '@/pages/Settings';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions';
+import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder';
+import { UNITS } from '@/data/units';
+import { AUGMENTS } from '@/data/augments';
+import { ITEM_RECIPES } from '@/data/itemRecipes';
+import { EXAMPLE_SUMMONERS } from '@/data/exampleSummoners';
+import type { SearchSuggestion } from '@/utils/searchSuggestions';
 
 import { META_COMPS } from '@/data/metaComps';
-
-
 
 function getCurrentWindowId(): Promise<string> {
   return new Promise((resolve) => {
@@ -22,240 +28,6 @@ function getCurrentWindowId(): Promise<string> {
     });
   });
 }
-
-// TFT data for typing animation
-const CHAMPIONS = [
-  'Aatrox',
-  'Briar',
-  'Caitlyn',
-  'ChoGath',
-  'Ezreal',
-  'Leona',
-  'Lissandra',
-  'Nasus',
-  'Poppy',
-  'RekSai',
-  'Talon',
-  'Teemo',
-  'Twisted Fate',
-  'Veigar',
-  'Akali',
-  'Belveth',
-  'Gnar',
-  'Gragas',
-  'Gwen',
-  'Jax',
-  'Jinx',
-  'Meepsie',
-  'Milio',
-  'Mordekaiser',
-  'Pantheon',
-  'Pyke',
-  'Zoe',
-  'Aurora',
-  'Diana',
-  'Fizz',
-  'Illaoi',
-  'Kaisa',
-  'Lulu',
-  'Maokai',
-  'Miss Fortune',
-  'Ornn',
-  'Rhaast',
-  'Samira',
-  'Urgot',
-  'Viktor',
-  'Aurelion Sol',
-  'Corki',
-  'Karma',
-  'Kindred',
-  'Leblanc',
-  'Master Yi',
-  'Nami',
-  'Nunu',
-  'Rammus',
-  'Riven',
-  'Tahm Kench',
-  'The Mighty Mech',
-  'Xayah',
-  'Bard',
-  'Blitzcrank',
-  'Fiora',
-  'Graves',
-  'Jhin',
-  'Morgana',
-  'Shen',
-  'Sona',
-  'Vex',
-  'Zed',
-];
-
-const ITEMS = [
-  'Adaptive Helm',
-  'Archangel Staff',
-  'Bloodthirster',
-  'Blue Buff',
-  'Bramble Vest',
-  'Crownguard',
-  'Deathblade',
-  'Dragon Claw',
-  'Edge of Night',
-  'Evenshroud',
-  'Gargoyle Stoneplate',
-  'Giant Slayer',
-  'Guinsoo Rageblade',
-  'Hand Of Justice',
-  'Hextech Gunblade',
-  'Infinity Edge',
-  'Ionic Spark',
-  'Jeweled Gauntlet',
-  'Kraken Fury',
-  'Last Whisper',
-  'Morellonomicon',
-  'Nashor Tooth',
-  'Protector Vow',
-  'Quicksilver',
-  'Rabadon Deathcap',
-  'Red Buff',
-  'Spear of Shojin',
-  'Spirit Visage',
-  'Steadfast Heart',
-  'Sterak Gage',
-  'Striker Flail',
-  'Sunfire Cape',
-  'Thief Gloves',
-  'Titan Resolve',
-  'Void Staff',
-  'Warmog Armor',
-  'Anima Emblem',
-  'Arbiter Emblem',
-  'Bastion Emblem',
-  'Brawler Emblem',
-  'Challenger Emblem',
-  'Dark Star Emblem',
-  'Marauder Emblem',
-  'Meeple Emblem',
-  'N.O.V.A. Emblem',
-  'Primordian Emblem',
-  'Psionic Emblem',
-  'Rogue Emblem',
-  'Shepherd Emblem',
-  'Sniper Emblem',
-  'Space Groove Emblem',
-  'Stargazer Emblem',
-  'Timebreaker Emblem',
-  'Vanguard Emblem',
-  'Voyager Emblem',
-];
-
-const PLAYERS = [
-  'Fuktigt Rostbröd#Hiii',
-  'Double61#EUW',
-  'K3Soju#KR',
-  'Prestivent#NA',
-  'Setsuko#EUW',
-  'Kurumx#NA',
-  'Dishsoap#EUW',
-  'RiotMax#RIOT',
-  'RiotMort#RIOT',
-  'RiotPhroxzon#RIOT',
-  'RiotMatt#RIOT',
-  'RiotAugust#RIOT',
-  'RiotRoaming#RIOT',
-  'RiotSapMagic#RIOT',
-  'RiotMeddler#RIOT',
-];
-
-const TRAITS = [
-  'Anima',
-  'Arbiter',
-  'Dark Star',
-  'Mecha',
-  'Meeple',
-  'N.O.V.A.',
-  'Primordian',
-  'Psionic',
-  'Space Groove',
-  'Stargazer',
-  'Timebreaker',
-  'Shepherd',
-  'Bastion',
-  'Brawler',
-  'Channeler',
-  'Challenger',
-  'Commander',
-  'Divine Duelist',
-  'Eradicator',
-  'Fateweaver',
-  'Marauder',
-  'Party Animal',
-  'Replicator',
-  'Rogue',
-  'Sniper',
-  'Vanguard',
-  'Voyager',
-];
-
-const AUGMENTS = [
-  'Accretion',
-  'Ardent Censer',
-  'Backfoot',
-  'Battlemage',
-  'Blue Battery',
-  'Cull',
-  'Cybernetic Implants',
-  'Daring',
-  'Deathblade',
-  'Electrocharge',
-  'Economizer',
-  'Feint',
-  'First Aid Kit',
-  'Gotta Go Fast',
-  'Greed',
-  'Heart of Steel',
-  'Hextech Gunblade',
-  'High Voltage',
-  'Illuminated',
-  'Last Stand',
-  'Lethality',
-  'Lightning Greaves',
-  'Lucky Looter',
-  'Luden Echo',
-  'Meditation',
-  'Metabolic Accelerator',
-  'Multistrike',
-  'Mystic',
-  'Never Give Up',
-  'Pantheon',
-  'Phoenix',
-  'Plunder',
-  'Power Surge',
-  'Precious Cargo',
-  'Prismatic Heart',
-  'Promoted',
-  'Protector',
-  'Quickdraw',
-  'Rapid Fire',
-  'Reconnaissance',
-  'Reinforced',
-  'Resurrection',
-  'Ricochet',
-  'Second Wind',
-  'Shapeshifter',
-  'Siphon',
-  'Spectral',
-  'Stoneskin Plate',
-  'Sunfire',
-  'Tactical',
-  'Thieves Tools',
-  'Titan Wrath',
-  'Tri Force',
-  'Underdog',
-  'Verdant Veil',
-  'Warlords Banner',
-  'Wise Sage',
-  'Wishful Thinking',
-];
 
 const NAV_TABS = [
   {
@@ -406,25 +178,108 @@ function InGamePage() {
   ]
 
   const [searchName, setSearchName] = useState('')
+  const ingameSummonerExamples = useMemo(() => [...EXAMPLE_SUMMONERS], [])
+  const { placeholderAnimated: ingameSearchPlaceholder } = useTypewriterPlaceholder(
+    ingameSummonerExamples,
+    searchName.length > 0,
+  )
   const [region, setRegion] = useState('na1')
   const [loading, setLoading] = useState(false)
   const [gameFound, setGameFound] = useState(true)
   const [showingDemo, setShowingDemo] = useState(true)
-  const [players] = useState(MOCK_PLAYERS)
+  const [players, setPlayers] = useState(MOCK_PLAYERS)
+  const [gameData, setGameData] = useState<any>(null)
+  const [gameLength, setGameLength] = useState(0)
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
+    if (!searchName.trim()) return
+
     setLoading(true)
     setShowingDemo(false)
-    setTimeout(() => {
-      setLoading(false)
+    setGameFound(false)
+    setGameData(null)
+    setGameLength(0)
+
+    try {
+      // First fetch playerCard to get puuid
+      const card = await fetchPlayerCard(searchName.trim(), region as any)
+
+      // Then fetch active game
+      const activeGame = await getActiveGame(card.puuid, region as any)
+
+      if (!activeGame) {
+        setGameFound(false)
+        setLoading(false)
+        return
+      }
+
+      setGameData(activeGame)
       setGameFound(true)
-    }, 1500)
+
+      // Parse participants from active game
+      const participants = (activeGame as any).participants || []
+      const parsedPlayers = participants.map((p: any) => ({
+        name: p.summonerName || p.riotId || 'Unknown',
+        tagline: '',
+        rank: 'Fetching...',
+        lp: 0,
+        recentPlacements: [],
+        avgPlace: 0,
+        predictedComp: 'Loading...',
+        profileIconId: p.profileIconId || 0,
+        puuid: p.puuid,
+      }))
+
+      setPlayers(parsedPlayers)
+
+      // Start game length timer
+      const startTime = (activeGame as any).gameStartTime || Date.now()
+      const initialLength = Math.floor((Date.now() - startTime) / 1000)
+      setGameLength(initialLength)
+
+      const timer = setInterval(() => {
+        setGameLength(Math.floor((Date.now() - startTime) / 1000))
+      }, 1000)
+
+      // Store timer ID for cleanup
+      ;(window as any).gameTimer = timer
+    } catch (err) {
+      console.error('[INGAME] Search error:', err)
+      setGameFound(false)
+    } finally {
+      setLoading(false)
+    }
   }
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if ((window as any).gameTimer) {
+        clearInterval((window as any).gameTimer)
+      }
+    }
+  }, [])
 
   const getPlacementColor = (place: number) => {
     if (place === 1) return '#fbbf24'
     if (place <= 4) return '#4ade80'
     return '#ef4444'
+  }
+
+  const formatGameLength = (seconds: number) => {
+    const m = Math.floor(seconds / 60)
+    const s = seconds % 60
+    return `${m}:${s.toString().padStart(2, '0')}`
+  }
+
+  const getGameMode = (queueId: number) => {
+    const modes: Record<number, string> = {
+      1090: 'Normal',
+      1100: 'Ranked',
+      1130: 'Hyper Roll',
+      1160: 'Double Up',
+    }
+    return modes[queueId] || 'Unknown'
   }
 
   const displayPlayers = showingDemo ? MOCK_PLAYERS : players
@@ -446,22 +301,51 @@ function InGamePage() {
         </div>
       )}
 
+      {/* Game Metadata */}
+      {gameData && !showingDemo && (
+        <div style={{
+          background: '#1f1f1f',
+          border: '1px solid #1a1a1a',
+          borderRadius: '8px',
+          padding: '12px',
+          marginBottom: '16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <div>
+            <div style={{ fontSize: '11px', color: '#a1a1a1', marginBottom: '4px' }}>Game Mode</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'white' }}>
+              {getGameMode((gameData as any).gameQueueConfigId)}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '11px', color: '#a1a1a1', marginBottom: '4px' }}>Game Length</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#35c3e7' }}>
+              {formatGameLength(gameLength)}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Search Bar */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-        <input
-          type="text"
-          placeholder="Enter summoner name to view live game"
+        <SearchInputWithSuggestions
           value={searchName}
-          onChange={(e) => setSearchName(e.target.value)}
-          style={{
-            flex: 1,
+          onChange={setSearchName}
+          placeholder={ingameSearchPlaceholder || 'Summoner name…'}
+          kinds={['summoner']}
+          wrapperClassName="flex-1"
+          inputStyle={{
+            width: '100%',
             background: '#1a1a1a',
-            border: '1px solid #2a2a2a',
+            border: '1px solid #1a1a1a',
             borderRadius: '6px',
             padding: '8px 12px',
             fontSize: '13px',
             color: 'white',
             outline: 'none',
+            boxSizing: 'border-box',
           }}
         />
         <select
@@ -469,7 +353,7 @@ function InGamePage() {
           onChange={(e) => setRegion(e.target.value)}
           style={{
             background: '#1a1a1a',
-            border: '1px solid #2a2a2a',
+            border: '1px solid #1a1a1a',
             borderRadius: '6px',
             padding: '8px 12px',
             fontSize: '13px',
@@ -521,8 +405,8 @@ function InGamePage() {
             <div
               key={i}
               style={{
-                background: '#0f0f1c',
-                border: '1px solid #1a1a2e',
+                background: '#1f1f1f',
+                border: '1px solid #1a1a1a',
                 borderRadius: '10px',
                 padding: '12px',
                 transition: 'all 0.15s ease',
@@ -536,7 +420,7 @@ function InGamePage() {
                 e.currentTarget.style.transform = 'translateY(-1px)'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#1a1a2e'
+                e.currentTarget.style.borderColor = '#1a1a1a'
                 e.currentTarget.style.transform = 'translateY(0)'
               }}
             >
@@ -546,7 +430,7 @@ function InGamePage() {
                   height: '40px',
                   borderRadius: '50%',
                   background: '#1a1a1a',
-                  border: '2px solid #2a2a2a',
+                  border: '2px solid #1a1a1a',
                   overflow: 'hidden',
                   flexShrink: 0,
                 }}
@@ -562,9 +446,9 @@ function InGamePage() {
                 <div style={{ fontSize: '13px', fontWeight: 700, color: 'white', marginBottom: '2px' }}>
                   {player.name}
                 </div>
-                <div style={{ fontSize: '11px', color: '#555', marginBottom: '6px' }}>{player.rank} · {player.lp} LP</div>
+                <div style={{ fontSize: '11px', color: '#a1a1a1', marginBottom: '6px' }}>{player.rank} · {player.lp} LP</div>
                 <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
-                  {player.recentPlacements.map((place, j) => (
+                  {player.recentPlacements.length > 0 ? player.recentPlacements.map((place, j) => (
                     <div
                       key={j}
                       style={{
@@ -582,11 +466,13 @@ function InGamePage() {
                     >
                       {place}
                     </div>
-                  ))}
+                  )) : (
+                    <div style={{ fontSize: '10px', color: '#555' }}>Fetching stats...</div>
+                  )}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ fontSize: '11px', color: '#555' }}>
-                    Avg: <span style={{ color: 'white', fontWeight: 600 }}>{player.avgPlace.toFixed(1)}</span>
+                  <div style={{ fontSize: '11px', color: '#a1a1a1' }}>
+                    Avg: <span style={{ color: 'white', fontWeight: 600 }}>{player.avgPlace > 0 ? player.avgPlace.toFixed(1) : '-'}</span>
                   </div>
                   <div style={{ fontSize: '11px', color: '#35c3e7', fontWeight: 600 }}>
                     {player.predictedComp}
@@ -602,10 +488,10 @@ function InGamePage() {
           alignItems: 'center',
           justifyContent: 'center',
           height: '200px',
-          color: '#555',
+          color: '#a1a1a1',
           fontSize: '14px',
         }}>
-          No live game found for this summoner
+          Not currently in a TFT game
         </div>
       )}
 
@@ -625,11 +511,10 @@ export function DesktopApp() {
   const lastRawRef = useRef<string>('');
   const [activePage, setActivePage] = useState<string>('in-game');
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
-  const [typingText, setTypingText] = useState('');
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [currentTerm, setCurrentTerm] = useState('');
-  const [isPaused, setIsPaused] = useState(false);
+  const [headerSearch, setHeaderSearch] = useState('');
+  const [matchHistorySummonerPrefill, setMatchHistorySummonerPrefill] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [serverStatus, setServerStatus] = useState<'online'|'issues'|'offline'|'unknown'>('unknown');
 
   // Unit Guide filters
   const [unitQuery, setUnitQuery] = useState('');
@@ -656,60 +541,69 @@ export function DesktopApp() {
     });
   }, []);
 
-  // Random category selection
-  const getRandomCategory = () => {
-    const categories = [CHAMPIONS, ITEMS, PLAYERS, TRAITS, AUGMENTS];
-    return categories[Math.floor(Math.random() * categories.length)];
-  };
+  const headerTypewriterWords = useMemo(() => {
+    const items = Object.keys(ITEM_RECIPES)
+    const summoners = [...EXAMPLE_SUMMONERS]
+    const out: string[] = []
+    const rounds = Math.max(items.length, UNITS.length, AUGMENTS.length, summoners.length)
+    for (let i = 0; i < rounds; i++) {
+      out.push(items[i % items.length])
+      out.push(UNITS[i % UNITS.length].name)
+      out.push(AUGMENTS[i % AUGMENTS.length].name)
+      out.push(summoners[i % summoners.length])
+    }
+    return out
+  }, [])
 
-  const getRandomTerm = (category: string[]) => {
-    return category[Math.floor(Math.random() * category.length)];
-  };
+  const { placeholderAnimated: headerPlaceholderAnimated } = useTypewriterPlaceholder(
+    headerTypewriterWords,
+    headerSearch.length > 0,
+  )
 
-  // Initialize first random term
-  useEffect(() => {
-    const randomCategory = getRandomCategory();
-    setCurrentTerm(getRandomTerm(randomCategory));
-  }, []);
+  const clearMatchHistorySummonerPrefill = useCallback(() => {
+    setMatchHistorySummonerPrefill(null)
+  }, [])
 
-  // Typing animation effect
-  useEffect(() => {
-    if (isPaused) return;
-
-    const typingSpeed = isDeleting ? 80 : 120;
-    const pauseAfterTyping = 2000;
-    const pauseBeforeTyping = 1000;
-
-    const timeout = setTimeout(() => {
-      if (!isDeleting) {
-        // Typing
-        if (typingText.length < currentTerm.length) {
-          setTypingText(currentTerm.slice(0, typingText.length + 1));
-        } else {
-          // Finished typing, add ... then pause then start deleting
-          setTypingText(currentTerm + '...');
-          setTimeout(() => setIsDeleting(true), pauseAfterTyping);
-        }
-      } else {
-        // Deleting
-        if (typingText.length > 0) {
-          setTypingText(typingText.slice(0, -1));
-        } else {
-          // Finished deleting, pause before next term
-          setIsDeleting(false);
-          const randomCategory = getRandomCategory();
-          setCurrentTerm(getRandomTerm(randomCategory));
-          setIsPaused(true);
-          setTimeout(() => setIsPaused(false), pauseBeforeTyping);
-        }
+  function handleGlobalSearchPick(s: SearchSuggestion) {
+    switch (s.kind) {
+      case 'unit': {
+        setActivePage('units')
+        const u = UNITS.find((x) => x.name === s.label)
+        setSelectedUnitId(u ? u.name : s.label)
+        setUnitQuery(s.label)
+        break
       }
-    }, typingSpeed);
-
-    return () => clearTimeout(timeout);
-  }, [typingText, isDeleting, currentTerm, isPaused]);
+      case 'item':
+        setActivePage('items')
+        setItemQuery(s.label)
+        break
+      case 'trait':
+        setActivePage('traits')
+        setSynergyQuery(s.label)
+        break
+      case 'augment':
+        setActivePage('augments')
+        setAugmentQuery(s.label)
+        break
+      case 'summoner':
+        setActivePage('match-history')
+        setMatchHistorySummonerPrefill(s.label)
+        break
+    }
+    setHeaderSearch('')
+  }
 
   useEffect(() => {
     return subscribeToStateSnapshots();
+  }, []);
+
+  useEffect(() => {
+    const region = useAppStore.getState().settings.region ?? 'euw1'
+    getServerStatus(region).then(data => {
+      if (!data) { setServerStatus('unknown'); return }
+      const hasIssues = (data as any).incidents?.length > 0 || (data as any).maintenances?.length > 0
+      setServerStatus(hasIssues ? 'issues' : 'online')
+    }).catch(() => setServerStatus('unknown'))
   }, []);
 
   async function handleMinimize() {
@@ -786,10 +680,17 @@ export function DesktopApp() {
 
         {/* Center: Search Bar */}
         <div className="flex-1 flex justify-center" style={{ WebkitAppRegion: 'no-drag' } as Record<string, string>}>
-          <input
-            type="text"
-            placeholder="Search..."
-            className="bg-[#1a1a1a] border-none rounded-lg px-3 py-1.5 text-[13px] text-white placeholder:text-[#555] outline-none w-64 transition-colors focus-visible:ring-2 focus-visible:ring-[#35c3e7]" style={{ boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.05)' }}
+          <SearchInputWithSuggestions
+            value={headerSearch}
+            onChange={setHeaderSearch}
+            placeholder={headerPlaceholderAnimated || 'Search items, units, traits…'}
+            kinds="all"
+            maxSuggestions={10}
+            onSuggestionPick={handleGlobalSearchPick}
+            listZIndex={200}
+            wrapperClassName="w-64"
+            inputClassName="bg-[#1a1a1a] border-none rounded-lg px-3 py-1.5 text-[13px] text-white placeholder:text-[#555] outline-none w-full transition-colors focus-visible:ring-2 focus-visible:ring-[#35c3e7]"
+            inputStyle={{ boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.05)' }}
           />
         </div>
 
@@ -954,7 +855,10 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
               if (page === 'units' && id) setSelectedUnitId(id)
             }} />
           ) : activePage === 'match-history' ? (
-            <MatchHistory />
+            <MatchHistory
+              summonerSearchPrefill={matchHistorySummonerPrefill}
+              onSummonerSearchPrefillApplied={clearMatchHistorySummonerPrefill}
+            />
           ) : activePage === 'units' ? (
             <UnitGuide
               query={unitQuery}
@@ -1044,23 +948,14 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
           {/* Divider */}
           <div style={{ width: '100%', height: '1px', background: '#1a1a1a' }} />
 
-          {/* Live Game Status */}
-          <div style={{ width: '100%' }}>
-            <div style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a1a1a1', marginBottom: '8px' }}>
-              Status
-            </div>
-            <div style={{
-              background: '#1f1f1f',
-              border: '1px solid #1a1a1a',
-              borderRadius: '8px',
-              padding: '12px',
-              textAlign: 'center',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '4px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80', animation: 'pulse 2s infinite' }} />
-                <span style={{ fontSize: '11px', fontWeight: 600, color: '#4ade80' }}>LIVE</span>
-              </div>
-              <div style={{ fontSize: '10px', color: '#a1a1a1' }}>Round 3-2</div>
+          {/* Server Status */}
+          <div style={{marginBottom:'16px'}}>
+            <div style={{fontSize:'9px',color:'#a1a1a1',textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:'8px'}}>Server Status</div>
+            <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+              <div style={{width:'8px',height:'8px',borderRadius:'50%',background: serverStatus==='online'?'#22c55e': serverStatus==='issues'?'#f0b429':'#ef4444', boxShadow: serverStatus==='online'?'0 0 6px #22c55e80':serverStatus==='issues'?'0 0 6px #f0b42980':'0 0 6px #ef444480'}} />
+              <span style={{fontSize:'12px',color: serverStatus==='online'?'#22c55e':serverStatus==='issues'?'#f0b429':'#ef4444',fontWeight:500}}>
+                {serverStatus==='online'?'All Systems Online':serverStatus==='issues'?'Some Issues':'Status Unknown'}
+              </span>
             </div>
           </div>
 

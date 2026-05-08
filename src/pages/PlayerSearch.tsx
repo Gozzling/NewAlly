@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import type { RiotRegion, PlayerCard, Match } from '../types/riot'
 import { useAppStore } from '../store/useAppStore'
 import { fetchPlayerCard } from '../services/riotApiClient'
@@ -7,6 +7,11 @@ import { calculatePlayerStats } from '../services/playerStatsService'
 import { StatCard } from '../components/StatCard'
 import { MatchTable } from '../components/MatchTable'
 import { Search, User, AlertCircle, Loader2, Clock } from 'lucide-react'
+import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
+import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
+import { EXAMPLE_SUMMONERS } from '@/data/exampleSummoners'
+import type { SearchSuggestion } from '@/utils/searchSuggestions'
+import { normalizeSearchText } from '@/utils/searchSuggestions'
 
 const REGIONS: { label: string; value: RiotRegion }[] = [
   { label: 'NA', value: 'na1' },
@@ -37,6 +42,25 @@ export function PlayerSearch() {
   useEffect(() => {
     setRegion(storeRegion)
   }, [storeRegion])
+
+  const summonerExamples = useMemo(() => [...EXAMPLE_SUMMONERS], [])
+  const { placeholderAnimated: playerSearchPlaceholder } = useTypewriterPlaceholder(
+    summonerExamples,
+    query.length > 0,
+  )
+
+  const recentSummonerSuggestions = useMemo((): SearchSuggestion[] => {
+    const n = normalizeSearchText(query)
+    if (n.length < 2) return []
+    return recentSearches
+      .filter((r) => normalizeSearchText(r.name).includes(n))
+      .slice(0, 5)
+      .map((r) => ({
+        kind: 'summoner' as const,
+        id: `recent:${r.name}:${r.date}`,
+        label: r.name,
+      }))
+  }, [recentSearches, query])
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -70,16 +94,19 @@ export function PlayerSearch() {
     <div className="space-y-5">
       {/* Search bar */}
       <form onSubmit={handleSearch} className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a1a1a1]" />
-          <input
-            type="text"
-            placeholder="Summoner name (e.g. Doublelift)"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-full bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg pl-9 pr-3 py-2.5 text-sm text-white placeholder-[#a1a1a1] focus:outline-none focus:border-[#35c3e7]"
-          />
-        </div>
+        <SearchInputWithSuggestions
+          value={query}
+          onChange={setQuery}
+          placeholder={playerSearchPlaceholder || 'Summoner name…'}
+          kinds={['summoner']}
+          prependSuggestions={recentSummonerSuggestions}
+          wrapperClassName="relative flex-1"
+          listZIndex={100}
+          leftSlot={
+            <Search className="pointer-events-none absolute left-3 top-1/2 z-[1] w-4 -translate-y-1/2 text-[#a1a1a1]" />
+          }
+          inputClassName="w-full bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg py-2.5 pl-9 pr-3 text-sm text-white placeholder-[#a1a1a1] focus:outline-none focus:border-[#35c3e7]"
+        />
         <select
           value={region}
           onChange={(e) => setRegion(e.target.value as RiotRegion)}

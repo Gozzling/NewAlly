@@ -1,5 +1,6 @@
 import { ArrowLeft } from 'lucide-react'
 import { SYNERGIES } from '../data/synergies'
+import { unitIconUrl } from '@/utils/unitDisplay'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -142,7 +143,7 @@ export function SynergyDetail({ synergyId, onBack }: SynergyDetailProps) {
               {synergy.bestUnits.map((u) => (
                 <div key={u} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                   <img
-                    src={`/unit-icons/${u}.webp`}
+                    src={unitIconUrl(u)}
                     alt={u}
                     style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover' }}
                     onError={(e) => { e.currentTarget.style.display = 'none' }}

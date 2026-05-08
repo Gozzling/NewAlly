@@ -7,7 +7,10 @@ Overwolf Native app for Teamfight Tactics. 3 windows: background (controller), o
 - React + TypeScript
 - Vite
 - Tailwind CSS (see tailwind.config.ts for all tokens)
-- Zustand (shared state between windows)
+- Zustand (shared state between windows; includes `pipeline` for GEP / background errors from IPC)
+- RxJS (`src/engine/events` — typed event bus, replay buffer, telemetry sink)
+- Vitest + jsdom (unit tests)
+- `@ally/shared-types` (`file:./packages/shared-types`) — canonical IPC + `AllyRecommendation` shapes
 
 ## Color tokens — always use these, never raw hex values
 | Token               | Value     | Usage                        |
@@ -22,13 +25,21 @@ Overwolf Native app for Teamfight Tactics. 3 windows: background (controller), o
 
 ## Folder structure
 ```
+packages/
+└── shared-types/     ← @ally/shared-types — IPC payloads, recommendation contracts (import in app + future workers)
+
 src/
 ├── windows/
 │   ├── desktop/      ← main app UI (out-of-game)
 │   └── overlay/      ← in-game HUD
+├── engine/
+│   ├── events/       ← Ally event bus (RxJS), IPC guards/factories (types from @ally/shared-types)
+│   └── recommendations/ ← Capture-agnostic coaching engine (static meta + GEP signals + match history)
+├── vision/
+│   └── capture/      ← Screen capture pipeline (stub → native / Overwolf hooks)
 ├── components/       ← shared UI components
 ├── hooks/            ← custom hooks, API integration
-├── services/         ← game events, Overwolf API calls
+├── services/         ← game events, Overwolf API calls, `backgroundVisionCapture` (match lifecycle)
 ├── store/            ← Zustand stores
 └── styles/           ← global CSS, Tailwind base
 ```

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { MetaComp } from '../types/tft'
 import { ChevronDown, ChevronUp, Swords, Pin, PinOff, FilePlus, Monitor } from 'lucide-react'
 import placeholderImg from '@/assets/icons/placeholder.svg'
+import { unitIconUrl } from '@/utils/unitDisplay'
 
 interface CompCardProps {
   isPinned?: boolean;
@@ -36,7 +37,7 @@ export function CompCard({ comp, isPinned, onPinToggle, onImport, onOverlayToggl
             <div className="text-sm font-semibold text-white truncate">{comp.compName}</div>
             <div className="flex flex-wrap gap-1">
               {comp.requiredUnits.map(unit => (
-                <img key={unit} src={`/unit-icons/${unit}.webp`} alt={unit} className="w-8 h-8 rounded-full border border-ally-border" onError={(e)=>{(e.target as HTMLImageElement).src=placeholderImg}} />
+                <img key={unit} src={unitIconUrl(unit)} alt={unit} className="w-8 h-8 rounded-full border border-ally-border" onError={(e)=>{(e.target as HTMLImageElement).src=placeholderImg}} />
               ))}
             </div>
           </div>
@@ -81,7 +82,7 @@ export function CompCard({ comp, isPinned, onPinToggle, onImport, onOverlayToggl
             <div className="text-[10px] uppercase tracking-widest text-[#a1a1a1] mb-2">Required Units</div>
 <div className="flex flex-wrap gap-1.5">
                {comp.requiredUnits.map((unit) => (
-                 <img key={unit} src={`/unit-icons/${unit}.webp`} alt={unit} className="w-10 h-10 rounded-full border border-ally-border" onError={(e)=>{(e.target as HTMLImageElement).src=placeholderImg}} />
+                 <img key={unit} src={unitIconUrl(unit)} alt={unit} className="w-10 h-10 rounded-full border border-ally-border" onError={(e)=>{(e.target as HTMLImageElement).src=placeholderImg}} />
                ))}
              </div>
           </div>

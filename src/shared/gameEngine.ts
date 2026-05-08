@@ -4,6 +4,7 @@ import type {
   MetaComp, ItemRecipes,
 } from '../types/tft'
 import { UNITS } from '../data/units'
+import { unitMatchKey } from '../utils/unitDisplay'
 
 // ─── Normalizers ──────────────────────────────────────────────────────────────
 
@@ -106,17 +107,17 @@ export function calculateBestCompMatch(
   const empty: ActiveCompTracker = { bestMatchName: null, matchPercentage: 0, missingUnits: [] }
   if (boardUnits.length === 0 || metaComps.length === 0) return empty
 
-  const onBoard = new Set(boardUnits.map((u) => normalizeChampionId(u.name).toLowerCase()))
+  const onBoard = new Set(boardUnits.map((u) => unitMatchKey(normalizeChampionId(u.name))))
 
   let best: ActiveCompTracker | null = null
   for (const comp of metaComps) {
-    const matchCount = comp.requiredUnits.filter((u) => onBoard.has(u.toLowerCase())).length
+    const matchCount = comp.requiredUnits.filter((u) => onBoard.has(unitMatchKey(u))).length
     const pct        = Math.round((matchCount / comp.requiredUnits.length) * 100)
     if (!best || pct > best.matchPercentage) {
       best = {
         bestMatchName:   comp.compName,
         matchPercentage: pct,
-        missingUnits:    comp.requiredUnits.filter((u) => !onBoard.has(u.toLowerCase())),
+        missingUnits:    comp.requiredUnits.filter((u) => !onBoard.has(unitMatchKey(u))),
       }
     }
   }
@@ -126,11 +127,11 @@ export function calculateBestCompMatch(
 export function detectCompFromUnits(units: string[]): string {
   if (!units.length) return 'Mixed'
 
-  const normalized = units.map((u) => normalizeChampionId(u).toLowerCase())
+  const normalized = units.map((u) => unitMatchKey(normalizeChampionId(u)))
   const traitCounts: Record<string, number> = {}
 
   for (const unitName of normalized) {
-    const unit = UNITS.find((x) => x.name.toLowerCase() === unitName)
+    const unit = UNITS.find((x) => unitMatchKey(x.name) === unitName)
     if (!unit) continue
     for (const trait of unit.traits) {
       traitCounts[trait] = (traitCounts[trait] ?? 0) + 1
@@ -173,7 +174,7 @@ export function calculateItemCrafting(
 
   for (const carry of comp.carries) {
     const boardUnit = boardUnits.find(
-      (u) => normalizeChampionId(u.name).toLowerCase() === carry.name.toLowerCase()
+      (u) => unitMatchKey(normalizeChampionId(u.name)) === unitMatchKey(carry.name),
     )
     const equipped = new Set((boardUnit?.items ?? []).map((i) => i.toLowerCase()))
 

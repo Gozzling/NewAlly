@@ -1,6 +1,21 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import {
+  BookOpen,
+  Coins,
+  LayoutGrid,
+  Package,
+  ScanLine,
+  ShoppingCart,
+  Sparkles,
+} from 'lucide-react'
 import { UNITS } from '@/data/units'
+import { unitIconUrl } from '@/utils/unitDisplay'
 import { SYNERGIES } from '@/data/synergies'
+import {
+  buildGameStateFromBoard,
+  recommendationsFromGameState,
+  type AllyRecommendation,
+} from '@/engine/recommendations'
 import { useAppStore } from '@/store/useAppStore'
 import type { MetaComp } from '@/types/tft'
 
@@ -316,6 +331,70 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
   const eBoardCost  = eUnits.reduce((s, n) => s + (unitMap.get(n)?.cost || 0), 0)
   const activeTraits = traits.filter(t => t.active)
 
+  const boardSig = pBoard.map((c) => c ?? '').join('|')
+  const coachRecs = useMemo(() => {
+    return recommendationsFromGameState(
+      buildGameStateFromBoard(pBoard, UNITS),
+      [],
+      'set17',
+    ).slice(0, 5)
+  }, [boardSig, pBoard])
+
+  const coachCategoryIcon = (cat: AllyRecommendation['category']) => {
+    const iconProps = { className: 'shrink-0', size: 16, color: C.accent, strokeWidth: 2 }
+    switch (cat) {
+      case 'shop':
+        return <ShoppingCart {...iconProps} />
+      case 'items':
+        return <Package {...iconProps} />
+      case 'economy':
+        return <Coins {...iconProps} />
+      case 'augments':
+        return <Sparkles {...iconProps} />
+      case 'board':
+        return <LayoutGrid {...iconProps} />
+      case 'meta':
+        return <BookOpen {...iconProps} />
+      case 'scouting':
+        return <ScanLine {...iconProps} />
+      default:
+        return <LayoutGrid {...iconProps} />
+    }
+  }
+
+  const coachUrgencyAccent = (u: AllyRecommendation['urgency']) => {
+    switch (u) {
+      case 'high':
+        return '#ef4444'
+      case 'medium':
+        return '#f0b429'
+      default:
+        return '#35c3e7'
+    }
+  }
+
+  const coachUrgencyBadge = (u: AllyRecommendation['urgency']) => {
+    const col = coachUrgencyAccent(u)
+    const label = u === 'high' ? 'HIGH' : u === 'medium' ? 'MED' : 'LOW'
+    return (
+      <span
+        style={{
+          fontSize: 8,
+          fontWeight: 800,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          padding: '1px 5px',
+          borderRadius: 3,
+          background: `${col}18`,
+          color: col,
+          border: `1px solid ${col}44`,
+        }}
+      >
+        {label}
+      </span>
+    )
+  }
+
   /* ─── Drag hint ─── */
   const dragHint = dragItem
     ? dragTarget
@@ -413,7 +492,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
               const iconY = pos.cy - iconSize / 2
               return (
                 <image
-                  href={`/unit-icons/${unit}.webp`}
+                  href={unitIconUrl(unit)}
                   x={iconX}
                   y={iconY}
                   width={iconSize}
@@ -690,6 +769,149 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
             )}
           </div>
 
+          {/* Coach recommendations (static meta + board; no live shop in builder) */}
+          <div style={{ marginTop: 4 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                marginBottom: 10,
+              }}
+            >
+              <Sparkles size={12} color="#35c3e7" strokeWidth={2} className="shrink-0" />
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: '0.2em',
+                  textTransform: 'uppercase',
+                  color: '#a8a8b8',
+                }}
+              >
+                Suggestions
+              </span>
+            </div>
+            {pBoardUnits === 0 ? (
+              <div
+                style={{
+                  color: '#333',
+                  fontSize: '11px',
+                  textAlign: 'center',
+                  padding: '16px 0',
+                }}
+              >
+                Add units to get coaching suggestions
+              </div>
+            ) : coachRecs.length === 0 ? (
+              <div style={{ fontSize: 11, color: '#333', textAlign: 'center', padding: '12px 0' }}>
+                No suggestions right now.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                {coachRecs.map((rec, ri) => {
+                  const uCol = coachUrgencyAccent(rec.urgency)
+                  return (
+                    <div key={rec.id}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          background: '#0a0a16',
+                          border: '1px solid #1a1a2e',
+                          borderRadius: 8,
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 3,
+                            flexShrink: 0,
+                            background: uCol,
+                          }}
+                        />
+                        <div style={{ flex: 1, minWidth: 0, padding: '10px 12px' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              flexWrap: 'wrap',
+                            }}
+                          >
+                            {coachCategoryIcon(rec.category)}
+                            <span
+                              style={{
+                                fontSize: 12,
+                                fontWeight: 700,
+                                color: '#ffffff',
+                                flex: 1,
+                                minWidth: 0,
+                              }}
+                            >
+                              {rec.title}
+                            </span>
+                            {coachUrgencyBadge(rec.urgency)}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: '#a3a3a3',
+                              marginTop: 4,
+                              lineHeight: 1.4,
+                            }}
+                          >
+                            {rec.detail}
+                          </div>
+                          <div
+                            style={{
+                              marginTop: 6,
+                              height: 2,
+                              borderRadius: 1,
+                              background: '#1a1a2e',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            <div
+                              style={{
+                                height: '100%',
+                                width: `${Math.round(rec.confidence * 100)}%`,
+                                background: uCol,
+                                borderRadius: 1,
+                                transition: 'width 0.2s ease',
+                              }}
+                            />
+                          </div>
+                          {rec.reasoning.length > 0 && (
+                            <div
+                              style={{
+                                fontSize: 10,
+                                color: '#333',
+                                marginTop: 4,
+                                lineHeight: 1.45,
+                                fontStyle: 'italic',
+                              }}
+                            >
+                              {rec.reasoning.join(' · ')}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {ri < coachRecs.length - 1 ? (
+                        <div
+                          style={{
+                            height: 1,
+                            background: 'rgba(26, 26, 46, 0.65)',
+                            margin: '8px 0',
+                          }}
+                        />
+                      ) : null}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
           {/* Enemy board */}
           {showEnemy && (
             <div style={{ marginTop: 2 }}>
@@ -847,7 +1069,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
           display:'flex', alignItems:'center', gap:'12px',
           minWidth:'220px', boxShadow:'0 4px 24px #00000080'
         }}>
-          <img src={`/unit-icons/${unitDetail}.webp`}
+          <img src={unitIconUrl(unitDetail)}
             style={{width:'44px',height:'44px',borderRadius:'8px',objectFit:'cover'}} />
           <div style={{flex:1}}>
             <div style={{color:'white',fontWeight:600,fontSize:'13px'}}>{unitDetail}</div>

@@ -36,7 +36,7 @@ export const EMBLEM_RECIPES: Record<string, [string, string]> = {
   "Anima Emblem": ["Spatula", "Chain Vest"],
   "Timebreaker Emblem": ["Spatula", "B.F. Sword"],
   "Voyager Emblem": ["Spatula", "Sparring Gloves"],
-  "Channeler Emblem": ["Spatula", "Needlessly Large Rod"],
+  "Conduit Emblem": ["Spatula", "Needlessly Large Rod"],
   "Marauder Emblem": ["Spatula", "B.F. Sword"],
   "Sniper Emblem": ["Spatula", "Recurve Bow"],
   "Arbiter Emblem": ["Spatula", "Tear of the Goddess"],
