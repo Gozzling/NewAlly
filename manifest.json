@@ -1,0 +1,43 @@
+{
+  "manifest_version": 1,
+  "type": "WebApp",
+  "id": "com.tftally.main",
+  "name": "TFT Ally",
+  "description": "Live strategic co-pilot for TFT",
+  "version": "1.0.0",
+  "icon": "icons/icon_256.png",
+  "author": "Your Company",
+  "platform": "windows",
+  "permissions": [
+    "GameInfo",
+    "FileSystem",
+    "Window",
+    "Network"
+  ],
+  "default_window": {
+    "id": "desktop",
+    "url": "src/windows/desktop/main.html",
+    "width": 1280,
+    "height": 720,
+    "resizable": true,
+    "transparent": false
+  },
+  "window": [
+    {
+      "id": "overlay",
+      "type": "overlay",
+      "url": "src/windows/overlay/main.html",
+      "fullscreen": true,
+      "transparent": true,
+      "clickthrough": true,
+      "resizable": false
+    }
+  ],
+  "hotkeys": [
+    {
+      "id": "toggleOverlay",
+      "description": "Show/Hide the coaching overlay",
+      "key": "Ctrl+Shift+O"
+    }
+  ]
+}
