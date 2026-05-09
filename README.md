@@ -45,17 +45,13 @@ You can configure the server port by setting the `PORT` environment variable. Cr
 
 ## Building
 
-To build the project, run:
+Production / Overwolf builds run a guard script first: **`VITE_ALLOW_CLIENT_RIOT_KEY` must not be `true`** (Riot keys belong only in Supabase secrets). Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env` / `.env.production` (see `.env.example`). Static **privacy policy**: `public/privacy.html` → deploy at a public URL for store listings.
 
 ```shell
 npm run build
 ```
 
-This will start the server.
-
-```shell
-npm start
-```
+Output is Vite `dist/` (multi-entry: desktop, overlay, background, lobby).
 
 ## Tests
 

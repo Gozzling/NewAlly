@@ -3,10 +3,10 @@
   "type": "WebApp",
   "id": "com.tftally.main",
   "name": "TFT Ally",
-  "description": "Live strategic co-pilot for TFT",
+  "description": "TFT companion: meta guides, match history, and overlay — uses Riot public API data only; not endorsed by Riot Games. Support & bugs: GitHub Issues (repository linked on store listing). Privacy: host public/privacy.html and add URL in store metadata.",
   "version": "1.0.0",
   "icon": "icons/icon_256.png",
-  "author": "Your Company",
+  "author": "TFT Ally",
   "platform": "windows",
   "permissions": [
     "GameInfo",

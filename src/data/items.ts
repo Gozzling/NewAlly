@@ -57,11 +57,41 @@ export interface PsionicItem {
 }
 
 export const PSIONIC_ITEMS: PsionicItem[] = [
-  { name: "Biomatter Preserver", stats: "150 HP, 25 AP, 15% Omnivamp", recipe: ["Psionic Component", "Giant's Belt"], effect: "Heals all allies for 20% of their max HP upon the holder's death." },
-  { name: "Drone Uplink", stats: "150 HP, 35 AD, 15% AS", recipe: ["Psionic Component", "B.F. Sword"], effect: "Summons a drone that attacks the holder's target every second, dealing 15% of the holder's AD as true damage." },
-  { name: "Malware Matrix", stats: "150 HP, 25 AP, 15 Mana", recipe: ["Psionic Component", "Tear of the Goddess"], effect: "The holder's ability infects the target with a virus that spreads to adjacent enemies on death, dealing 100% of the ability's damage." },
-  { name: "Sympathetic Implant", stats: "150 HP, 20 Armor/MR", recipe: ["Psionic Component", "Chain Vest"], effect: "Links the holder to the ally with the lowest HP, redirecting 30% of damage they take to the holder." },
-  { name: "Target-Lock Optics", stats: "150 HP, 25% Crit, 15% AS", recipe: ["Psionic Component", "Sparring Gloves"], effect: "Grants 25% crit chance. The holder's attacks cannot miss and ignore 15% of the target's armor." },
+  {
+    name: "Biomatter Preserver",
+    stats: "+250 Health",
+    recipe: ["Psionic Component", "Giant's Belt"],
+    effect:
+      "Gain 0% max Health and deploy 3 Life Orbs. Every 8 seconds of combat, one drops restoring 18% of the holder's missing Health. At (4) Psionic: +22% increased healing from all sources.",
+  },
+  {
+    name: "Drone Uplink",
+    stats: "+25% Ability Power",
+    recipe: ["Psionic Component", "B.F. Sword"],
+    effect:
+      "A drone repeats 20% of damage from the holder's attacks and Abilities to the same targets every 3 seconds. At (4) Psionic: gain a mini-drone that repeats 20% of damage.",
+  },
+  {
+    name: "Malware Matrix",
+    stats: "+15% Attack Damage, +15 Attack Speed",
+    recipe: ["Psionic Component", "Tear of the Goddess"],
+    effect:
+      "Dealing physical damage reduces the target's Armor by 2 (Ability damage 0.75s CD). At (4) Psionic: every 3rd attack cleaves for 75 physical damage to nearby enemies.",
+  },
+  {
+    name: "Sympathetic Implant",
+    stats: "+20% Ability Power, +4 Mana Regen",
+    recipe: ["Psionic Component", "Chain Vest"],
+    effect:
+      "Every 5 seconds, gain 1 additional Mana Per Second. At (4) Psionic: abilities deal 25% of ability damage as true damage instead.",
+  },
+  {
+    name: "Target-Lock Optics",
+    stats: "+25% Attack Damage, +35 Attack Speed",
+    recipe: ["Psionic Component", "Sparring Gloves"],
+    effect:
+      "The holder's first attack on each enemy deals 150 bonus damage. At (4) Psionic: heal 20% max Health when the target dies.",
+  },
 ]
 
 // Set 17 Sona Command Mods

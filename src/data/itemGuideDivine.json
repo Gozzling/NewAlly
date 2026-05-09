@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Kayle's Exaltation",
+    "stats": "+25% Attack Damage\n+15 Attack Speed\n+25% Ability Power",
+    "effect": "After 18 seconds of combat, this and all completed items on the holder become Radiant."
+  },
+  {
+    "name": "Kayle's Radiant Exaltation",
+    "stats": "+50% Attack Damage\n+30 Attack Speed\n+50% Ability Power",
+    "effect": "Behold, the righteous flame!"
+  }
+]

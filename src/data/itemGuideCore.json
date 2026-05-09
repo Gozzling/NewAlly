@@ -1,0 +1,92 @@
+[
+  {
+    "name": "Bloodthirster",
+    "stats": "+15% Attack Damage\n+15% Ability Power",
+    "effect": "Once per combat at 40% Health, gain a 25% max Health Shield that lasts up to 5 seconds."
+  },
+  {
+    "name": "Guardian Angel",
+    "stats": "+10% Attack Damage\n+15 Attack Speed\n+10% Ability Power",
+    "effect": "At 60% Health, briefly become untargetable, shed negative effects, and heal 30% missing health."
+  },
+  {
+    "name": "Infinity Edge",
+    "stats": "+35% Attack Damage",
+    "effect": "Gain Precision.\n\nPrecision: Ability damage can critically strike. Additional Precision grants 10% Critical Strike Damage."
+  },
+  {
+    "name": "Last Whisper",
+    "stats": "+15% Attack Damage\n+20 Attack Speed",
+    "effect": "Damage from attacks and Abilities 30% Sunder the target for 3 seconds. This effect does not stack.\n\nSunder: Reduce Armor"
+  },
+  {
+    "name": "Giant Slayer",
+    "stats": "+15% Attack Damage\n+15 Attack Speed\n+15% Ability Power",
+    "effect": "Gain 15% additional Damage Amp against Tanks."
+  },
+  {
+    "name": "Guinsoo's Rageblade",
+    "stats": "+10 Attack Speed\n+10% Ability Power",
+    "effect": "Gain 7% stacking Attack Speed every second."
+  },
+  {
+    "name": "Rabadon's Deathcap",
+    "stats": "+55% Ability Power",
+    "effect": "This humble hat can help you make, or unmake, the world itself.\n"
+  },
+  {
+    "name": "Jeweled Gauntlet",
+    "stats": "+35% Ability Power",
+    "effect": "Gain Precision.\n\nPrecision: Ability damage can critically strike. Additional Precision grants 10% Critical Strike Damage."
+  },
+  {
+    "name": "Blue Buff",
+    "stats": "+15% Attack Damage\n+15% Ability Power\n+5 Mana Regen",
+    "effect": "Gain 10% additional Attack Damage and Ability Power from all sources."
+  },
+  {
+    "name": "Spear of Shojin",
+    "stats": "+15% Attack Damage\n+15% Ability Power\n+1 Mana Regen",
+    "effect": "Attacks grant 5 bonus Mana."
+  },
+  {
+    "name": "Morellonomicon",
+    "stats": "+20% Ability Power\n+150 Health\n+1 Mana Regen",
+    "effect": "Attacks and Abilities deal 1% Burn and 33% Wound to enemies for 10 seconds.\n\nBurn: Deals a percent of the target's max Health as true damage every second\n\nWound: Reduces healing received"
+  },
+  {
+    "name": "Warmog's Armor",
+    "stats": "+500 Health",
+    "effect": "Gain 18% max Health."
+  },
+  {
+    "name": "Sunfire Cape",
+    "stats": "+150 Health",
+    "effect": "Gain 8% max Health.\n\nEvery 2 seconds, deal 1% Burn and 33% Wound to an enemy within 2 hexes for 10 seconds.\n\nBurn: Deals a percent of the target's max Health as true damage every second\n\nWound: Reduces healing received"
+  },
+  {
+    "name": "Bramble Vest",
+    "stats": "",
+    "effect": "Gain 6% max health.\n\nTake 5% reduced damage from attacks. When struck by any attack, deal 100 magic damage to all adjacent enemies.\n\nCooldown: 2 seconds"
+  },
+  {
+    "name": "Titan's Resolve",
+    "stats": "+10 Attack Speed",
+    "effect": "Gain 2% Attack Damage and 2% Ability Power when attacking or taking damage, stacking up to 25 times.\n\nAt full stacks, gain 10% Damage Amp and gain immunity to crowd control."
+  },
+  {
+    "name": "Ionic Spark",
+    "stats": "+15% Ability Power\n+250 Health",
+    "effect": "30% Shred enemies within 2 hexes. When enemies cast an Ability, deal magic damage equal to 150% of the Mana spent\n\nShred: Reduce Magic Resist"
+  },
+  {
+    "name": "Rapid Firecannon",
+    "stats": "+65 Attack Speed",
+    "effect": "Gain +1 Attack Range, increased by 1 whenever the holder kills an enemy."
+  },
+  {
+    "name": "Redemption",
+    "stats": "+300 Health\n+1 Mana Regen",
+    "effect": "Every 5 seconds, heal allies within 2 hexes for 12% of their missing Health.\n\n(Not listed on tft.tools Set 17 sheet — confirm numbers in-game.)"
+  }
+]

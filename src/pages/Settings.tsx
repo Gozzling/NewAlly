@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import type { RiotRegion } from '../types/riot'
 import { Layers, User, Palette, Bell, Info, Save, ChevronRight, Trash2, Activity } from 'lucide-react'
+import { RiotAttribution } from '@/components/RiotAttribution'
 
 type Tab = 'overlay' | 'profile' | 'appearance' | 'notifications' | 'about'
 
@@ -15,9 +16,22 @@ export function Settings() {
   const pipeline = useAppStore((s) => s.pipeline)
   const visionCapture = useAppStore((s) => s.visionCapture)
 
-  const [summonerName, setSummonerName] = useState('')
-  const [region, setRegion] = useState<string>(storeSettings.region)
+  const [summonerName, setSummonerName] = useState(
+    () => (typeof localStorage !== 'undefined' ? localStorage.getItem('tft-ally::summoner-name') ?? '' : ''),
+  )
+  const [region, setRegion] = useState<string>(() => {
+    const fromLs = typeof localStorage !== 'undefined' ? localStorage.getItem('tft-ally::region') : null
+    if (fromLs) return fromLs
+    return useAppStore.getState().settings.region
+  })
   const [saved, setSaved] = useState(false)
+
+  const privacyPolicyHref =
+    (import.meta.env.VITE_PRIVACY_POLICY_URL as string | undefined)?.trim() ||
+    `${import.meta.env.BASE_URL}privacy.html`
+  const termsOfServiceHref =
+    (import.meta.env.VITE_TERMS_OF_SERVICE_URL as string | undefined)?.trim() ||
+    `${import.meta.env.BASE_URL}terms.html`
 
   function handleProfileSave() {
     localStorage.setItem('tft-ally::summoner-name', summonerName.trim())
@@ -500,6 +514,8 @@ export function Settings() {
               </div>
             </div>
 
+            <RiotAttribution />
+
             <div className="rounded-lg border border-ally-border bg-ally-card p-4">
               <div className="mb-3 flex items-center gap-2 text-caption font-medium uppercase tracking-wider text-ally-muted">
                 <Activity className="h-3.5 w-3.5 text-ally-accent" aria-hidden />
@@ -558,9 +574,11 @@ export function Settings() {
             }}>
               <div className="space-y-2">
                 {[
-                  { label: 'GitHub Repository', url: 'https://github.com' },
-                  { label: 'Discord Community', url: 'https://discord.gg' },
-                  { label: 'Report a Bug', url: 'https://github.com/issues' },
+                  { label: 'Privacy policy', url: privacyPolicyHref },
+                  { label: 'Terms of use', url: termsOfServiceHref },
+                  { label: 'GitHub — TFTAllyMain', url: 'https://github.com/elecb3/TFTAllyMain' },
+                  { label: 'Report an issue', url: 'https://github.com/elecb3/TFTAllyMain/issues' },
+                  { label: 'Riot developer policies', url: 'https://developer.riotgames.com/policies' },
                 ].map((link) => (
                   <a
                     key={link.label}

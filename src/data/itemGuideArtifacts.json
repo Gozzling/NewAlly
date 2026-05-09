@@ -1,0 +1,197 @@
+[
+  {
+    "name": "Aegis of Dawn",
+    "stats": "+400 Health",
+    "effect": "Every 2.5 seconds, steal 3 Armor from enemies within 1-hex and heal 15% of the holder's Armor.\n\nIf Aegis of Dusk is also equipped, trigger this item's effect every 1.25 seconds instead.\n\nHealing increases based on Stage."
+  },
+  {
+    "name": "Aegis of Dusk",
+    "stats": "+400 Health",
+    "effect": "Every 2.5 seconds, steal 3 Magic Resist from enemies within 1 hex and deal 15% of the holder's Magic Resist as magic damage.\n\nIf Aegis of Dawn is also equipped, trigger this item's effect every 1.25 seconds instead.\n\nDamage increases based on Stage."
+  },
+  {
+    "name": "Ahri's Aura",
+    "stats": "+20% Ability Power\n+4 Mana Regen",
+    "effect": "The holder is orbited by 3 foxfires. Each one deals 50 () magic damage and the orbit expands to hit the holder's current target.\n\nFor every 20 Mana the holder spends, foxfires travel 5% faster for the rest of combat."
+  },
+  {
+    "name": "Blacksmith's Gloves",
+    "stats": "+200 Health",
+    "effect": "Each round: Equip 2 random Ornn Artifacts.\n\n[Consumes 3 item slots.]\n"
+  },
+  {
+    "name": "Blighting Jewel",
+    "stats": "+60% Ability Power\n+2 Mana Regen",
+    "effect": "Dealing magic damage reduces the target's Magic Resist by 4. If their Magic Resist is 0, grant the holder 2 Mana instead.\n\nAbility damage can only trigger on each enemy once every 0.5 seconds."
+  },
+  {
+    "name": "Cappa Juice",
+    "stats": "+25% Attack Damage\n+25 Attack Speed\n+25% Ability Power",
+    "effect": "The holder dons a Hat on each takedown. The holder gains 1% Attack Damage and Ability Power per Hat. On death lose 20% of all Hats."
+  },
+  {
+    "name": "Dawncore",
+    "stats": "+15% Attack Damage\n+15% Ability Power\n+2 Mana Regen",
+    "effect": "Reduce the holder's max Mana by 10. Subsequent spellcasts reduce max Mana by 10%, to a minimum of 10."
+  },
+  {
+    "name": "Death's Defiance",
+    "stats": "+25% Attack Damage\n+15 Attack Speed",
+    "effect": "50% of the damage the holder receives is instead dealt over 4 seconds as non-lethal damage.\n\n[Unique - only 1 per champion]"
+  },
+  {
+    "name": "Ekko's Patience",
+    "stats": "+25% Attack Damage\n+25% Ability Power",
+    "effect": "Total Ability damage is increased by 40%, but is dealt over 2 seconds instead."
+  },
+  {
+    "name": "Eternal Pact",
+    "stats": "+40% Ability Power\n+1 Mana Regen",
+    "effect": "Combat start: Form a pact with the highest Health allied champion, if they die, gain 10 Mana regen and 40% Ability Power.\n\nWhen the ally uses their ability, gain 15 Mana. Every 6 seconds, shield your ally for 200% of the holder's Ability Power."
+  },
+  {
+    "name": "Evelynn's Instinct",
+    "stats": "+10% Attack Damage\n+40 Attack Speed\n+10% Ability Power",
+    "effect": "When switching targets, blink to the next target. Attacks and Abilities execute the holder's target below 12% of their Health.\n\nKills grant the holder 50% Attack Speed decaying over 3 seconds."
+  },
+  {
+    "name": "Fishbones",
+    "stats": "+50% Attack Damage\n+50 Attack Speed",
+    "effect": "The holder's attacks target random enemies."
+  },
+  {
+    "name": "Flickerblades",
+    "stats": "+20 Attack Speed\n+10% Ability Power",
+    "effect": "Attacks grant 5% stacking Attack Speed. Every 3 attacks also grant 2% Attack Damage and 2% Ability Power."
+  },
+  {
+    "name": "Gambler's Blade",
+    "stats": "+55 Attack Speed",
+    "effect": "Grant 1% bonus Attack Speed per gold in your bank (up to 30 gold).\n\nEach attack has a 6% chance to drop 1 gold.\n\n[Unique - only 1 per champion]"
+  },
+  {
+    "name": "Gold Collector",
+    "stats": "+40% Attack Damage",
+    "effect": "Attacks and Abilities execute enemies below 12% of their maximum Health. Executions have a 33% chance to drop 1 gold.\n\n[Unique - only 1 per champion]"
+  },
+  {
+    "name": "Hellfire Hatchet",
+    "stats": "+20% Attack Damage\n+150 Health",
+    "effect": "Attacks deal 3% of the holder's max Health as bonus physical damage. For every 1% missing Health, gain 1% Attack Speed."
+  },
+  {
+    "name": "Horizon Focus",
+    "stats": "+250 Health\n+2 Mana Regen",
+    "effect": "Stunning an enemy causes lightning to strike them, dealing 30% of their max Health as magic damage."
+  },
+  {
+    "name": "Hullcrusher",
+    "stats": "",
+    "effect": "Combat Start: If there are no adjacent allies, gain 400 Health, 10% Attack Damage, and 10% Ability Power."
+  },
+  {
+    "name": "Infinity Force",
+    "stats": "+30% Attack Damage\n+30 Attack Speed\n+30% Ability Power\n+300 Health",
+    "effect": "Tons of EVERYTHING!"
+  },
+  {
+    "name": "Lich Bane",
+    "stats": "+10 Attack Speed\n+55% Ability Power",
+    "effect": "The holder's first attack after each Ability cast deals 250 / 350 / 500 / 600 / 700 bonus magic damage.\n\nDamage increases based on Stage."
+  },
+  {
+    "name": "Lightshield Crest",
+    "stats": "",
+    "effect": "Every 3 seconds, Shields the lowest percent Health ally for 70% of the holder's combined Armor and Magic Resist for 5 seconds.\n\nOn death grants this shield to all allies."
+  },
+  {
+    "name": "Luden's Tempest",
+    "stats": "+55% Attack Damage\n+55% Ability Power",
+    "effect": "100% of overkill damage plus 100 is dealt as magic damage to the three enemies nearest the target."
+  },
+  {
+    "name": "Mittens",
+    "stats": "+65 Attack Speed",
+    "effect": "Shrinks the holder, granting them increased movement speed and immunity to Slow, Burn, and Wound.\n\nSlow: Reduce Attack Speed\n\nBurn: Deal 1% of the target's max Health as true damage every second\n\nWound: Reduce healing received by 33%"
+  },
+  {
+    "name": "Mogul's Mail",
+    "stats": "+300 Health",
+    "effect": "Grants 1 Armor, 1 Magic Resist, and 8 Health when taking damage, stacking up to 35 times.\n\nAt full stacks, grant 1 gold and continue gaining 1 gold every 11 seconds.\n\n[Unique - only 1 per champion]"
+  },
+  {
+    "name": "Prowler's Claw",
+    "stats": "+35% Attack Damage\n+300 Health",
+    "effect": "After killing a target, shed negative effects and dash to the farthest target within 4 hexes. The next 2 critical attacks deal 50% bonus Critical Strike Damage."
+  },
+  {
+    "name": "Seeker's Armguard",
+    "stats": "+25% Ability Power",
+    "effect": "Takedowns increase the holder's Armor, Magic Resist, and Ability Power by 20."
+  },
+  {
+    "name": "Silvermere Dawn",
+    "stats": "+140% Attack Damage",
+    "effect": "Grants immunity to Stuns and the holder's attacks Stun the target for 0.8 seconds.\n\nThe holder's Attack Speed is locked at 0.5."
+  },
+  {
+    "name": "Sniper's Focus",
+    "stats": "+20% Attack Damage\n+20 Attack Speed\n+20% Ability Power\n+3 Mana Regen",
+    "effect": "Gain 40% Damage Amp against targets 4 or more hexes away."
+  },
+  {
+    "name": "Soraka's Miracle",
+    "stats": "+100 Health",
+    "effect": "The first 2 times the holder drops below 50% Health, a Miracle occurs, healing them for 20% of their max Health.\n\nIf the holder survives player combat, gain 1 player Health for each Miracle this combat."
+  },
+  {
+    "name": "Statikk Shiv",
+    "stats": "+50 Attack Speed\n+15% Ability Power",
+    "effect": "Every 3rd attack deals 30 + 50% of the holder's Ability Power as additional magic damage to 4 enemies."
+  },
+  {
+    "name": "Talisman Of Ascension",
+    "stats": "+20% Attack Damage\n+20% Ability Power\n+450 Health",
+    "effect": "After 22 seconds gain 100% max Health and 120% Damage Amp for the rest of combat."
+  },
+  {
+    "name": "The Indomitable",
+    "stats": "+500 Health",
+    "effect": "The holder's Move Speed is drastically reduced.\n\nGain 15% max Health, stun immunity, and pull the current target into melee range."
+  },
+  {
+    "name": "Thresh's Lantern",
+    "stats": "+400 Health",
+    "effect": "After 6 seconds of combat, pull the leftmost benched unit onto the battlefield. While that unit lives, 20% of all damage the holder would take is redirected to them.\n\nTraits of champions flung onto the board do not become active"
+  },
+  {
+    "name": "Titanic Hydra",
+    "stats": "+20% Attack Damage\n+20 Attack Speed\n+300 Health",
+    "effect": "Attacks deal 4% of the holder's max Health plus 6% of their Attack Damage as bonus physical damage to the target and adjacent enemies."
+  },
+  {
+    "name": "Varus's Obsession",
+    "stats": "",
+    "effect": "Combat Start: Your strongest Tank becomes the Soulmate. For each second they are alive, the holder gains 3% stacking Attack Damage and Ability Power.\n\nThe Soulmate heals for 20% of damage the holder deals."
+  },
+  {
+    "name": "Void Gauntlet",
+    "stats": "+300 Health",
+    "effect": "Combat start: Store 30% max Health and 2.5% more every second. On death, unleash the stored Health as magic damage split between enemies within 4-hexes.\n\n[Unique - only 1 per champion]"
+  },
+  {
+    "name": "Wit's End",
+    "stats": "+25 Attack Speed\n+400 Health",
+    "effect": "Attacks deal 30/45/65/85/100 bonus magic damage.\n\nHeals the holder for 30% of all magic damage dealt.\n\nDamage increases based on Stage."
+  },
+  {
+    "name": "Yasuo's Bladework",
+    "stats": "+30% Attack Damage\n+10 Attack Speed",
+    "effect": "Every 3 seconds, your next attack is a double attack."
+  },
+  {
+    "name": "Zhonya's Paradox",
+    "stats": "+25% Ability Power",
+    "effect": "Once per combat at 40% Health, become invulnerable and untargetable for 3 seconds.\n\n[Unique - only 1 per champion]"
+  }
+]

@@ -12,8 +12,23 @@ import {
   SupabaseError,
 } from './supabaseService'
 
-const DEV_KEY_LIMIT = 20 // req/sec
+const DEV_KEY_LIMIT = 20 // req/sec (personal dev keys)
 let requestTimestamps: number[] = []
+
+/**
+ * When true, allows browser → Riot calls using `localStorage['tft-ally::riot-api-key']`.
+ * Must stay false for Overwolf / store builds — Riot forbids exposing API keys in distributed clients.
+ */
+function allowClientRiotKey(): boolean {
+  return import.meta.env.VITE_ALLOW_CLIENT_RIOT_KEY === 'true'
+}
+
+function backendRequired(): never {
+  throw new RiotApiError(
+    'Match data is loaded through TFT Ally’s servers. Configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, deploy Supabase Edge Functions, and set the RIOT_API_KEY secret there. Developers may use VITE_ALLOW_CLIENT_RIOT_KEY=true plus a personal key in localStorage only for local testing.',
+    'BACKEND_REQUIRED',
+  )
+}
 
 // Retry configuration
 const MAX_RETRIES = 3
@@ -68,8 +83,16 @@ function waitForRateLimit(): Promise<void> {
 }
 
 function getApiKey(): string {
+  if (!allowClientRiotKey()) {
+    throw new RiotApiError('Client-side Riot API access is disabled.', 'BACKEND_REQUIRED')
+  }
   const key = localStorage.getItem('tft-ally::riot-api-key')
-  if (!key) throw new RiotApiError('No Riot API key configured. Add one in Settings.', 'NO_KEY')
+  if (!key) {
+    throw new RiotApiError(
+      'Dev only: set localStorage key tft-ally::riot-api-key after enabling VITE_ALLOW_CLIENT_RIOT_KEY.',
+      'NO_KEY',
+    )
+  }
   return key
 }
 
@@ -139,8 +162,11 @@ async function trySupabase<T>(
   const log = logFn ?? console.log
 
   if (!hasSupabase()) {
-    log('[FALLBACK] Supabase not configured, using direct API')
-    return fallback()
+    if (allowClientRiotKey()) {
+      log('[RIOT] Supabase not configured; using direct Riot (dev-only)')
+      return fallback()
+    }
+    backendRequired()
   }
 
   let lastError: Error | null = null
@@ -156,17 +182,21 @@ async function trySupabase<T>(
 
       if (err instanceof SupabaseError) {
         if (err.code === 'NO_CONFIG') {
-          log('[FALLBACK] Supabase not configured, using direct API')
-          return fallback()
+          if (allowClientRiotKey()) {
+            log('[FALLBACK] Supabase not configured, using direct Riot (dev-only)')
+            return fallback()
+          }
+          backendRequired()
         }
 
-        // Don't retry client errors (4xx)
         if (err.code === 'EDGE_CLIENT_ERROR') {
-          log(`[FALLBACK] Supabase client error (${err.message}), falling back to direct API`)
-          return fallback()
+          if (allowClientRiotKey()) {
+            log(`[FALLBACK] Supabase client error (${err.message}), using direct Riot (dev-only)`)
+            return fallback()
+          }
+          throw err
         }
 
-        // Retry server errors (5xx)
         if (attempt < MAX_RETRIES) {
           const delay = getRetryDelay(attempt)
           log(`[SUPABASE] Server error, retrying in ${delay}ms (attempt ${attempt + 1}/${MAX_RETRIES})`)
@@ -174,18 +204,21 @@ async function trySupabase<T>(
           continue
         }
 
-        // Max retries reached, fall back to direct API
-        log(`[FALLBACK] Supabase failed after ${MAX_RETRIES + 1} attempts, falling back to direct API`)
-        log(`[FALLBACK] Last error: ${lastError.message}`)
-        return fallback()
+        log(`[SUPABASE] Failed after ${MAX_RETRIES + 1} attempts: ${lastError.message}`)
+        if (allowClientRiotKey()) {
+          log('[FALLBACK] Using direct Riot after Supabase errors (dev-only)')
+          return fallback()
+        }
+        throw new RiotApiError(
+          'TFT Ally servers could not complete this request. Try again shortly.',
+          'BACKEND_DOWN',
+        )
       }
 
-      // Non-Supabase errors - don't retry, just throw
       throw err
     }
   }
 
-  // This should never be reached, but TypeScript needs it
   throw lastError || new Error('Unknown error in trySupabase')
 }
 export async function fetchSummonerByName(name: string, region: RiotRegion, logFn?: (msg: string) => void): Promise<Summoner> {
@@ -243,7 +276,6 @@ export async function fetchMatchIds(
 
   const url = `/tft/match/v1/matches/by-puuid/${puuid}/ids?count=${count}&start=${offset}`
   log(`[MH] fetchMatchIds URL: ${url}`)
-  log(`[MH] Has API key: ${!!import.meta.env.VITE_RIOT_API_KEY}`)
 
   const data = await trySupabase(
     () => fetchMatchIdsSupabase(puuid, riotRegion, count),
@@ -356,10 +388,20 @@ export async function getServerStatus(region: RiotRegion): Promise<Record<string
   )
 }
 
-export async function getActiveGame(puuid: string, region: RiotRegion): Promise<Record<string, unknown>> {
+export async function getActiveGame(puuid: string, region: RiotRegion): Promise<Record<string, unknown> | null> {
   return await trySupabase(
     () => fetchActiveGameSupabase(puuid, region),
-    () => riotFetch<Record<string, unknown>>(`/lol/spectator/v5/active-games/by-summoner/${puuid}`, region),
+    async () => {
+      try {
+        return await riotFetch<Record<string, unknown>>(
+          `/lol/spectator/v5/active-games/by-summoner/${encodeURIComponent(puuid)}`,
+          region,
+        )
+      } catch (e) {
+        if (e instanceof RiotApiError && e.code === 'NOT_FOUND') return null
+        throw e
+      }
+    },
   )
 }
 

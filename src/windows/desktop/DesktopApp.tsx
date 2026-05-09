@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { subscribeToStateSnapshots } from '@/services/ipcService';
-import { getServerStatus, fetchPlayerCard, getActiveGame } from '@/services/riotApiClient';
+import { getServerStatus, fetchPlayerCard, getActiveGame, RiotApiError } from '@/services/riotApiClient';
 import { TeamBuilder } from '@/pages/TeamBuilder';
 import { CompCard } from '@/components/CompCard';
 import { MatchHistory } from '@/pages/MatchHistory';
@@ -177,13 +177,19 @@ function InGamePage() {
     { name: 'LuckySeven', tagline: 'LS', rank: 'Platinum III', lp: 89, recentPlacements: [4,2,3], avgPlace: 3.6, predictedComp: 'Mythic', profileIconId: 9012 },
   ]
 
-  const [searchName, setSearchName] = useState('')
+  const [searchName, setSearchName] = useState(
+    () => (typeof localStorage !== 'undefined' ? localStorage.getItem('tft-ally::summoner-name') ?? '' : ''),
+  )
+  const [ingameError, setIngameError] = useState<string | null>(null)
   const ingameSummonerExamples = useMemo(() => [...EXAMPLE_SUMMONERS], [])
   const { placeholderAnimated: ingameSearchPlaceholder } = useTypewriterPlaceholder(
     ingameSummonerExamples,
     searchName.length > 0,
   )
-  const [region, setRegion] = useState('na1')
+  const [region, setRegion] = useState(() => {
+    if (typeof localStorage === 'undefined') return 'na1'
+    return localStorage.getItem('tft-ally::region') ?? 'na1'
+  })
   const [loading, setLoading] = useState(false)
   const [gameFound, setGameFound] = useState(true)
   const [showingDemo, setShowingDemo] = useState(true)
@@ -199,6 +205,7 @@ function InGamePage() {
     setGameFound(false)
     setGameData(null)
     setGameLength(0)
+    setIngameError(null)
 
     try {
       // First fetch playerCard to get puuid
@@ -209,6 +216,7 @@ function InGamePage() {
 
       if (!activeGame) {
         setGameFound(false)
+        setIngameError('No active League/TFT game found for this player (Riot returns 404 when not in game).')
         setLoading(false)
         return
       }
@@ -246,6 +254,11 @@ function InGamePage() {
     } catch (err) {
       console.error('[INGAME] Search error:', err)
       setGameFound(false)
+      if (err instanceof RiotApiError) {
+        setIngameError(err.message)
+      } else {
+        setIngameError('Something went wrong. Check your connection or try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -367,6 +380,7 @@ function InGamePage() {
           <option value="jp1">JP</option>
         </select>
         <button
+          type="button"
           onClick={handleSearch}
           style={{
             background: '#35c3e7',
@@ -382,6 +396,20 @@ function InGamePage() {
           Search
         </button>
       </div>
+
+      {ingameError && !loading && (
+        <div style={{
+          background: '#3f1a1a',
+          border: '1px solid #ef444440',
+          borderRadius: '6px',
+          padding: '8px 12px',
+          fontSize: '12px',
+          color: '#fca5a5',
+          marginBottom: '12px',
+        }}>
+          {ingameError}
+        </div>
+      )}
 
       {/* Content */}
       {loading ? (
@@ -490,8 +518,10 @@ function InGamePage() {
           height: '200px',
           color: '#a1a1a1',
           fontSize: '14px',
+          textAlign: 'center',
+          padding: '0 12px',
         }}>
-          Not currently in a TFT game
+          {ingameError ? 'See message above.' : 'Not currently in a TFT game'}
         </div>
       )}
 
@@ -508,6 +538,7 @@ function InGamePage() {
 export function DesktopApp() {
   const state = useAppStore((s: any) => s.gameState);
   const accentColor = useAppStore((s: any) => s.settings.accentColor) ?? '#35c3e7';
+  const settingsRegion = useAppStore((s: any) => s.settings.region as string | undefined);
   const lastRawRef = useRef<string>('');
   const [activePage, setActivePage] = useState<string>('in-game');
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
@@ -517,7 +548,7 @@ export function DesktopApp() {
   const [headerSearch, setHeaderSearch] = useState('');
   const [matchHistorySummonerPrefill, setMatchHistorySummonerPrefill] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [serverStatus, setServerStatus] = useState<'online'|'issues'|'offline'|'unknown'>('unknown');
+  const [serverStatus, setServerStatus] = useState<'online'|'issues'|'offline'|'unknown'|'error'>('unknown');
 
   // Unit Guide filters
   const [unitQuery, setUnitQuery] = useState('');
@@ -530,6 +561,7 @@ export function DesktopApp() {
 
   // Items Guide filters
   const [itemQuery, setItemQuery] = useState('');
+  const [itemCategoryFilter, setItemCategoryFilter] = useState<'all' | 'core' | 'emblem' | 'psionic' | 'artifact' | 'divine' | 'anima'>('all');
   const [itemTagFilter, setItemTagFilter] = useState('all');
   const [itemTierFilter, setItemTierFilter] = useState('all');
 
@@ -608,13 +640,26 @@ export function DesktopApp() {
   }, []);
 
   useEffect(() => {
-    const region = useAppStore.getState().settings.region ?? 'euw1'
-    getServerStatus(region).then(data => {
-      if (!data) { setServerStatus('unknown'); return }
-      const hasIssues = (data as any).incidents?.length > 0 || (data as any).maintenances?.length > 0
-      setServerStatus(hasIssues ? 'issues' : 'online')
-    }).catch(() => setServerStatus('unknown'))
-  }, []);
+    let cancelled = false
+    const region = settingsRegion ?? 'euw1'
+    setServerStatus('unknown')
+    getServerStatus(region as any)
+      .then((data) => {
+        if (cancelled) return
+        if (!data) {
+          setServerStatus('unknown')
+          return
+        }
+        const hasIssues = (data as any).incidents?.length > 0 || (data as any).maintenances?.length > 0
+        setServerStatus(hasIssues ? 'issues' : 'online')
+      })
+      .catch(() => {
+        if (!cancelled) setServerStatus('error')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [settingsRegion])
 
   async function handleMinimize() {
     overwolf.windows.minimize(await getCurrentWindowId(), () => {});
@@ -856,6 +901,8 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
             <ItemsGuide
               query={itemQuery}
               setQuery={setItemQuery}
+              categoryFilter={itemCategoryFilter}
+              setCategoryFilter={setItemCategoryFilter}
               tagFilter={itemTagFilter}
               setTagFilter={setItemTagFilter}
               tierFilter={itemTierFilter}
@@ -968,9 +1015,19 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
           <div style={{marginBottom:'16px'}}>
             <div style={{fontSize:'9px',color:'#a1a1a1',textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:'8px'}}>Server Status</div>
             <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
-              <div style={{width:'8px',height:'8px',borderRadius:'50%',background: serverStatus==='online'?'#22c55e': serverStatus==='issues'?'#f0b429':'#ef4444', boxShadow: serverStatus==='online'?'0 0 6px #22c55e80':serverStatus==='issues'?'0 0 6px #f0b42980':'0 0 6px #ef444480'}} />
-              <span style={{fontSize:'12px',color: serverStatus==='online'?'#22c55e':serverStatus==='issues'?'#f0b429':'#ef4444',fontWeight:500}}>
-                {serverStatus==='online'?'All Systems Online':serverStatus==='issues'?'Some Issues':'Status Unknown'}
+              <div style={{
+                width:'8px',
+                height:'8px',
+                borderRadius:'50%',
+                background: serverStatus==='online'?'#22c55e': serverStatus==='issues'?'#f0b429': serverStatus==='error'?'#f97316':'#ef4444',
+                boxShadow: serverStatus==='online'?'0 0 6px #22c55e80':serverStatus==='issues'?'0 0 6px #f0b42980': serverStatus==='error'?'0 0 6px #f9731680':'0 0 6px #ef444480',
+              }} />
+              <span style={{
+                fontSize:'12px',
+                color: serverStatus==='online'?'#22c55e':serverStatus==='issues'?'#f0b429': serverStatus==='error'?'#f97316':'#ef4444',
+                fontWeight:500,
+              }}>
+                {serverStatus==='online'?'All Systems Online':serverStatus==='issues'?'Some Issues':serverStatus==='error'?'Could not load platform status':'Status Unknown'}
               </span>
             </div>
           </div>

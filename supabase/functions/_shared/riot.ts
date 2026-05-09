@@ -92,6 +92,27 @@ export async function riotPlatformFetch<T>(
   return (await res.json()) as T;
 }
 
+/** Platform host; 404 → null (used for spectator “no active game”). */
+export async function riotPlatformFetchOrNull<T>(
+  region: string,
+  endpoint: string,
+): Promise<T | null> {
+  await waitForRateLimit();
+  const apiKey = getApiKey();
+  const url = `https://${region}.api.riotgames.com${endpoint}`;
+
+  const res = await fetch(url, {
+    headers: { "X-Riot-Token": apiKey },
+  });
+
+  if (res.status === 404) return null;
+  if (res.status === 429) throw new RiotError("Rate limited by Riot", "RATE_LIMIT", 429);
+  if (res.status === 403) throw new RiotError("Invalid API key", "FORBIDDEN", 403);
+  if (!res.ok) throw new RiotError(`Riot API error ${res.status}`, "API_ERROR", res.status);
+
+  return (await res.json()) as T;
+}
+
 export async function riotRegionalFetch<T>(
   region: string,
   endpoint: string,

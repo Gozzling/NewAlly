@@ -1,4 +1,4 @@
-import { riotPlatformFetch, jsonResponse, errorResponse } from "../_shared/riot.ts";
+import { riotPlatformFetchOrNull, jsonResponse, errorResponse } from "../_shared/riot.ts";
 
 // GET /lol/spectator/v5/active-games/by-summoner/{puuid}
 Deno.serve(async (req: Request) => {
@@ -23,7 +23,7 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Missing 'puuid'", code: "BAD_REQUEST" }, 400);
     }
 
-    const data = await riotPlatformFetch(
+    const data = await riotPlatformFetchOrNull<Record<string, unknown>>(
       region,
       `/lol/spectator/v5/active-games/by-summoner/${encodeURIComponent(puuid)}`,
     );

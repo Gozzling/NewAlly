@@ -3,6 +3,8 @@ export function itemIconSlug(displayName: string): string {
   return displayName.replace(/['\u2019\u0060\u00B4]/g, "").replace(/\s+/g, "")
 }
 
-export function itemIconUrl(displayName: string): string {
-  return `/item-icons/${itemIconSlug(displayName)}.png`
+/** Optional slug override (e.g. category placeholders). */
+export function itemIconUrl(displayName: string, iconSlug?: string): string {
+  const base = iconSlug ?? displayName
+  return `/item-icons/${itemIconSlug(base)}.png`
 }

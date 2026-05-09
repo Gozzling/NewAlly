@@ -156,6 +156,6 @@ export async function fetchServerStatusSupabase(region: RiotRegion): Promise<Rec
   return invoke<Record<string, unknown>>('tft-status', { region })
 }
 
-export async function fetchActiveGameSupabase(puuid: string, region: RiotRegion): Promise<Record<string, unknown>> {
-  return invoke<Record<string, unknown>>('tft-spectator', { puuid, region })
+export async function fetchActiveGameSupabase(puuid: string, region: RiotRegion): Promise<Record<string, unknown> | null> {
+  return invoke<Record<string, unknown> | null>('tft-spectator', { puuid, region })
 }

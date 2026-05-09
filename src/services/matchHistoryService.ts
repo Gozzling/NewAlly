@@ -1,5 +1,5 @@
 import type { Match, MatchDetail, RiotRegion } from '../types/riot'
-import { fetchMatchIds, fetchMatchDetail, regionToMatchRegion } from './riotApiClient'
+import { fetchMatchIds, fetchMatchDetail, regionToMatchRegion, RiotApiError } from './riotApiClient'
 import { getCache, setCache, removeCache, ONE_DAY } from './storageService'
 import { supabase, hasSupabase } from './supabaseClient'
 import type { PersonalMatchRecord } from './indexedDbService'
@@ -317,6 +317,18 @@ export async function fetchPlayerMatchHistory(
 
     return matches
   } catch (error) {
+    if (error instanceof RiotApiError) {
+      if (error.code === 'BACKEND_REQUIRED') {
+        throw new MatchHistoryError(error.message, 'BACKEND_REQUIRED', false, error)
+      }
+      if (error.code === 'BACKEND_DOWN') {
+        throw new ServiceUnavailableError(error.message)
+      }
+      if (error.code === 'NOT_FOUND') {
+        throw new InvalidPlayerError('Player not found. Please check the summoner name and region.')
+      }
+    }
+
     // Enhance error messages based on error type
     if (error instanceof Error) {
       // Check for network-related errors
@@ -475,6 +487,10 @@ export function getUserFriendlyErrorMessage(error: Error): string {
     return error.message
   }
 
+  if (error instanceof RiotApiError) {
+    return error.message
+  }
+
   // Generic fallback
   return 'An unexpected error occurred. Please try again.'
 }
@@ -500,11 +516,16 @@ export function getErrorActionText(error: Error): string {
     return 'Riot servers are temporarily unavailable'
   }
 
+  if (error instanceof MatchHistoryError && error.code === 'BACKEND_REQUIRED') {
+    return 'Use the production build with Supabase configured, or enable the developer Riot key flag only for local testing'
+  }
+
   return 'Try refreshing the page'
 }
 
 export function isRetryableError(error: Error): boolean {
   if (error instanceof MatchHistoryError) {
+    if (error.code === 'BACKEND_REQUIRED') return false
     return error.retryable
   }
   return true

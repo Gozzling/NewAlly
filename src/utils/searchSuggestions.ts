@@ -7,6 +7,7 @@ import {
   ALL_COMPONENTS,
   PSIONIC_ITEMS,
 } from '@/data/items'
+import { ITEM_GUIDE_ENTRIES } from '@/data/itemGuideCatalog'
 import { EXAMPLE_SUMMONERS } from '@/data/exampleSummoners'
 
 export type SearchSuggestionKind = 'unit' | 'item' | 'trait' | 'augment' | 'summoner'
@@ -62,6 +63,7 @@ function buildCorpus(): SearchSuggestion[] {
   }
   for (const c of ALL_COMPONENTS) addItem(c)
   for (const p of PSIONIC_ITEMS) addItem(p.name)
+  for (const e of ITEM_GUIDE_ENTRIES) addItem(e.name)
 
   for (const u of UNITS) {
     out.push({ kind: 'unit', id: u.id, label: u.name })

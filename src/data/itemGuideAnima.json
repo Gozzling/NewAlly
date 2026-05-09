@@ -1,0 +1,127 @@
+[
+  {
+    "name": "Animapocalypse",
+    "stats": "+30% Attack Damage\n+30% Ability Power\n+5 Mana Regen",
+    "effect": "Store 20% of damage dealt. Every 6 seconds and on death, deal the stored damage as true damage to all enemies, reduced by 5% for each hex they are from the epicenter.\n\nRecommended Roles: Attack or Magic Caster\n\nAnomaly\n\nEvolve the holder, granting an effect based on their role.\n\n Tank: Gain 1100 health and grow in size. \n\n Marksman: Gain 75% Attack Speed. On cast, knock back their target if within 3 hexes of them. \n\n Fighter/Assassin: Gain 35 Ability Power & 35% Attack Damage. Triple it when below 85% Health. \n\n Caster: For every 50 Mana spent, throw a 2-hex fireball that deals 5% max Health true damage, 33% Wounds, and 1% Burns for 5 seconds. \n\n Specialist: Gain 6 stars that orbit this champion. Each star deals 85 magic damage and the orbit expands to hit the champion's current target."
+  },
+  {
+    "name": "Battle Bunny Crossbow",
+    "stats": "+20% Attack Damage\n+25 Attack Speed",
+    "effect": "Gain Precision.\n\nEvery 4 critical strikes, fire 5 piercing arrows that can critically strike towards the target. Each deals 80% physical damage.\n\nPrecision: Ability damage can critically strike. Additional Precision grants 10% Critical Strike Damage.\n\nMax 3 stacks per Ability cast.\n\nRecommended Roles: Attack Marksman or Fighter\n\nBiomatter Preserver\n\n+550 Health\n\nGain 0% max Health and deploy 3 Life Orbs. Every 8 seconds of combat, one drops restoring 18% of the holder's missing Health.\n\nAt (4): If the holder is Psionic, they gain 22% increased healing from all sources.\n\nRecommended user: Gragas.\n\nBiomatter Preserver\n\n+250 Health\n\nGain 0% max Health and deploy 3 Life Orbs. Every 8 seconds of combat, one drops restoring 18% of the holder's missing Health.\n\nRecommended user: Gragas."
+  },
+  {
+    "name": "Broken Prototype",
+    "stats": "+100 Health",
+    "effect": "Combat start: Gain a 15% max Health shield."
+  },
+  {
+    "name": "Bunny Prime Ballista",
+    "stats": "+30% Attack Damage\n+50 Attack Speed",
+    "effect": "Gain Precision.\n\nEvery 3 critical strikes, fire 6 piercing arrows that can critically strike towards the target. Each deals 100% physical damage.\n\nOn takedown, fire a burst of 12 arrows from the target.\n\nPrecision: Ability damage can critically strike. Additional Precision grants 10% Critical Strike Damage.\n\nMax 3 stacks per Ability cast.\n\nRecommended Roles: Attack Marksman or Fighter\n\nChallenger Mode\n\nMiss Fortune gains the Challenger trait.\n\nConduit Mode\n\nMiss Fortune gains the Conduit trait.\n\nCrown of Demacia\n\n+30 Attack Speed\n\n+300 Health\n\nIf the holder is a Tank, regenerate 3-21% maximum Health every 2 seconds (based on stage). Otherwise, gain 10% Attack Damage and Ability Power every 2 seconds instead.\n\nIf the holder of this item dies, you instantly lose the fight.\n\nYou can remove this item by benching the holder."
+  },
+  {
+    "name": "Cyclonic Slicers",
+    "stats": "+20% Attack Damage\n+20% Ability Power",
+    "effect": "Gain 3 orbiting razors. Razors deal 0 magic damage, and 30% Shred and Sunder enemies for 4 seconds. Deal 10% increased damage to Shredded or Sundered enemies.\n\nDamage increases based on Stage.\n\nRecommended Roles: Attack or Magic Fighter"
+  },
+  {
+    "name": "Deep Freeze",
+    "stats": "+550 Health",
+    "effect": "The first time you fall below 90%, 60%, 40%, and 20% health, gain a 20% max health shield for 4 seconds. When this happens, release a frost nova that stuns enemies within 2 hexes for 2 seconds and deals magic damage equal to 15% of their max Health.\n\nThe radius increases by 1 each nova.\n\nRecommended Roles: Attack or Magic Tank\n\nDrone Uplink\n\n+30% Ability Power\n\nA drone repeats 25% of damage from the holder's attacks and Abilities to the same targets every 3 seconds.\n\nAt (4): If the holder is Psionic, gain an additional mini-drone that repeats 20% of damage.\n\nRecommended users: Sona and Viktor.\n\nDrone Uplink\n\n+25% Ability Power\n\nA drone repeats 20% of damage from the holder's attacks and Abilities to the same targets every 3 seconds.\n\nRecommended users: Sona and Viktor."
+  },
+  {
+    "name": "Echoing Batblades",
+    "stats": "+30% Attack Damage\n+20 Attack Speed",
+    "effect": "Every 3 attacks, fire 10 batblades split between the 3 nearest enemies. Each blade deals 50% physical damage.\n\nRecommended Role: Attack Marksman"
+  },
+  {
+    "name": "Evolved Embershot",
+    "stats": "+40% Attack Damage\n+40% Ability Power\n+5 Mana Regen",
+    "effect": "For every 15 mana spent, fire a projectile at a nearby enemy dealing 0 + 50% of the holder's Ability Power magic damage, and applying 1% Burn and 33% Wound to enemies for 10 seconds.\n\nEach projectile leaves a lingering field that deals 0 magic damage to enemies each second.\n\nDamage increases based on Stage.\n\nBurn: Deals a percent of the target's max Health as true damage every second\n\nWound: Reduces healing received\n\nRecommended Roles: Magic Caster\n\nGuiding Hex\n\n+15% Ability Power\n\nEvery 3 seconds, fire a bolt at a random enemy in Attack Range, dealing 0 magic damage.\n\n Aurora Bonus: If this item is equipped on Aurora, she gains 9 Ability Power when the bolt hits. \n\nDamage increases based on Stage."
+  },
+  {
+    "name": "Iceblast Armor",
+    "stats": "+250 Health",
+    "effect": "The first time you fall below 70% and 35% health, gain a 25% max health shield for 4 seconds and release a frost nova that stuns enemies within 3 hexes for 2 seconds.\n\nRecommended Roles: Attack or Magic Tank\n\nKayle's Exaltation\n\n+25% Attack Damage\n\n+15 Attack Speed\n\n+25% Ability Power\n\nAfter 18 seconds of combat, this and all completed items on the holder become Radiant.\n\nKayle's Radiant Exaltation\n\n+50% Attack Damage\n\n+30 Attack Speed\n\n+50% Ability Power\n\nBehold, the righteous flame!"
+  },
+  {
+    "name": "Leaky Prototype",
+    "stats": "+15% Ability Power",
+    "effect": "Every 5 seconds, this item loses 3 Ability Power and gains 1 Mana Regen."
+  },
+  {
+    "name": "Leonine Lamentation",
+    "stats": "+400 Health",
+    "effect": "Every 15% max health lost, fire crescent projectiles in 3 lines dealing physical damage equal to 50% of the holder's Armor and Magic Resist. Steal 10 Armor and Magic Resist from all enemies hit.\n\nRecommended Roles: Attack or Magic Tank"
+  },
+  {
+    "name": "Lioness's Lament",
+    "stats": "+200 Health",
+    "effect": "Every 15% max health lost, fire crescent projectiles in a line dealing physical damage equal to 50% of the holder's Armor and Magic Resist. Steal 4 Armor and Magic Resist from all enemies hit.\n\nRecommended Roles: Attack or Magic Tank\n\nMalware Matrix\n\n+15% Attack Damage\n\n+15 Attack Speed\n\nDealing physical damage to an enemy reduces the target's Armor by 2. (Ability Damage Cooldown: 0.75 seconds)\n\nAt (4): If the holder is Psionic, every 3rd attack cleaves, dealing 75 () physical damage to nearby enemies.\n\nRecommended users: Master Yi and Pyke.\n\nMalware Matrix\n\n+15% Attack Damage\n\n+15 Attack Speed\n\nDealing physical damage to an enemy reduces the target's Armor by 2. (Ability Damage Cooldown: 0.75 seconds)\n\nRecommended users: Master Yi and Pyke."
+  },
+  {
+    "name": "Omniweapon",
+    "stats": "+100% Attack Damage\n+100 Attack Speed\n+100% Ability Power\n+10000 Health\n+10 Mana Regen",
+    "effect": "The pinnacle of Anima technology."
+  },
+  {
+    "name": "OwO Blaster",
+    "stats": "+35% Attack Damage\n+75 Attack Speed",
+    "effect": "Every attack, fire 9 laser blasts random targets in range, dealing 40% of the holder's Attack Damage as physical damage.\n\nRecommended Roles: Attack Marksman"
+  },
+  {
+    "name": "Radiant Field",
+    "stats": "+400 Health",
+    "effect": "Gain 20% max health. Every second, deal magic damage in a 1-hex radius equal to 3% of the holder's max Health. Radius increases every 6 seconds.\n\nRecommended Roles: Attack or Magic Tank\n\nReplicator Mode\n\nMiss Fortune gains the Replicator trait."
+  },
+  {
+    "name": "Rocket Swarm",
+    "stats": "+10% Attack Damage\n+3 Mana Regen",
+    "effect": "Every 30 Mana spent, fire a barrage of 4 rockets at the target, each dealing 30% physical damage.\n\n Jinx Bonus: If this item is equipped on Jinx, instead replace all ability bullets with rockets that deal 35% increased damage."
+  },
+  {
+    "name": "Savage Slicer",
+    "stats": "+10% Attack Damage",
+    "effect": "Attacks hit the target and all adjacent enemies for 30% of Basic Attack Damage. Omnivamp applies 150% to this damage.\n\n Briar Bonus: If this item is equipped on Briar, on cast this effect happens 10 times."
+  },
+  {
+    "name": "Searing Shortbow",
+    "stats": "+10% Attack Damage\n+40% Ability Power\n+4 Mana Regen",
+    "effect": "For every 20 mana spent, fire a projectile at a nearby enemy, dealing 0 + 75% of the holder's Ability Power magic damage and applying 1% Burn and 33% Wound to enemies for 3 seconds.\n\nDamage increases based on Stage.\n\nBurn: Deals a percent of the target's max Health as true damage every second\n\nWound: Reduces healing received\n\nRecommended Role: Magic Caster\n\nShadow Puppet\n\n+10 Attack Speed\n\nSpawn a clone that copies the holder's items. The clone has 60% max Health and deals 40% damage.\n\n[Unique - only 1 per champion]"
+  },
+  {
+    "name": "Solar Eclipse",
+    "stats": "+800 Health",
+    "effect": "Gain 18% max Health. Every second, deal magic damage in a 2 hex radius equal to 5% of the holder's max Health, and gain max Health equal to 20% of damage dealt. Radius increases every 6 seconds.\n\nRecommended Roles: Attack or Magic Tank"
+  },
+  {
+    "name": "Sparking Prototype",
+    "stats": "+10% Attack Damage",
+    "effect": "Every 4 seconds, gain 30% Attack Speed for 4 seconds.\n\nSuspicious Trench Coat\n\n+15 Attack Speed\n\n+100 Health\n\nOnce per combat at 60% Health, the holder splits into 3 copies of themself each with 33% of their max Health.\n\n[Unique - only 1 per champion]\n\nSympathetic Implant\n\n+20% Ability Power\n\n+2 Mana Regen\n\nEvery 5 seconds, gain 1 additional Mana Regen.\n\nRecommended users: Sona and Viktor.\n\nSympathetic Implant\n\n+20% Ability Power\n\n+4 Mana Regen\n\nEvery 5 seconds, gain 1 additional Mana Per Second.\n\nAt (4): If the holder is Psionic, their abilities deal 25% of their ability damage as true damage instead.\n\nRecommended users: Sona and Viktor.\n\nTarget-Lock Optics\n\n+15% Attack Damage\n\n+35 Attack Speed\n\nThe holder's first attack on each enemy deals 150 () additional damage.\n\nRecommended users: Pyke and Master Yi\n\nTarget-Lock Optics\n\n+25% Attack Damage\n\n+35 Attack Speed\n\nThe holder's first attack on each enemy deals 150 () additional damage.\n\nAt (4): If the holder is Psionic, they heal 20% of their max Health whenever their target dies.\n\nRecommended users: Pyke and Master Yi"
+  },
+  {
+    "name": "Tentacle Slam",
+    "stats": "+150 Health",
+    "effect": "Every 5 seconds, summon a tentacle that slams down on the target, dealing 0 physical damage and healing the holder for 12% max health.\n\n Illaoi Bonus: If this item is equipped on Illaoi, an additional tentacle slams targets drained by her ability at 35% effectiveness. \n\nDamage increases based on Stage."
+  },
+  {
+    "name": "The Annihilator",
+    "stats": "+20% Attack Damage\n+30% Ability Power\n+3 Mana Regen",
+    "effect": "Store 20% of damage dealt. On death or after 16 seconds in combat, deal the stored damage as true damage to all enemies, reduced by 15% for each hex they are away from the epicenter.\n\nRecommended Roles: Attack or Magic Caster"
+  },
+  {
+    "name": "Unceasing Cyclone",
+    "stats": "+30% Attack Damage\n+30% Ability Power",
+    "effect": "Gain 6 orbiting razors. Razors deal 0 true damage, and 30% Shred and Sunder enemies for the rest of combat. Deal 30% increased damage to Shredded or Sundered enemies.\n\nDamage increases based on Stage.\n\nRecommended Roles: Attack or Magic Fighter"
+  },
+  {
+    "name": "UwU Blaster",
+    "stats": "+25% Attack Damage\n+45 Attack Speed",
+    "effect": "Every attack, fire 3 laser blasts random targets in range, dealing 40% of the holder's Attack Damage as physical damage.\n\nRecommended Role: Attack Marksman"
+  },
+  {
+    "name": "Vayne's Chromablades",
+    "stats": "+30% Attack Damage\n+50 Attack Speed",
+    "effect": "Every 5 attacks, fire 30 chromablades split between all enemies. Each blade deals 50% physical damage.\n\nRecommended Role: Attack Marksman"
+  }
+]

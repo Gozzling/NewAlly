@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — TFT Ally</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f0f1a;
+      color: #e0e0e0;
+      line-height: 1.65;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 48px 20px 80px; }
+    h1 { font-size: 1.75rem; color: #c9a96e; margin-bottom: 0.5rem; }
+    .updated { font-size: 0.85rem; color: #8892b0; margin-bottom: 2rem; }
+    h2 { font-size: 1.1rem; color: #64ffda; margin: 2rem 0 0.75rem; }
+    p, ul { margin-bottom: 1rem; color: #a0a8c0; font-size: 0.95rem; }
+    ul { padding-left: 1.25rem; }
+    a { color: #64ffda; }
+    .footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #2a2a4a; font-size: 0.8rem; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Privacy Policy</h1>
+    <p class="updated">TFT Ally — Last updated: May 9, 2026</p>
+
+    <p>This policy describes how <strong>TFT Ally</strong> (“the app”) handles information when you use the desktop / Overwolf companion. It is provided for app store and developer registration requirements. Host this file at a stable public URL (for example your GitHub Pages site) and use that URL in store listings.</p>
+
+    <h2>What we collect</h2>
+    <ul>
+      <li><strong>Settings you enter</strong> — e.g. summoner name and region may be stored locally on your device (browser <code>localStorage</code>) to prefill forms. You can clear this from the app’s settings where available.</li>
+      <li><strong>Game-related signals</strong> — when running inside Overwolf, the app may use Overwolf’s documented Game Events / game info APIs to know when a match is active and to show the overlay. We do not use this to identify you beyond what Overwolf and the game client already expose to the app.</li>
+      <li><strong>Riot account lookups</strong> — if you search for a player, the app requests public Riot API data (e.g. match history) via our backend (Supabase Edge Functions). Those requests are processed server-side; your Riot API developer key is not embedded in public builds.</li>
+    </ul>
+
+    <h2>What we do not do</h2>
+    <ul>
+      <li>We do not sell your personal information.</li>
+      <li>We do not require an account to use core features described in the public listing.</li>
+      <li>We do not intentionally read passwords, payment data, or unrelated files on your PC.</li>
+    </ul>
+
+    <h2>Third parties</h2>
+    <p>The app relies on <strong>Riot Games</strong> (public APIs and policies), <strong>Overwolf</strong> (runtime and distribution), and optionally <strong>Supabase</strong> (hosted backend). Their respective terms and privacy policies apply to their services. Links: <a href="https://developer.riotgames.com/policies" target="_blank" rel="noopener noreferrer">Riot developer policies</a>, <a href="https://www.overwolf.com/privacy" target="_blank" rel="noopener noreferrer">Overwolf privacy</a>, <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">Supabase privacy</a>.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about this policy: open an issue on the project repository or use the support channel listed on the app’s store page.</p>
+
+    <div class="footer">
+      <p><strong>TFT Ally</strong> isn’t endorsed by Riot Games. Riot Games and associated properties are trademarks or registered trademarks of Riot Games, Inc.</p>
+      <p style="margin-top: 0.75rem;"><a href="terms.html">Terms of use</a> · <a href="./index.html">← Back to landing</a></p>
+    </div>
+  </div>
+</body>
+</html>

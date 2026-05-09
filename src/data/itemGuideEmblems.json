@@ -1,0 +1,97 @@
+[
+  {
+    "name": "Brawler Emblem",
+    "stats": "+250 Health",
+    "effect": "The holder gains the Brawler trait. Attacks deals 3% of the holder's max health as magic damage."
+  },
+  {
+    "name": "Dark Star Emblem",
+    "stats": "+18% Attack Damage\n+18% Ability Power",
+    "effect": "The holder gains the Dark Star trait."
+  },
+  {
+    "name": "Psionic Emblem",
+    "stats": "+20% Attack Damage\n+20 Attack Speed\n+20% Ability Power\n+300 Health",
+    "effect": "The holder gains the Psionic trait."
+  },
+  {
+    "name": "Shepherd Emblem",
+    "stats": "+2 Mana Regen",
+    "effect": "The holder gains the Shepherd trait. On cast, grant 8% of max Mana to the Bond of the Stars."
+  },
+  {
+    "name": "N.O.V.A. Emblem",
+    "stats": "+200 Health",
+    "effect": "The holder gains the N.O.V.A. trait.\n\n N.O.V.A. Strike: Gain 25% Attack Speed and 10 Armor and Magic Resist. Other allies gain 10% Attack Speed and 10 Armor and Magic Resist."
+  },
+  {
+    "name": "Anima Emblem",
+    "stats": "+250 Health",
+    "effect": "The holder gains the Anima trait."
+  },
+  {
+    "name": "Timebreaker Emblem",
+    "stats": "+15 Attack Speed\n+200 Health",
+    "effect": "The holder gains the Timebreaker trait."
+  },
+  {
+    "name": "Voyager Emblem",
+    "stats": "+20% Attack Damage\n+20% Ability Power",
+    "effect": "The holder gains the Voyager trait.\n\nCombat Start: The holder and allies within 1 hex in the same row gain a bonus based on the holder's role.\n\n- Tanks: 10 Armor and Magic Resist\n\n- Fighters/Assassins: 10% Omnivamp\n\n- Other Roles: 10% Attack Speed"
+  },
+  {
+    "name": "Marauder Emblem",
+    "stats": "+20% Attack Damage",
+    "effect": "The holder gains the Marauder trait and has a 33% chance to drop 1 gold on kill."
+  },
+  {
+    "name": "Sniper Emblem",
+    "stats": "+20 Attack Speed",
+    "effect": "The holder gains the Sniper trait and +1 Attack Range."
+  },
+  {
+    "name": "Arbiter Emblem",
+    "stats": "+20 Attack Speed",
+    "effect": "The holder gains the Arbiter trait."
+  },
+  {
+    "name": "Mecha Emblem",
+    "stats": "+450 Health",
+    "effect": "The holder gains the Mecha (Primordian) trait."
+  },
+  {
+    "name": "Vanguard Emblem",
+    "stats": "",
+    "effect": "The holder gains the Vanguard trait. Gain 2% Ability Power whenever an ally gains a shield."
+  },
+  {
+    "name": "Bastion Emblem",
+    "stats": "",
+    "effect": "The holder gains the Bastion trait. After the first 10 seconds of combat, the holder gains 70% Attack Speed."
+  },
+  {
+    "name": "Space Groove Emblem",
+    "stats": "+200 Health",
+    "effect": "The holder gains the Space Groove trait. On cast, the holder enters The Groove for 2.5 seconds."
+  },
+  {
+    "name": "Stargazer Emblem",
+    "stats": "+15% Attack Damage\n+15% Ability Power",
+    "effect": "The holder gains the Stargazer trait."
+  },
+  {
+    "name": "Meeple Emblem",
+    "stats": "+2 Mana Regen",
+    "effect": "The holder gains the Meeple trait and 1 additional Mana Regen per."
+  },
+  {
+    "name": "Replicator Emblem",
+    "stats": "+10% Attack Speed\n+15% Ability Power",
+    "effect": "The holder gains the Replicator trait."
+  },
+  {
+    "name": "Conduit Emblem",
+    "stats": "+15% Ability Power\n+150 Health",
+    "effect": "The holder gains the Conduit trait."
+  }
+]
