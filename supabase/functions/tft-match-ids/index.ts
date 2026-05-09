@@ -17,7 +17,12 @@ Deno.serve(async (req: Request) => {
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
     const puuid = String(body.puuid ?? "").trim();
     const region = String(body.region ?? "euw1").toLowerCase();
-    const count = Math.min(Math.max(Number(body.count ?? 20), 1), 50);
+    const requestedCount = Number(body.count ?? 20);
+    const count = Number.isFinite(requestedCount)
+      ? Math.min(Math.max(Math.trunc(requestedCount), 1), 50)
+      : 20;
+    const requestedOffset = Number(body.offset ?? 0);
+    const offset = Number.isFinite(requestedOffset) ? Math.max(Math.trunc(requestedOffset), 0) : 0;
 
     if (!puuid) {
       return jsonResponse({ error: "Missing 'puuid'", code: "BAD_REQUEST" }, 400);
@@ -25,7 +30,7 @@ Deno.serve(async (req: Request) => {
 
     const data = await riotRegionalFetch<string[]>(
       region,
-      `/tft/match/v1/matches/by-puuid/${encodeURIComponent(puuid)}/ids?count=${count}`,
+      `/tft/match/v1/matches/by-puuid/${encodeURIComponent(puuid)}/ids?count=${count}&start=${offset}`,
     );
 
     return jsonResponse(data);

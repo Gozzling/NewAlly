@@ -278,7 +278,7 @@ export async function fetchMatchIds(
   log(`[MH] fetchMatchIds URL: ${url}`)
 
   const data = await trySupabase(
-    () => fetchMatchIdsSupabase(puuid, riotRegion, count),
+    () => fetchMatchIdsSupabase(puuid, riotRegion, count, offset, log),
     async () => {
       log('[FALLBACK] Using direct Riot API')
       const fullUrl = `https://${matchRegion}.api.riotgames.com${url}`
