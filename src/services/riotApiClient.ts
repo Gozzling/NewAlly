@@ -209,8 +209,14 @@ async function trySupabase<T>(
           log('[FALLBACK] Using direct Riot after Supabase errors (dev-only)')
           return fallback()
         }
+        const hint =
+          lastError instanceof SupabaseError
+            ? ` ${lastError.message}`
+            : lastError instanceof Error
+              ? ` ${lastError.message}`
+              : ''
         throw new RiotApiError(
-          'TFT Ally servers could not complete this request. Try again shortly.',
+          `TFT Ally servers could not complete this request. Try again shortly.${hint}`,
           'BACKEND_DOWN',
         )
       }
@@ -394,7 +400,7 @@ export async function getActiveGame(puuid: string, region: RiotRegion): Promise<
     async () => {
       try {
         return await riotFetch<Record<string, unknown>>(
-          `/lol/spectator/v5/active-games/by-summoner/${encodeURIComponent(puuid)}`,
+          `/lol/spectator/tft/v5/active-games/by-puuid/${encodeURIComponent(puuid)}`,
           region,
         )
       } catch (e) {

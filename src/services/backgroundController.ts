@@ -14,6 +14,8 @@ import {
   createIpcGameStateMessage,
   createIpcGepStatusMessage,
   createIpcBackgroundErrorMessage,
+  createIpcPersonalMatchMessage,
+  type IpcPersonalMatchMessage,
   type IpcTftPayload,
 } from "@/engine/events/ipcWire";
 import type { MetaComp, ItemRecipes, TftGameState } from "@/types/tft";
@@ -118,12 +120,34 @@ function buildPersonalMatchRecord(eventData?: Record<string, unknown>): Personal
   };
 }
 
+function personalMatchForIpc(r: PersonalMatchRecord): IpcPersonalMatchMessage["match"] {
+  return {
+    id: r.id,
+    createdAt: r.createdAt,
+    timestamp: r.timestamp,
+    summonerName: r.summonerName,
+    region: r.region,
+    syncedAt: r.syncedAt,
+    isSynced: r.isSynced,
+    syncStatus: r.syncStatus,
+    placement: r.placement,
+    units: r.units,
+    items: r.items,
+    augments: r.augments,
+    comp: r.comp,
+    compName: r.compName ?? null,
+    duration: r.duration,
+    source: r.source,
+  };
+}
+
 async function persistAndSyncPersonalMatch(eventData?: Record<string, unknown>): Promise<void> {
   const record = buildPersonalMatchRecord(eventData);
 
   try {
     await savePersonalMatch(record);
     useAppStore.getState().addPersonalMatch(record);
+    broadcastPayload(createIpcPersonalMatchMessage(personalMatchForIpc(record)));
     console.debug("[BG][match_end] personal match saved", { id: record.id });
   } catch (e) {
     console.error("[BG][match_end] failed to save IndexedDB match", e);

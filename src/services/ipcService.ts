@@ -6,7 +6,9 @@ import {
   isIpcCaptureStatusMessage,
   isIpcGameStateMessage,
   isIpcGepStatusMessage,
+  isIpcPersonalMatchMessage,
 } from "@/engine/events";
+import type { PersonalMatchRecord } from "@/services/indexedDbService";
 import { useAppStore } from "@/store/useAppStore";
 import type { TftGameState } from "@/types/tft";
 
@@ -37,6 +39,11 @@ export function subscribeToStateSnapshots(): () => void {
   const handleMessage = (msg: unknown) => {
     const raw = msg as { content?: unknown } | null | undefined;
     const payload = raw?.content ?? raw;
+
+    if (isIpcPersonalMatchMessage(payload)) {
+      useAppStore.getState().addPersonalMatch(payload.match as PersonalMatchRecord);
+      return;
+    }
 
     if (isIpcGameStateMessage(payload)) {
       const state = payload.state as TftGameState;

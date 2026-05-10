@@ -113,4 +113,71 @@ describe("runRecommendationEngine (integration)", () => {
     expect(shopTrait).toBeDefined();
     expect(shopTrait!.detail).toMatch(/Bastion/i);
   });
+
+  it("adds personal match-history stats to trait shop hint when samples exist", () => {
+    const baseMatch = {
+      summonerName: "me",
+      region: "na1" as const,
+      syncStatus: "synced" as const,
+      items: [] as string[],
+      augments: [] as string[],
+      comp: null,
+      compName: null,
+      duration: null,
+      source: "gep_match_end" as const,
+    };
+    const matches: PersonalMatchRecord[] = Array.from({ length: 8 }, (_, i) => ({
+      ...baseMatch,
+      id: `hist-${i}`,
+      createdAt: 2000 - i,
+      timestamp: 2000 - i,
+      placement: i < 6 ? 2 : 7,
+      units: ["Aatrox", "Aatrox", "Aatrox", "Aatrox"],
+    }));
+
+    const gs: TftGameState = {
+      ...EMPTY_STATE,
+      isInGame: true,
+      gold: 0,
+      shopUnits: [],
+      board: {
+        units: [
+          {
+            name: "Aatrox",
+            boardIndex: 0,
+            x: 0,
+            y: 0,
+            starLevel: 1,
+            items: [],
+            location: "board",
+          },
+          {
+            name: "Poppy",
+            boardIndex: 1,
+            x: 1,
+            y: 0,
+            starLevel: 1,
+            items: [],
+            location: "board",
+          },
+          {
+            name: "Ornn",
+            boardIndex: 2,
+            x: 2,
+            y: 0,
+            starLevel: 1,
+            items: [],
+            location: "board",
+          },
+        ],
+        grid: {},
+      },
+    };
+    const recs = recommendationsFromGameState(gs, matches, "test", 4);
+    const shopTrait = recs.find((r) => r.category === "shop" && r.id.startsWith("shop:trait:"));
+    expect(shopTrait).toBeDefined();
+    expect(shopTrait!.detail).toMatch(/top-4 in \d+%/i);
+    expect(shopTrait!.reasoning.some((l) => /Personal trend/i.test(l))).toBe(true);
+    expect(shopTrait!.evidence.some((e) => e.source === "match_history")).toBe(true);
+  });
 });

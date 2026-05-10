@@ -1,4 +1,8 @@
-import type { AllyRecommendation, RecommendationEngineInput } from "@ally/shared-types";
+import type {
+  AllyRecommendation,
+  PlayerMatchHistorySummary,
+  RecommendationEngineInput,
+} from "@ally/shared-types";
 import type { PersonalMatchRecord } from "@/services/indexedDbService";
 import type { TftGameState } from "@/types/tft";
 import { economyRecommendations } from "./strategies/economy";
@@ -33,25 +37,30 @@ export function runRecommendationEngine(
   return sortRecommendations(combined);
 }
 
-/** Convenience: GEP state + personal match rows + static meta label. */
+/** Assemble engine input from live state and an already-aggregated match-history summary. */
 export function buildRecommendationInput(
   gs: TftGameState,
-  matches: PersonalMatchRecord[],
+  matchHistory: PlayerMatchHistorySummary,
   staticMetaVersion: string,
-  historyWindow = 20,
 ): RecommendationEngineInput {
   return {
     signals: toNormalizedSignals(gs),
-    matchHistory: summarizePersonalMatches(matches, historyWindow),
+    matchHistory,
     staticMetaVersion,
   };
 }
 
+/**
+ * @param matchesOrSummary — pass `PersonalMatchRecord[]` (summarized with a 40-game window) or a pre-built {@link PlayerMatchHistorySummary}.
+ */
 export function recommendationsFromGameState(
   gs: TftGameState,
-  matches: PersonalMatchRecord[],
+  matchesOrSummary: PersonalMatchRecord[] | PlayerMatchHistorySummary,
   staticMetaVersion: string,
   nowMs = Date.now(),
 ): AllyRecommendation[] {
-  return runRecommendationEngine(buildRecommendationInput(gs, matches, staticMetaVersion), nowMs);
+  const summary: PlayerMatchHistorySummary = Array.isArray(matchesOrSummary)
+    ? summarizePersonalMatches(matchesOrSummary, 40)
+    : matchesOrSummary;
+  return runRecommendationEngine(buildRecommendationInput(gs, summary, staticMetaVersion), nowMs);
 }

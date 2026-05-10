@@ -4,10 +4,12 @@ import {
   createIpcCaptureStatusMessage,
   createIpcGameStateMessage,
   createIpcGepStatusMessage,
+  createIpcPersonalMatchMessage,
   isIpcBackgroundErrorMessage,
   isIpcCaptureStatusMessage,
   isIpcGameStateMessage,
   isIpcGepStatusMessage,
+  isIpcPersonalMatchMessage,
   isIpcTftPayload,
   TFT_LIVE_CHANNEL,
 } from "./ipcWire";
@@ -45,6 +47,25 @@ describe("ipcWire", () => {
     expect(isIpcCaptureStatusMessage({ kind: "capture_status", running: true, framesThisSession: NaN })).toBe(
       false,
     );
+  });
+
+  it("isIpcPersonalMatchMessage validates match row", () => {
+    const msg = createIpcPersonalMatchMessage({
+      id: "m1",
+      createdAt: 1,
+      syncStatus: "pending",
+      placement: 3,
+      units: ["Aatrox"],
+      items: [],
+      augments: [],
+      comp: null,
+      compName: null,
+      duration: null,
+      source: "gep_match_end",
+    });
+    expect(isIpcPersonalMatchMessage(msg)).toBe(true);
+    expect(isIpcTftPayload(msg)).toBe(true);
+    expect(isIpcPersonalMatchMessage({ kind: "personal_match", match: { id: 1 } })).toBe(false);
   });
 
   it("rejects non-objects and wrong kind", () => {

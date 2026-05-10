@@ -1,5 +1,7 @@
 export type {
   AllyRecommendation,
+  CompPreferenceEntry,
+  HistoryPerformanceEntry,
   NormalizedGameSignals,
   PlayerMatchHistorySummary,
   RecommendationEngineInput,
@@ -14,7 +16,11 @@ export {
   runRecommendationEngine,
   sortRecommendations,
 } from "./engine";
-export { summarizePersonalMatches } from "./historySummary";
+export {
+  summarizePersonalMatches,
+  buildPlayerHistorySummary,
+  emptyPlayerMatchHistorySummary,
+} from "./historySummary";
 export { toNormalizedSignals } from "./signals";
 export { shopRecommendations } from "./strategies/shop";
 export { itemRecommendations } from "./strategies/items";

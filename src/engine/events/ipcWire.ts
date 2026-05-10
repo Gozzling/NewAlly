@@ -4,6 +4,7 @@ import type {
   IpcCaptureStatusMessage,
   IpcGameStateMessage,
   IpcGepStatusMessage,
+  IpcPersonalMatchMessage,
   IpcTftPayload,
 } from "@ally/shared-types";
 
@@ -12,6 +13,7 @@ export type {
   IpcCaptureStatusMessage,
   IpcGameStateMessage,
   IpcGepStatusMessage,
+  IpcPersonalMatchMessage,
   IpcTftPayload,
 } from "@ally/shared-types";
 export { TFT_LIVE_CHANNEL } from "@ally/shared-types";
@@ -53,12 +55,29 @@ export function isIpcCaptureStatusMessage(payload: unknown): payload is IpcCaptu
   );
 }
 
+export function isIpcPersonalMatchMessage(payload: unknown): payload is IpcPersonalMatchMessage {
+  if (!payload || typeof payload !== "object") return false;
+  const p = payload as Record<string, unknown>;
+  if (p.kind !== "personal_match") return false;
+  const m = p.match;
+  if (!m || typeof m !== "object") return false;
+  const row = m as Record<string, unknown>;
+  if (typeof row.id !== "string" || typeof row.createdAt !== "number") return false;
+  if (!Array.isArray(row.units) || !row.units.every((u) => typeof u === "string")) return false;
+  if (row.placement != null && typeof row.placement !== "number") return false;
+  if (!Array.isArray(row.items) || !Array.isArray(row.augments)) return false;
+  if (!["pending", "synced", "failed"].includes(String(row.syncStatus))) return false;
+  if (row.source !== "gep_match_end") return false;
+  return true;
+}
+
 export function isIpcTftPayload(payload: unknown): payload is IpcTftPayload {
   return (
     isIpcGameStateMessage(payload) ||
     isIpcGepStatusMessage(payload) ||
     isIpcBackgroundErrorMessage(payload) ||
-    isIpcCaptureStatusMessage(payload)
+    isIpcCaptureStatusMessage(payload) ||
+    isIpcPersonalMatchMessage(payload)
   );
 }
 
@@ -79,4 +98,8 @@ export function createIpcCaptureStatusMessage(
   framesThisSession: number,
 ): IpcCaptureStatusMessage {
   return { kind: "capture_status", running, framesThisSession };
+}
+
+export function createIpcPersonalMatchMessage(match: IpcPersonalMatchMessage["match"]): IpcPersonalMatchMessage {
+  return { kind: "personal_match", match };
 }

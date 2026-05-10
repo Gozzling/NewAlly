@@ -62,6 +62,28 @@ export interface NormalizedGameSignals {
   partialItemBuildLabels?: string[];
 }
 
+/** Per–trait milestone stats from final boards in recent personal matches. */
+export interface TraitThresholdHistoryEntry {
+  games: number;
+  top4Rate: number | null;
+  avgPlacement: number | null;
+}
+
+/** Per-trait / per-unit aggregates over recent matches. */
+export interface HistoryPerformanceEntry {
+  avgPlace: number;
+  winRate: number;
+  playCount: number;
+}
+
+/** Comp bucket with rollup stats for personalization. */
+export interface CompPreferenceEntry {
+  compKey: string;
+  playCount: number;
+  avgPlace: number;
+  winRate: number;
+}
+
 /** Aggregated stats from recent personal matches (IndexedDB / sync). */
 export interface PlayerMatchHistorySummary {
   windowSize: number;
@@ -69,6 +91,22 @@ export interface PlayerMatchHistorySummary {
   top4Rate: number | null;
   favoriteComp: string | null;
   compFrequency: Record<string, number>;
+  /**
+   * Games where the final board had at least `threshold` units contributing to `trait`.
+   * Key: `${traitName}:${threshold}` (e.g. `"Bastion:4"`).
+   */
+  traitThresholdHistory: Record<string, TraitThresholdHistoryEntry>;
+  /** Last N placements (most recent first). */
+  recentPlacements: number[];
+  traitPerformance: Record<string, HistoryPerformanceEntry>;
+  unitPerformance: Record<string, HistoryPerformanceEntry>;
+  /** Most-played comp labels with stats (sorted by play count desc). */
+  compPreferences: CompPreferenceEntry[];
+  itemPerformance: Record<string, HistoryPerformanceEntry>;
+  /**
+   * Games that recorded item vectors (personal/GEF): comp → item → times built.
+   */
+  itemsByCompFrequency: Record<string, Record<string, number>>;
 }
 
 /** Full input to the recommendation pass (capture-agnostic). */

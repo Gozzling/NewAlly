@@ -156,6 +156,17 @@ export async function fetchServerStatusSupabase(region: RiotRegion): Promise<Rec
   return invoke<Record<string, unknown>>('tft-status', { region })
 }
 
+function isSpectatorEdgeErrorPayload(data: unknown): data is { error: string; code: string } {
+  if (data == null || typeof data !== 'object' || Array.isArray(data)) return false
+  const o = data as { error?: unknown; code?: unknown; participants?: unknown }
+  if ('participants' in o) return false
+  return typeof o.error === 'string' && typeof o.code === 'string'
+}
+
 export async function fetchActiveGameSupabase(puuid: string, region: RiotRegion): Promise<Record<string, unknown> | null> {
-  return invoke<Record<string, unknown> | null>('tft-spectator', { puuid, region })
+  const data = await invoke<Record<string, unknown> | null>('tft-spectator', { puuid, region })
+  if (isSpectatorEdgeErrorPayload(data)) {
+    throw new SupabaseError(`${data.error} (${data.code})`, 'EDGE_CLIENT_ERROR')
+  }
+  return data
 }

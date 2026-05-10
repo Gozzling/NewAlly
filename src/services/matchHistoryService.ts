@@ -139,6 +139,7 @@ function parseMatch(detail: MatchDetail, puuid: string): Match {
       date: new Date(info.game_datetime),
       gameLength: info.game_length,
       gameType: info.tft_game_type,
+      setNumber: info.tft_set_number,
       units: [],
       augments: [],
       traits: [],
@@ -163,6 +164,7 @@ function parseMatch(detail: MatchDetail, puuid: string): Match {
     date: new Date(info.game_datetime),
     gameLength: info.game_length,
     gameType: info.tft_game_type,
+    setNumber: info.tft_set_number,
     units: unitNames,
     augments: me.augments,
     traits,
@@ -364,6 +366,116 @@ export async function fetchPlayerMatchHistory(
   }
 }
 
+const SET_HISTORY_PAGE_SIZE = 100
+const SET_HISTORY_MAX_PAGES = 30
+
+function matchSetNumber(m: Match): number {
+  return m.setNumber ?? 0
+}
+
+/** True when every match on the page is from an older TFT set than `targetSet` (none match target). */
+function pageEntirelyOlderSets(pageMatches: Match[], targetSet: number): boolean {
+  if (pageMatches.length === 0) return false
+  const known = pageMatches.filter((m) => matchSetNumber(m) > 0)
+  if (known.length === 0) return false
+  if (known.some((m) => matchSetNumber(m) === targetSet)) return false
+  return known.every((m) => matchSetNumber(m) < targetSet)
+}
+
+/**
+ * Paginates match-v5 history and returns every game played on `targetSetNumber`
+ * (e.g. current set from static meta), up to {@link SET_HISTORY_MAX_PAGES} × page size ID slots.
+ * Not cached as aggressively as {@link fetchPlayerMatchHistory} — callers should prefer infrequent use.
+ */
+export async function fetchPlayerMatchHistoryForSet(
+  puuid: string,
+  region: RiotRegion,
+  targetSetNumber: number,
+  logFn?: (msg: string) => void,
+  options: { pageSize?: number; maxPages?: number; offlineMode?: boolean } = {},
+): Promise<Match[]> {
+  const log = logFn ?? console.log
+  const pageSize = Math.min(options.pageSize ?? SET_HISTORY_PAGE_SIZE, 100)
+  const maxPages = options.maxPages ?? SET_HISTORY_MAX_PAGES
+
+  if (options.offlineMode) {
+    log('[MH] fetchPlayerMatchHistoryForSet: offline mode, skipping')
+    return []
+  }
+
+  const matchRegion = regionToMatchRegion(region)
+  const collected: Match[] = []
+
+  try {
+    for (let page = 0; page < maxPages; page++) {
+      const offset = page * pageSize
+      const matchIds = await retryWithBackoff(
+        () => fetchMatchIds(puuid, region, matchRegion, pageSize, offset, log),
+        DEFAULT_RETRY_CONFIG,
+        log,
+      )
+
+      if (matchIds.length === 0) {
+        if (page === 0) {
+          throw new NoMatchHistoryError('No match history found for this player')
+        }
+        break
+      }
+
+      const CONCURRENCY_LIMIT = 10
+      const details: (MatchDetail | null)[] = []
+
+      for (let i = 0; i < matchIds.length; i += CONCURRENCY_LIMIT) {
+        const batch = matchIds.slice(i, i + CONCURRENCY_LIMIT)
+        const batchDetails = await Promise.all(
+          batch.map(async (id) => {
+            try {
+              return await retryWithBackoff(
+                () => fetchMatchDetail(id, matchRegion),
+                DEFAULT_RETRY_CONFIG,
+                log,
+              )
+            } catch (err) {
+              log(`[MH] Failed to fetch match ${id}: ` + (err instanceof Error ? err.message : String(err)))
+              return null
+            }
+          }),
+        )
+        details.push(...batchDetails)
+      }
+
+      const pageMatches = details
+        .filter((d): d is MatchDetail => d !== null)
+        .map((d) => parseMatch(d, puuid))
+
+      for (const m of pageMatches) {
+        if (matchSetNumber(m) === targetSetNumber && m.placement > 0) {
+          collected.push(m)
+        }
+      }
+
+      log(
+        `[MH] fetchPlayerMatchHistoryForSet page ${page + 1}: +${pageMatches.filter((m) => matchSetNumber(m) === targetSetNumber).length} for set ${targetSetNumber} (total ${collected.length})`,
+      )
+
+      if (matchIds.length < pageSize) break
+      if (pageEntirelyOlderSets(pageMatches, targetSetNumber)) {
+        log('[MH] fetchPlayerMatchHistoryForSet: stopping — reached older TFT sets only')
+        break
+      }
+    }
+  } catch (error) {
+    if (error instanceof MatchHistoryError || error instanceof RiotApiError) throw error
+    if (error instanceof Error) {
+      throw new MatchHistoryError(`Failed to load set-scoped match history: ${error.message}`, 'UNKNOWN_ERROR', true, error)
+    }
+    throw error
+  }
+
+  collected.sort((a, b) => b.date.getTime() - a.date.getTime())
+  return collected
+}
+
 export function toRiotMatchFromPersonal(record: PersonalMatchRecord): Match {
   return {
     matchId: record.id,
@@ -372,6 +484,10 @@ export function toRiotMatchFromPersonal(record: PersonalMatchRecord): Match {
     date: new Date(record.createdAt),
     gameLength: record.duration ?? 0,
     gameType: 'standard',
+    setNumber: (() => {
+      const r = record.raw as { tft_set_number?: number } | undefined
+      return typeof r?.tft_set_number === 'number' ? r.tft_set_number : undefined
+    })(),
     units: record.units,
     augments: record.augments,
     traits: [],

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { PlayerMatchHistorySummary } from "@ally/shared-types";
 import type { TftGameState, BoardUnit } from "../types/tft";
 import type { PlayerCard, RiotRegion, Match } from "../types/riot";
 import { UNITS } from "../data/units";
@@ -93,6 +94,11 @@ export interface AppState {
   activeGuideComp: ActiveGuideComp | null;
   guideModeEnabled: boolean;
   personalMatches: PersonalMatchRecord[];
+  /**
+   * Latest aggregated match profile for coaching (Team Builder / {@link useCoachMatchHistory}).
+   * Overlay and desktop readers use this + live `personalMatches` for recommendations.
+   */
+  coachMatchHistory: PlayerMatchHistorySummary | null;
   setGameState: (partial: Partial<TftGameState>) => void;
   resetGameState: () => void;
   setPipelineGepStatus: (gepReady: boolean, lastGepError?: string | null) => void;
@@ -117,6 +123,7 @@ export interface AppState {
   setPersonalMatches: (matches: PersonalMatchRecord[]) => void;
   addPersonalMatch: (match: PersonalMatchRecord) => void;
   updatePersonalMatchSyncStatus: (id: string, status: PersonalMatchRecord['syncStatus'], syncedAt?: number) => void;
+  setCoachMatchHistory: (summary: PlayerMatchHistorySummary | null) => void;
 }
 
 export const EMPTY_STATE: TftGameState = {
@@ -230,6 +237,7 @@ export const useAppStore = create<AppState>(
     activeGuideComp: null,
     guideModeEnabled: false,
     personalMatches: [],
+    coachMatchHistory: null,
 
     setGameState: (partial: Partial<TftGameState>) =>
       set((s: AppState) => ({ gameState: { ...s.gameState, ...partial } })),
@@ -380,5 +388,8 @@ export const useAppStore = create<AppState>(
             : m
         ),
       })),
+
+    setCoachMatchHistory: (coachMatchHistory: PlayerMatchHistorySummary | null) =>
+      set(() => ({ coachMatchHistory })),
   })
 );

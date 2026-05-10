@@ -6,6 +6,7 @@ import { OverlayTraitPanel } from './components/OverlayTraitPanel'
 import { OverlayItemPanel } from './components/OverlayItemPanel'
 import { OverlayMiniBoard } from './components/OverlayMiniBoard'
 import { OverlayShopGuide } from './components/OverlayShopGuide'
+import { OverlayCoachTips } from './components/OverlayCoachTips'
 
 function HudBar({ gold, roundType, stage, health }: { gold?: number; roundType?: string; stage?: string; health?: number }) {
   return (
@@ -53,6 +54,7 @@ const toggleGuideMode = useAppStore((s) => s.toggleGuideMode);
         <OverlayTraitPanel />
         <OverlayMiniBoard />
         <OverlayItemPanel />
+        <OverlayCoachTips />
         {guideModeEnabled && <OverlayShopGuide />}
       </div>
     </div>

@@ -83,6 +83,8 @@ export interface Match {
   date: Date
   gameLength: number
   gameType: string
+  /** Riot `tft_set_number`; omit or 0 if unknown (e.g. local-only rows). */
+  setNumber?: number
   units: string[]
   augments: string[]
   traits: string[]

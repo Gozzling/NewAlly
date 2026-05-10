@@ -29,8 +29,32 @@ export type IpcCaptureStatusMessage = {
   framesThisSession: number;
 };
 
+/** Slim personal match row for coach / analytics (no `raw` blob). Synced to desktop & overlay after GEP match end. */
+export type IpcPersonalMatchMessage = {
+  kind: "personal_match";
+  match: {
+    id: string;
+    createdAt: number;
+    timestamp?: number;
+    summonerName?: string;
+    region?: string;
+    syncedAt?: number;
+    isSynced?: boolean;
+    syncStatus: "pending" | "synced" | "failed";
+    placement: number | null;
+    units: string[];
+    items: string[];
+    augments: string[];
+    comp: string | null;
+    compName?: string | null;
+    duration: number | null;
+    source: "gep_match_end";
+  };
+};
+
 export type IpcTftPayload =
   | IpcGameStateMessage
   | IpcGepStatusMessage
   | IpcBackgroundErrorMessage
-  | IpcCaptureStatusMessage;
+  | IpcCaptureStatusMessage
+  | IpcPersonalMatchMessage;

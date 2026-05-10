@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { subscribeToStateSnapshots } from '@/services/ipcService';
 import { getServerStatus, fetchPlayerCard, getActiveGame, RiotApiError } from '@/services/riotApiClient';
+import { SupabaseError } from '@/services/supabaseService';
 import { TeamBuilder } from '@/pages/TeamBuilder';
 import { CompCard } from '@/components/CompCard';
 import { MatchHistory } from '@/pages/MatchHistory';
@@ -20,6 +21,7 @@ import { EXAMPLE_SUMMONERS } from '@/data/exampleSummoners';
 import type { SearchSuggestion } from '@/utils/searchSuggestions';
 
 import { META_COMPS } from '@/data/metaComps';
+import { getPersonalMatches } from '@/services/indexedDbService';
 
 function getCurrentWindowId(): Promise<string> {
   return new Promise((resolve) => {
@@ -164,6 +166,42 @@ function QuickTips() {
   )
 }
 
+function displayNameFromSpectatorParticipant(p: Record<string, unknown>): string {
+  const gn = p.riotIdGameName
+  const tl = p.riotIdTagLine
+  if (typeof gn === 'string' && gn.length > 0) {
+    const tag = typeof tl === 'string' && tl.length > 0 ? `#${tl}` : ''
+    return `${gn}${tag}`
+  }
+  if (typeof p.riotId === 'string' && p.riotId.length > 0) return p.riotId
+  if (typeof p.summonerName === 'string' && p.summonerName.length > 0) return p.summonerName
+  return 'Unknown'
+}
+
+function formatInGameError(err: unknown): string {
+  if (err instanceof RiotApiError) {
+    if (err.code === 'NOT_FOUND') {
+      return 'Player not found. Double-check Riot ID (Name#TAG), region, and that the account exists.'
+    }
+    if (err.code === 'BACKEND_DOWN') {
+      return err.message.trim().length > 0
+        ? err.message
+        : 'Our servers could not finish that request. Please try again shortly.'
+    }
+    return err.message
+  }
+  if (err instanceof SupabaseError) {
+    if (err.code === 'NO_CONFIG') {
+      return 'Supabase is not configured in this build (missing URL or anon key).'
+    }
+    if (/Missing ['"]tagLine['"]/i.test(err.message)) {
+      return 'Riot lookup needs your full ID: GameName#TAG (example: Doublelift#NA1).'
+    }
+    return err.message
+  }
+  return 'Something went wrong. Check your connection and try again.'
+}
+
 /* ─── In Game Page ─── */
 function InGamePage() {
   const MOCK_PLAYERS = [
@@ -191,16 +229,32 @@ function InGamePage() {
     return localStorage.getItem('tft-ally::region') ?? 'na1'
   })
   const [loading, setLoading] = useState(false)
+  const [loadingPhase, setLoadingPhase] = useState<'player' | 'lobby' | null>(null)
   const [gameFound, setGameFound] = useState(true)
   const [showingDemo, setShowingDemo] = useState(true)
   const [players, setPlayers] = useState(MOCK_PLAYERS)
   const [gameData, setGameData] = useState<any>(null)
   const [gameLength, setGameLength] = useState(0)
+  const gameTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const handleSearch = async () => {
     if (!searchName.trim()) return
 
+    const hashIdx = searchName.lastIndexOf('#')
+    if (hashIdx === -1 || !searchName.slice(hashIdx + 1).trim()) {
+      setShowingDemo(false)
+      setGameFound(false)
+      setIngameError('Enter a full Riot ID with tag, e.g. Name#NA1 (the #tag is required for lookup).')
+      return
+    }
+
+    if (gameTimerRef.current) {
+      clearInterval(gameTimerRef.current)
+      gameTimerRef.current = null
+    }
+
     setLoading(true)
+    setLoadingPhase('player')
     setShowingDemo(false)
     setGameFound(false)
     setGameData(null)
@@ -208,26 +262,24 @@ function InGamePage() {
     setIngameError(null)
 
     try {
-      // First fetch playerCard to get puuid
       const card = await fetchPlayerCard(searchName.trim(), region as any)
-
-      // Then fetch active game
+      setLoadingPhase('lobby')
       const activeGame = await getActiveGame(card.puuid, region as any)
 
       if (!activeGame) {
         setGameFound(false)
-        setIngameError('No active League/TFT game found for this player (Riot returns 404 when not in game).')
-        setLoading(false)
+        setIngameError(
+          'No active TFT lobby for this player right now. Start a match, or try again once they are in game.',
+        )
         return
       }
 
       setGameData(activeGame)
       setGameFound(true)
 
-      // Parse participants from active game
       const participants = (activeGame as any).participants || []
       const parsedPlayers = participants.map((p: any) => ({
-        name: p.summonerName || p.riotId || 'Unknown',
+        name: displayNameFromSpectatorParticipant(p as Record<string, unknown>),
         tagline: '',
         rank: 'Fetching...',
         lp: 0,
@@ -240,35 +292,34 @@ function InGamePage() {
 
       setPlayers(parsedPlayers)
 
-      // Start game length timer
-      const startTime = (activeGame as any).gameStartTime || Date.now()
-      const initialLength = Math.floor((Date.now() - startTime) / 1000)
+      const rawStart = (activeGame as any).gameStartTime as number | undefined
+      const startTime =
+        typeof rawStart === 'number' && rawStart > 0
+          ? rawStart > 10_000_000_000
+            ? rawStart
+            : rawStart * 1000
+          : Date.now()
+      const initialLength = Math.max(0, Math.floor((Date.now() - startTime) / 1000))
       setGameLength(initialLength)
 
-      const timer = setInterval(() => {
-        setGameLength(Math.floor((Date.now() - startTime) / 1000))
+      gameTimerRef.current = setInterval(() => {
+        setGameLength(Math.max(0, Math.floor((Date.now() - startTime) / 1000)))
       }, 1000)
-
-      // Store timer ID for cleanup
-      ;(window as any).gameTimer = timer
     } catch (err) {
       console.error('[INGAME] Search error:', err)
       setGameFound(false)
-      if (err instanceof RiotApiError) {
-        setIngameError(err.message)
-      } else {
-        setIngameError('Something went wrong. Check your connection or try again.')
-      }
+      setIngameError(formatInGameError(err))
     } finally {
       setLoading(false)
+      setLoadingPhase(null)
     }
   }
 
-  // Cleanup timer on unmount
   useEffect(() => {
     return () => {
-      if ((window as any).gameTimer) {
-        clearInterval((window as any).gameTimer)
+      if (gameTimerRef.current) {
+        clearInterval(gameTimerRef.current)
+        gameTimerRef.current = null
       }
     }
   }, [])
@@ -299,7 +350,6 @@ function InGamePage() {
 
   return (
     <div style={{ padding: '16px' }}>
-      {/* Demo Banner */}
       {showingDemo && (
         <div style={{
           background: '#1a1a0a',
@@ -310,11 +360,10 @@ function InGamePage() {
           color: '#f0b429',
           marginBottom: '12px',
         }}>
-          ⚡ Live game detection requires the Overwolf desktop app. Showing demo data.
+          Demo lobby — search your Riot ID (e.g. Name#TAG) and region to load a live TFT game via spectator API (no Overwolf required).
         </div>
       )}
 
-      {/* Game Metadata */}
       {gameData && !showingDemo && (
         <div style={{
           background: '#1f1f1f',
@@ -341,7 +390,6 @@ function InGamePage() {
         </div>
       )}
 
-      {/* Search Bar */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
         <SearchInputWithSuggestions
           value={searchName}
@@ -359,6 +407,12 @@ function InGamePage() {
             color: 'white',
             outline: 'none',
             boxSizing: 'border-box',
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              void handleSearch()
+            }
           }}
         />
         <select
@@ -381,7 +435,8 @@ function InGamePage() {
         </select>
         <button
           type="button"
-          onClick={handleSearch}
+          onClick={() => void handleSearch()}
+          disabled={loading}
           style={{
             background: '#35c3e7',
             border: 'none',
@@ -389,8 +444,9 @@ function InGamePage() {
             padding: '8px 16px',
             fontSize: '13px',
             color: 'white',
-            cursor: 'pointer',
+            cursor: loading ? 'not-allowed' : 'pointer',
             fontWeight: 600,
+            opacity: loading ? 0.75 : 1,
           }}
         >
           Search
@@ -398,21 +454,63 @@ function InGamePage() {
       </div>
 
       {ingameError && !loading && (
-        <div style={{
-          background: '#3f1a1a',
-          border: '1px solid #ef444440',
-          borderRadius: '6px',
-          padding: '8px 12px',
-          fontSize: '12px',
-          color: '#fca5a5',
-          marginBottom: '12px',
-        }}>
-          {ingameError}
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '10px',
+            background: '#3f1a1a',
+            border: '1px solid #ef444440',
+            borderRadius: '6px',
+            padding: '8px 12px',
+            fontSize: '12px',
+            color: '#fca5a5',
+            marginBottom: '12px',
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>{ingameError}</div>
+          <button
+            type="button"
+            onClick={() => setIngameError(null)}
+            aria-label="Dismiss"
+            style={{
+              flexShrink: 0,
+              background: 'none',
+              border: 'none',
+              color: '#fca5a5',
+              cursor: 'pointer',
+              fontSize: '18px',
+              lineHeight: 1,
+              padding: '0 2px',
+              opacity: 0.85,
+            }}
+          >
+            ×
+          </button>
         </div>
       )}
 
-      {/* Content */}
       {loading ? (
+        <>
+        <div style={{
+          background: '#1f1f1f',
+          border: '1px solid #1a1a1a',
+          borderRadius: '8px',
+          padding: '10px 12px',
+          marginBottom: '12px',
+        }}>
+          <div style={{ fontSize: '12px', fontWeight: 600, color: 'white', marginBottom: '3px' }}>
+            {loadingPhase === 'player' && 'Resolving player…'}
+            {loadingPhase === 'lobby' && 'Fetching live lobby…'}
+            {!loadingPhase && 'Loading…'}
+          </div>
+          <div style={{ fontSize: '11px', color: '#a1a1a1' }}>
+            {loadingPhase === 'player' && 'Looking up account with Riot'}
+            {loadingPhase === 'lobby' && 'Spectator API for this region'}
+            {!loadingPhase && 'Please wait'}
+          </div>
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
           {Array.from({ length: 8 }).map((_, i) => (
             <div
@@ -427,6 +525,7 @@ function InGamePage() {
             />
           ))}
         </div>
+        </>
       ) : gameFound ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
           {displayPlayers.map((player, i) => (
@@ -474,7 +573,10 @@ function InGamePage() {
                 <div style={{ fontSize: '13px', fontWeight: 700, color: 'white', marginBottom: '2px' }}>
                   {player.name}
                 </div>
-                <div style={{ fontSize: '11px', color: '#a1a1a1', marginBottom: '6px' }}>{player.rank} · {player.lp} LP</div>
+                <div style={{ fontSize: '11px', color: '#a1a1a1', marginBottom: '6px' }}>
+                  {player.rank}
+                  {player.lp > 0 ? ` · ${player.lp} LP` : ''}
+                </div>
                 <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
                   {player.recentPlacements.length > 0 ? player.recentPlacements.map((place, j) => (
                     <div
@@ -515,13 +617,27 @@ function InGamePage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          height: '200px',
+          minHeight: '200px',
           color: '#a1a1a1',
           fontSize: '14px',
           textAlign: 'center',
-          padding: '0 12px',
+          padding: '16px 12px',
         }}>
-          {ingameError ? 'See message above.' : 'Not currently in a TFT game'}
+          <div style={{ maxWidth: 340, lineHeight: 1.5 }}>
+            <div style={{ fontWeight: 600, color: '#a1a1a1', marginBottom: '8px' }}>
+              No lobby to show
+            </div>
+            <div style={{ fontSize: '13px', color: '#a1a1a1' }}>
+              {ingameError
+                ? 'Fix the issue above or try another Riot ID. Spectator only returns data while a TFT game is active.'
+                : 'Search for a player who is currently in a TFT match.'}
+            </div>
+            {!ingameError && (
+              <div style={{ fontSize: '11px', color: '#888', marginTop: '10px' }}>
+                Tip: use the exact Riot ID format (Name#TAG).
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -638,6 +754,17 @@ export function DesktopApp() {
   useEffect(() => {
     return subscribeToStateSnapshots();
   }, []);
+
+  const setPersonalMatches = useAppStore((s) => s.setPersonalMatches);
+  useEffect(() => {
+    let cancelled = false;
+    void getPersonalMatches(80).then((rows) => {
+      if (!cancelled) setPersonalMatches(rows);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [setPersonalMatches]);
 
   useEffect(() => {
     let cancelled = false

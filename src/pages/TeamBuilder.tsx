@@ -16,6 +16,8 @@ import {
   recommendationsFromGameState,
   type AllyRecommendation,
 } from '@/engine/recommendations'
+import { useCoachMatchHistory } from '@/hooks/useCoachMatchHistory'
+import { STATIC_META_VERSION } from '@/meta/tftCurrentSet'
 import { useAppStore } from '@/store/useAppStore'
 import type { MetaComp } from '@/types/tft'
 
@@ -112,6 +114,22 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
   const savedComps      = useAppStore(s => s.savedComps)
   const addSavedComp    = useAppStore(s => s.addSavedComp)
   const removeSavedComp = useAppStore(s => s.removeSavedComp)
+  const personalMatches = useAppStore((s) => s.personalMatches)
+  const selectedPlayer  = useAppStore((s) => s.selectedPlayer)
+
+  const { matchHistory, isLoading: coachHistoryLoading } = useCoachMatchHistory()
+
+  const displayGameName = useMemo(() => {
+    const fromPlayer = selectedPlayer?.name?.trim()
+    const fromPersonal = personalMatches.find((m) => m.summonerName)?.summonerName?.trim()
+    let fromLs = ''
+    try {
+      fromLs = localStorage.getItem('tft-ally::summoner-name')?.trim() ?? ''
+    } catch {
+      /* ignore */
+    }
+    return fromPlayer || fromPersonal || fromLs || 'you'
+  }, [selectedPlayer?.name, personalMatches])
 
   const [hist, setHist] = useState<HistoryEntry[]>([
     { pBoard: Array(BOARD_LEN).fill(null), eBoard: Array(BOARD_LEN).fill(null) }
@@ -333,12 +351,13 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
 
   const boardSig = pBoard.map((c) => c ?? '').join('|')
   const coachRecs = useMemo(() => {
+    if (coachHistoryLoading || matchHistory === null) return null
     return recommendationsFromGameState(
       buildGameStateFromBoard(pBoard, UNITS),
-      [],
-      'set17',
+      matchHistory,
+      STATIC_META_VERSION,
     ).slice(0, 5)
-  }, [boardSig, pBoard])
+  }, [boardSig, pBoard, matchHistory, coachHistoryLoading])
 
   const coachCategoryIcon = (cat: AllyRecommendation['category']) => {
     const iconProps = { className: 'shrink-0', size: 16, color: C.accent, strokeWidth: 2 }
@@ -771,6 +790,21 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
 
           {/* Coach recommendations (static meta + board; no live shop in builder) */}
           <div style={{ marginTop: 4 }}>
+            {matchHistory != null && matchHistory.recentPlacements.length > 0 && (
+              <div
+                style={{
+                  fontSize: '9px',
+                  color: '#35c3e7',
+                  marginBottom: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <Sparkles size={10} />
+                Personalized for {displayGameName} ({matchHistory.recentPlacements.length} games)
+              </div>
+            )}
             <div
               style={{
                 display: 'flex',
@@ -803,11 +837,15 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
               >
                 Add units to get coaching suggestions
               </div>
-            ) : coachRecs.length === 0 ? (
+            ) : coachHistoryLoading || matchHistory === null ? (
+              <div style={{ fontSize: 11, color: '#333', textAlign: 'center', padding: '12px 0' }}>
+                Loading personalized tips…
+              </div>
+            ) : coachRecs !== null && coachRecs.length === 0 ? (
               <div style={{ fontSize: 11, color: '#333', textAlign: 'center', padding: '12px 0' }}>
                 No suggestions right now.
               </div>
-            ) : (
+            ) : coachRecs !== null ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                 {coachRecs.map((rec, ri) => {
                   const uCol = coachUrgencyAccent(rec.urgency)
@@ -909,7 +947,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
                   )
                 })}
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* Enemy board */}

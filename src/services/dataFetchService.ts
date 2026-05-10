@@ -6,7 +6,7 @@ const RIOT_DDRAGON = 'https://ddragon.leagueoflegends.com'
 const TFT_GAME_V1 =
   'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1'
 
-interface PatchInfo {
+export interface PatchInfo {
   patch: string
   setNumber: number
   setName: string

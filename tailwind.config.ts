@@ -69,7 +69,7 @@ const config: Config = {
           '30%': { transform: 'rotate(5deg)' },
           '45%': { transform: 'rotate(-3deg)' },
           '60%': { transform: 'rotate(3deg)' },
-        }
+        },
       },
       animation: {
         pulse: 'pulse 3s ease-in-out infinite',

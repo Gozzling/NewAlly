@@ -3,11 +3,14 @@ export type {
   IpcCaptureStatusMessage,
   IpcGameStateMessage,
   IpcGepStatusMessage,
+  IpcPersonalMatchMessage,
   IpcTftPayload,
 } from "./ipc";
 export { TFT_LIVE_CHANNEL } from "./ipc";
 export type {
   AllyRecommendation,
+  CompPreferenceEntry,
+  HistoryPerformanceEntry,
   NormalizedGameSignals,
   PlayerMatchHistorySummary,
   RecommendationCategory,
@@ -15,5 +18,6 @@ export type {
   RecommendationEvidence,
   RecommendationEvidenceSource,
   RiskLevel,
+  TraitThresholdHistoryEntry,
   UrgencyLevel,
 } from "./recommendation";

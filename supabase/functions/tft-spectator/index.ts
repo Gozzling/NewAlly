@@ -1,6 +1,6 @@
 import { riotPlatformFetchOrNull, jsonResponse, errorResponse } from "../_shared/riot.ts";
 
-// GET /lol/spectator/v5/active-games/by-summoner/{puuid}
+// Platform: /lol/spectator/tft/v5/active-games/by-puuid/{puuid} (twisted SpectatorTFTV5Api)
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -25,7 +25,7 @@ Deno.serve(async (req: Request) => {
 
     const data = await riotPlatformFetchOrNull<Record<string, unknown>>(
       region,
-      `/lol/spectator/v5/active-games/by-summoner/${encodeURIComponent(puuid)}`,
+      `/lol/spectator/tft/v5/active-games/by-puuid/${encodeURIComponent(puuid)}`,
     );
 
     return jsonResponse(data);

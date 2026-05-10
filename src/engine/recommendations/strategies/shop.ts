@@ -46,8 +46,14 @@ function shopPriorityToModel(
   return { confidence: base, risk, urgency };
 }
 
+const MIN_TRAIT_HISTORY_GAMES = 4;
+
 /** Early board: suggest shop cost focus from trait progress (e.g. Team Builder with no shop snapshot). */
-function traitProgressShopHint(boardUnitNames: string[], nowMs: number): AllyRecommendation | null {
+function traitProgressShopHint(
+  boardUnitNames: string[],
+  nowMs: number,
+  matchHistory: PlayerMatchHistorySummary,
+): AllyRecommendation | null {
   const n = boardUnitNames.length;
   if (n === 0 || n >= 4) return null;
 
@@ -89,28 +95,88 @@ function traitProgressShopHint(boardUnitNames: string[], nowMs: number): AllyRec
 
   const examples = pool
     .slice()
-    .sort((a, b) => a.cost - b.cost || a.name.localeCompare(b.name))
+    .sort((a, b) => {
+      const ua = matchHistory.unitPerformance[a.name]?.winRate ?? 0;
+      const ub = matchHistory.unitPerformance[b.name]?.winRate ?? 0;
+      if (ub !== ua) return ub - ua;
+      return a.cost - b.cost || a.name.localeCompare(b.name);
+    })
     .slice(0, 4)
     .map((u) => u.name);
 
-  const detail = `You have ${have} ${top.trait} — add ${top.need} more for the ${top.nextCount}-${top.trait} bonus. In shop rolls, lean toward ${costPhrase} picks${examples.length ? ` (e.g. ${examples.join(", ")})` : ""}.`;
+  const historyKey = `${top.trait}:${top.nextCount}`;
+  const hist = matchHistory.traitThresholdHistory[historyKey];
+  let personalSuffix = "";
+  let extraConfidence = 0;
+  const evidence: AllyRecommendation["evidence"] = [
+    { source: "static_meta", weight: 0.65, note: "Trait thresholds & unit costs" },
+    { source: "heuristic", weight: 0.35, note: "Early board shop planning" },
+  ];
+  const reasoning: string[] = [
+    `Next breakpoint: ${top.nextCount} ${top.trait} (${have} on board).`,
+    ...(examples.length ? [`Examples: ${examples.join(", ")}.`] : []),
+  ];
+
+  let traitCompWinBlurb = "";
+  let bestTraitTrend: { name: string; winRate: number; n: number } | null = null;
+  for (const traitName of Object.keys(traitCounts)) {
+    const tp = matchHistory.traitPerformance[traitName];
+    if (tp && tp.playCount >= 4 && tp.winRate >= 0.35) {
+      if (!bestTraitTrend || tp.winRate > bestTraitTrend.winRate) {
+        bestTraitTrend = { name: traitName, winRate: tp.winRate, n: tp.playCount };
+      }
+    }
+  }
+  if (bestTraitTrend && bestTraitTrend.winRate >= 0.45) {
+    const pct = Math.round(bestTraitTrend.winRate * 100);
+    traitCompWinBlurb = ` You have ${pct}% win rate with ${bestTraitTrend.name} comps (${bestTraitTrend.n} games).`;
+    reasoning.push(
+      `Personal trend: ${pct}% win rate when you run boards that include ${bestTraitTrend.name}.`,
+    );
+    evidence.push({
+      source: "match_history",
+      weight: 0.35,
+      note: `${bestTraitTrend.name} trait — ${pct}% win rate`,
+    });
+  }
+
+  if (
+    hist &&
+    hist.games >= MIN_TRAIT_HISTORY_GAMES &&
+    hist.top4Rate != null &&
+    hist.avgPlacement != null
+  ) {
+    const pct = Math.round(hist.top4Rate * 100);
+    const rollTarget = examples[0] ?? costPhrase;
+    personalSuffix = ` You top-4 in ${pct}% of tracked games when you hit ${top.nextCount} ${top.trait} (${hist.games} games, avg ${hist.avgPlacement.toFixed(1)}) — prioritize rolling for ${rollTarget}.`;
+    extraConfidence = Math.min(0.2, (hist.top4Rate - 0.45) * 0.45 + 0.06);
+    evidence.push({
+      source: "match_history",
+      weight: 0.5,
+      note: `${historyKey}: ${hist.games} games, ${pct}% top-4`,
+    });
+    reasoning.push(
+      `Personal trend: ${pct}% top-4 when reaching ${top.nextCount}+ ${top.trait} across ${hist.games} logged games.`,
+    );
+  }
+
+  const detail = `You have ${have} ${top.trait} — add ${top.need} more for the ${top.nextCount}-${top.trait} bonus. In shop rolls, lean toward ${costPhrase} picks${examples.length ? ` (e.g. ${examples.join(", ")})` : ""}.${traitCompWinBlurb}${personalSuffix}`;
+
+  const title =
+    hist && hist.games >= MIN_TRAIT_HISTORY_GAMES && hist.top4Rate != null && hist.top4Rate >= 0.55
+      ? `${Math.round(hist.top4Rate * 100)}% top-4 at ${top.nextCount} ${top.trait}`
+      : `Shop focus — ${top.nextCount} ${top.trait}`;
 
   return {
     id: `shop:trait:${top.trait}:${nowMs}`,
     category: "shop",
-    title: `Shop focus — ${top.nextCount} ${top.trait}`,
+    title,
     detail,
-    confidence: 0.52,
+    confidence: clamp01(0.52 + extraConfidence),
     risk: "low",
     urgency: n <= 2 ? "medium" : "low",
-    reasoning: [
-      `Next breakpoint: ${top.nextCount} ${top.trait} (${have} on board).`,
-      ...(examples.length ? [`Examples: ${examples.join(", ")}.`] : []),
-    ],
-    evidence: [
-      { source: "static_meta", weight: 0.65, note: "Trait thresholds & unit costs" },
-      { source: "heuristic", weight: 0.35, note: "Early board shop planning" },
-    ],
+    reasoning,
+    evidence,
     createdAtMs: nowMs,
   };
 }
@@ -136,8 +202,25 @@ function mapShop(
         : `${history.windowSize} recent games — weak comp preference signal`,
     });
   }
+  const canon =
+    UNITS.find((u) => unitMatchKey(u.name) === unitMatchKey(rec.name))?.name ?? rec.name;
+  const uPerf = history.unitPerformance[canon];
+  let historyConfidenceBoost = 0;
+  const historyReason: string[] = [];
+  if (uPerf && uPerf.playCount >= 3 && uPerf.winRate >= 0.4) {
+    historyConfidenceBoost = Math.min(0.14, (uPerf.winRate - 0.35) * 0.22);
+    evidence.push({
+      source: "match_history",
+      weight: 0.45,
+      note: `${canon}: ${Math.round(uPerf.winRate * 100)}% wins in ${uPerf.playCount} games`,
+    });
+    historyReason.push(
+      `You have ${Math.round(uPerf.winRate * 100)}% win rate when fielding ${canon} across ${uPerf.playCount} recent games.`,
+    );
+  }
+
   const c = combineEvidenceWeighted([
-    { score: confidence, weight: 1 },
+    { score: confidence + historyConfidenceBoost, weight: 1 },
     ...(history.top4Rate != null ? [{ score: history.top4Rate, weight: 0.15 }] : []),
   ]);
 
@@ -151,6 +234,7 @@ function mapShop(
     urgency,
     reasoning: [
       rec.reason,
+      ...historyReason,
       ...(rec.bestComps.length > 0
         ? [`Paired with meta comps: ${rec.bestComps.slice(0, 3).join(", ")}`]
         : []),
@@ -166,7 +250,7 @@ export function shopRecommendations(input: RecommendationEngineInput, nowMs = Da
   if (!signals.inGame) return [];
 
   const out: AllyRecommendation[] = [];
-  const traitHint = traitProgressShopHint(signals.boardUnitNames, nowMs);
+  const traitHint = traitProgressShopHint(signals.boardUnitNames, nowMs, matchHistory);
   if (traitHint) out.push(traitHint);
 
   if (signals.shopUnitNames.length === 0) return out;

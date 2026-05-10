@@ -3,7 +3,7 @@ import type { MetaComp } from '../types/tft'
 import { CompCardNew as CompCard } from '../components/CompCardNew'
 import { StatCard } from '../components/StatCard'
 import { Search, TrendingUp, LayoutGrid, Rocket, BadgeCheck } from 'lucide-react'
-import { SET_17_PATCH } from '../services/dataFetchService'
+import { SET_17_PATCH } from '@/meta/tftCurrentSet'
 
 const TIERS = ['S', 'A', 'B', 'C'] as const
 type Tier = (typeof TIERS)[number]

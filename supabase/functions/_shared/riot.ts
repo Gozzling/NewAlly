@@ -110,7 +110,13 @@ export async function riotPlatformFetchOrNull<T>(
   if (res.status === 403) throw new RiotError("Invalid API key", "FORBIDDEN", 403);
   if (!res.ok) throw new RiotError(`Riot API error ${res.status}`, "API_ERROR", res.status);
 
-  return (await res.json()) as T;
+  const text = await res.text();
+  if (!text || !text.trim()) return null;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new RiotError("Riot returned non-JSON body for spectator", "API_ERROR", 502);
+  }
 }
 
 export async function riotRegionalFetch<T>(
