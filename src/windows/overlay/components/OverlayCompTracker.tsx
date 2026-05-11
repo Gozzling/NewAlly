@@ -12,9 +12,9 @@ export function OverlayCompTracker() {
   }, [activeComp])
 
   if (!comp) return (
-    <div className="bg-[#1f1f1f]/90 border border-[#2a2a2a] rounded-lg p-2 text-center">
-      <div className="text-[10px] text-neutral-500">No comp detected</div>
-      <div className="text-[9px] text-neutral-600 mt-0.5">Place units on board</div>
+    <div className="bg-ally-card/90 border border-ally-border rounded-lg p-2 text-center shadow-card">
+      <div className="text-caption text-ally-muted font-display uppercase tracking-wider">No comp detected</div>
+      <div className="text-[9px] text-ally-muted/60 mt-0.5">Place units on board</div>
     </div>
   )
 
@@ -22,33 +22,33 @@ export function OverlayCompTracker() {
   const matchPct = activeComp?.matchPercentage || 0
 
   return (
-    <div className="bg-[#1f1f1f]/90 border border-[#2a2a2a] rounded-lg p-2 space-y-1.5">
+    <div className="bg-ally-card/90 border border-ally-border rounded-lg p-2 space-y-1.5 shadow-card">
       <div className="flex items-center gap-1.5">
-        <Target className="w-3 h-3 text-[#35c3e7]" />
-        <span className="text-[11px] font-semibold text-white truncate">{comp.compName}</span>
-        <span className="text-[10px] text-[#35c3e7] ml-auto">{matchPct}%</span>
+        <Target className="w-3 h-3 text-ally-accent" />
+        <span className="text-caption font-bold text-ally-text font-display uppercase tracking-wide truncate">{comp.compName}</span>
+        <span className="text-caption text-ally-accent font-numbers ml-auto">{matchPct}%</span>
       </div>
       <div className="flex items-center gap-1 flex-wrap">
         {comp.requiredUnits.slice(0, 6).map((u: string) => {
           const has = !missing.includes(u)
           return (
-            <span key={u} className={`text-[9px] px-1 py-0.5 rounded ${has ? 'bg-green-500/15 text-green-400' : 'bg-red-500/10 text-red-400/60'}`}>
+            <span key={u} className={`text-[9px] px-1 py-0.5 rounded font-medium ${has ? 'bg-ally-success/15 text-ally-success' : 'bg-ally-error/10 text-ally-error/60'}`}>
               {u}
             </span>
           )
         })}
       </div>
       {missing.length > 0 && (
-        <div className="flex items-center gap-1 text-[9px] text-neutral-400">
+        <div className="flex items-center gap-1 text-[9px] text-ally-muted font-display uppercase tracking-tight">
           <ArrowRight className="w-2.5 h-2.5" />
           <span>Need: {missing.slice(0, 3).join(', ')}{missing.length > 3 ? ` +${missing.length - 3}` : ''}</span>
         </div>
       )}
-      <div className="flex items-center gap-1.5 pt-0.5 border-t border-[#2a2a2a]">
+      <div className="flex items-center gap-1.5 pt-0.5 border-t border-ally-border">
         {comp.carries.map((c: any) => (
           <div key={c.name} className="flex items-center gap-1">
-            <Star className="w-2.5 h-2.5 text-yellow-400" />
-            <span className="text-[9px] text-white">{c.name}</span>
+            <Star className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400" />
+            <span className="text-[9px] text-ally-text-dim font-display uppercase font-semibold">{c.name}</span>
           </div>
         ))}
       </div>
