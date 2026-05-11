@@ -8,11 +8,11 @@ function normalizeName(name: string): string {
 }
 
 const COST_BG: Record<number, string> = {
-  1: 'bg-neutral-600',
-  2: 'bg-green-600',
-  3: 'bg-blue-600',
-  4: 'bg-purple-600',
-  5: 'bg-yellow-600',
+  1: 'bg-neutral-600/40 border-neutral-500/30',
+  2: 'bg-green-600/40 border-green-500/30',
+  3: 'bg-blue-600/40 border-blue-500/30',
+  4: 'bg-purple-600/40 border-purple-500/30',
+  5: 'bg-yellow-600/40 border-yellow-500/30',
 }
 
 export function OverlayMiniBoard() {
@@ -28,15 +28,15 @@ export function OverlayMiniBoard() {
   if (enriched.length === 0) return null
 
   return (
-    <div className="bg-[#1f1f1f]/90 border border-[#2a2a2a] rounded-lg p-2 space-y-1.5">
-      <div className="flex items-center justify-between text-[10px] text-neutral-500 uppercase tracking-wider">
-        <span>Board ({enriched.length})</span>
+    <div className="bg-ally-card/90 border border-ally-border rounded-lg p-2 space-y-1.5 shadow-card">
+      <div className="flex items-center justify-between text-caption text-ally-muted uppercase tracking-wider font-display font-semibold">
+        <span>Board <span className="text-ally-accent font-numbers">({enriched.length})</span></span>
       </div>
       <div className="grid grid-cols-3 gap-1">
         {enriched.map((u: any, i: number) => (
-          <div key={i} className={`flex items-center gap-1 rounded px-1.5 py-1 text-[9px] text-white ${COST_BG[u.cost] || 'bg-neutral-600'}`}>
-            <span className="truncate">{u.name}</span>
-            {u.starLevel > 1 && <Star className="w-2.5 h-2.5 text-yellow-300 shrink-0" />}
+          <div key={i} className={`flex items-center gap-1 rounded-sm border px-1 py-0.5 text-[9px] text-ally-text font-display uppercase tracking-tighter ${COST_BG[u.cost] || 'bg-neutral-600/40 border-neutral-500/30'}`}>
+            <span className="truncate flex-1">{u.name}</span>
+            {u.starLevel > 1 && <Star className="w-2 h-2 text-yellow-400 fill-yellow-400 shrink-0" />}
           </div>
         ))}
       </div>

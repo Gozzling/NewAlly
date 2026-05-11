@@ -124,22 +124,22 @@ export function OverlayCoachTips() {
 
   return (
     <div className="pointer-events-none select-none">
-      <div className="bg-ally-card/90 border border-ally-border rounded-lg p-2 space-y-1.5">
+      <div className="bg-ally-card/90 border border-ally-border rounded-lg p-2 space-y-1.5 shadow-card">
         <button
           type="button"
           onClick={() => setExpanded((e) => !e)}
-          className="pointer-events-auto flex w-full items-center gap-1 text-[9px] uppercase tracking-wider text-neutral-500 hover:text-neutral-300"
+          className="pointer-events-auto flex w-full items-center gap-1 text-[9px] font-display font-bold uppercase tracking-widest text-ally-muted hover:text-ally-accent transition-colors"
         >
           {expanded ? <ChevronDown className="w-3 h-3 shrink-0" /> : <ChevronRight className="w-3 h-3 shrink-0" />}
           <Sparkles className="w-3 h-3 text-ally-accent" />
-          <span>Coach</span>
+          <span>Coach Intelligence</span>
         </button>
         {expanded ? (
-          <ul className="space-y-1">
+          <ul className="space-y-1.5">
             {recs.map((r) => (
-              <li key={r.id} className="text-[9px] leading-snug text-neutral-300 border-l-2 border-ally-accent/50 pl-1.5">
-                <span className="font-semibold text-white/90">{r.title}</span>
-                <span className="block text-neutral-400 mt-0.5">{r.detail}</span>
+              <li key={r.id} className="text-[9px] leading-snug text-ally-text-dim border-l-2 border-ally-accent/50 pl-2 py-0.5">
+                <span className="font-display font-bold text-ally-text uppercase tracking-wide">{r.title}</span>
+                <span className="block text-ally-muted mt-0.5 font-medium">{r.detail}</span>
               </li>
             ))}
           </ul>
