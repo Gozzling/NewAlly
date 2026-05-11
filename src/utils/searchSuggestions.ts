@@ -18,6 +18,8 @@ export interface SearchSuggestion {
   kind: SearchSuggestionKind
   id: string
   label: string
+  group?: string
+  groupIcon?: string
   /** Region for summoner lookups (e.g. recent Match History searches). */
   region?: RiotRegion
 }
@@ -60,11 +62,35 @@ function buildCorpus(): SearchSuggestion[] {
   const out: SearchSuggestion[] = []
   const seen = new Set<string>()
 
+  const traitToType = new Map<string, string>()
+  for (const s of traits) {
+    traitToType.set(s.name, s.type)
+  }
+
   const addItem = (label: string) => {
     const key = `item:${label}`
     if (seen.has(key)) return
     seen.add(key)
-    out.push({ kind: 'item', id: label, label })
+
+    const guide = guideItems.find((e) => e.name === label)
+    let group = 'Items'
+    let groupIcon = '📦'
+
+    if (guide) {
+      const tags = guide.tags.map((t) => t.toLowerCase())
+      if (tags.some((t) => ['tank', 'defense', 'hp', 'armor', 'mr'].includes(t))) {
+        group = 'Tank Items'
+        groupIcon = '🛡️'
+      } else if (tags.some((t) => ['ap', 'mana'].includes(t))) {
+        group = 'AP Items'
+        groupIcon = '🔮'
+      } else if (tags.some((t) => ['offense', 'crit', 'as', 'shred', 'ad'].includes(t))) {
+        group = 'AD Items'
+        groupIcon = '⚔️'
+      }
+    }
+
+    out.push({ kind: 'item', id: label, label, group, groupIcon })
   }
 
   for (const [crafted, pair] of Object.entries(ITEM_RECIPES)) {
@@ -80,19 +106,74 @@ function buildCorpus(): SearchSuggestion[] {
   for (const e of guideItems) addItem(e.name)
 
   for (const u of champions) {
-    out.push({ kind: 'unit', id: u.id, label: u.name })
+    let group = 'Units'
+    let groupIcon = '👤'
+
+    const unitTraitTypes = u.traits.map((t) => traitToType.get(t)).filter(Boolean)
+
+    if (unitTraitTypes.includes('defense')) {
+      group = 'Tanks'
+      groupIcon = '🛡️'
+    } else if (unitTraitTypes.includes('offense')) {
+      // Heuristic: if they have AP scaling in ability, call them AP Carry, else AD
+      const isAP =
+        u.ability.damage.toLowerCase().includes('ap') ||
+        u.stats.ap > u.stats.ad ||
+        u.bestItems.some((i) =>
+          ['Rabadon', 'Jeweled', 'Blue Buff', 'Spear of Shojin', 'Archangel'].some((m) =>
+            i.includes(m),
+          ),
+        )
+      if (isAP) {
+        group = 'AP Carries'
+        groupIcon = '🔮'
+      } else {
+        group = 'AD Carries'
+        groupIcon = '⚔️'
+      }
+    } else if (unitTraitTypes.includes('utility')) {
+      group = 'Utility Units'
+      groupIcon = '🔮'
+    }
+
+    out.push({ kind: 'unit', id: u.id, label: u.name, group, groupIcon })
   }
 
   for (const s of traits) {
-    out.push({ kind: 'trait', id: s.id, label: s.name })
+    let group = 'Traits'
+    let groupIcon = '🌟'
+    if (s.type === 'defense') {
+      group = 'Defensive Traits'
+      groupIcon = '🛡️'
+    } else if (s.type === 'offense') {
+      group = 'Offensive Traits'
+      groupIcon = '⚔️'
+    } else if (s.type === 'utility') {
+      group = 'Utility Traits'
+      groupIcon = '🔮'
+    }
+
+    out.push({ kind: 'trait', id: s.id, label: s.name, group, groupIcon })
   }
 
   for (const a of augments) {
-    out.push({ kind: 'augment', id: a.id, label: a.name })
+    out.push({
+      kind: 'augment',
+      id: a.id,
+      label: a.name,
+      group: 'Augments',
+      groupIcon: '🌀',
+    })
   }
 
   for (const name of EXAMPLE_SUMMONERS) {
-    out.push({ kind: 'summoner', id: name, label: name })
+    out.push({
+      kind: 'summoner',
+      id: name,
+      label: name,
+      group: 'Summoners',
+      groupIcon: '🔍',
+    })
   }
 
   return out

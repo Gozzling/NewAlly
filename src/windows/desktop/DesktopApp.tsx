@@ -17,6 +17,7 @@ import {
   readGlobalSearchHistory,
 } from '@/utils/searchHistoryStorage';
 import { SupabaseError } from '@/services/supabaseService';
+import { HomeDashboard } from '@/pages/HomeDashboard';
 import { TeamBuilder } from '@/pages/TeamBuilder';
 import { CompCard } from '@/components/CompCard';
 import { MatchHistory } from '@/pages/MatchHistory';
@@ -53,6 +54,16 @@ function getCurrentWindowId(): Promise<string> {
 }
 
 const NAV_TABS = [
+  {
+    id: 'home',
+    label: 'Home',
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    ),
+  },
   {
     id: 'in-game',
     label: 'In Game',
@@ -727,7 +738,7 @@ export function DesktopApp() {
   const settingsRegion = useAppStore((s: any) => s.settings.region as string | undefined);
   const setStoreSettings = useAppStore((s: any) => s.setSettings);
   const lastRawRef = useRef<string>('');
-  const [activePage, setActivePage] = useState<string>('in-game');
+  const [activePage, setActivePage] = useState<string>('home');
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [selectedTraitId, setSelectedTraitId] = useState<string | null>(null);
@@ -1166,7 +1177,9 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
             ? ''
             : 'px-8 py-6'
         }`}>
-          {activePage === 'in-game' ? (
+          {activePage === 'home' ? (
+            <HomeDashboard onNavigate={setActivePage} />
+          ) : activePage === 'in-game' ? (
             <InGamePage />
           ) : activePage === 'comps' ? (
             <div className="flex flex-col gap-2">
