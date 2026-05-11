@@ -400,7 +400,7 @@ export async function getActiveGame(puuid: string, region: RiotRegion): Promise<
     async () => {
       try {
         return await riotFetch<Record<string, unknown>>(
-          `/lol/spectator/tft/v5/active-games/by-puuid/${encodeURIComponent(puuid)}`,
+          `/lol/spectator/v5/active-games/by-summoner/${encodeURIComponent(puuid)}`,
           region,
         )
       } catch (e) {

@@ -6,6 +6,7 @@ import {
   summarizePersonalMatches,
 } from "@/engine/recommendations";
 import { CURRENT_TFT_SET_NUMBER } from "@/meta/tftCurrentSet";
+import { broadcastCoachMatchHistorySummary } from "@/services/coachBroadcast";
 import { fetchPlayerMatchHistoryForSet } from "@/services/matchHistoryService";
 import { useAppStore } from "@/store/useAppStore";
 
@@ -67,6 +68,11 @@ function clearCache(region: string, puuid: string, setN: number) {
   }
 }
 
+/** Clears in-process cache between Vitest cases (localStorage is per-test in jsdom). */
+export function clearCoachMatchHistoryMemoryForTests(): void {
+  memory.clear();
+}
+
 /**
  * Read the TTL coach cache (same keys as {@link useCoachMatchHistory}).
  * Desktop and in-game overlay are separate renderers — use this in the overlay so it sees
@@ -78,6 +84,16 @@ export function readCachedCoachSummary(
   setNumber: number = CURRENT_TFT_SET_NUMBER,
 ): PlayerMatchHistorySummary | null {
   return readCache(region, puuid, setNumber);
+}
+
+/** Persist coach summary to the shared TTL cache (overlay hydration, IPC receiver, tests). */
+export function persistCachedCoachSummary(
+  region: string,
+  puuid: string,
+  summary: PlayerMatchHistorySummary,
+  setNumber: number = CURRENT_TFT_SET_NUMBER,
+): void {
+  writeCache(region, puuid, setNumber, summary);
 }
 
 export interface UseCoachMatchHistoryOptions {
@@ -163,6 +179,7 @@ export function useCoachMatchHistory(
         );
         setApiSummary(summary);
         writeCache(region, puuid, targetSet, summary);
+        broadcastCoachMatchHistorySummary(summary);
       } catch (e) {
         if (!cancelled) {
           setApiSummary(emptyPlayerMatchHistorySummary());

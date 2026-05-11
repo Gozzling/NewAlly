@@ -4,6 +4,7 @@ import { CompCardNew as CompCard } from '../components/CompCardNew'
 import { StatCard } from '../components/StatCard'
 import { Search, TrendingUp, LayoutGrid, Rocket, BadgeCheck } from 'lucide-react'
 import { SET_17_PATCH } from '@/meta/tftCurrentSet'
+import { MetaCompsSkeleton } from '@/components/AllyLoading'
 
 const TIERS = ['S', 'A', 'B', 'C'] as const
 type Tier = (typeof TIERS)[number]
@@ -73,8 +74,8 @@ export function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-[#a1a1a1] text-body">Loading meta comps...</div>
+      <div className="space-y-4 py-2" aria-busy="true" aria-label="Loading meta comps">
+        <MetaCompsSkeleton rows={8} />
       </div>
     )
   }

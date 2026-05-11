@@ -1,4 +1,12 @@
-import { useMemo, useRef, useState, type CSSProperties, type InputHTMLAttributes, type ReactNode } from 'react'
+import {
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type Ref,
+} from 'react'
 import type { SearchSuggestion, SearchSuggestionKind } from '@/utils/searchSuggestions'
 import {
   filterSearchSuggestions,
@@ -25,6 +33,10 @@ export interface SearchInputWithSuggestionsProps
   inputClassName?: string
   inputStyle?: CSSProperties
   listZIndex?: number
+  /** Forwarded to the underlying text input (e.g. Ctrl+K focus). */
+  inputRef?: Ref<HTMLInputElement>
+  /** When true, show `prependSuggestions` while the query is empty (e.g. recent searches). */
+  prependWhenEmpty?: boolean
 }
 
 export function SearchInputWithSuggestions({
@@ -42,6 +54,8 @@ export function SearchInputWithSuggestions({
   inputClassName = '',
   inputStyle,
   listZIndex = 50,
+  inputRef,
+  prependWhenEmpty = false,
   ...inputProps
 }: SearchInputWithSuggestionsProps) {
   const [open, setOpen] = useState(false)
@@ -51,13 +65,25 @@ export function SearchInputWithSuggestions({
     if (!enableSuggestions) return []
     const n = normalizeSearchText(value)
     const nk = n.replace(/[^a-z0-9]/g, '')
+    const empty = n.length === 0 && nk.length === 0
+    if (prependWhenEmpty && empty && prependSuggestions.length > 0) {
+      return prependSuggestions.slice(0, maxSuggestions)
+    }
     if (n.length < minQueryLength && nk.length < minQueryLength) return []
     const base = filterSearchSuggestions(value, kinds, maxSuggestions)
     const prep = prependSuggestions.filter((s) => labelMatchesQuery(s.label, value))
     const seen = new Set(prep.map((s) => `${s.kind}:${s.label}`))
     const rest = base.filter((s) => !seen.has(`${s.kind}:${s.label}`))
     return [...prep, ...rest].slice(0, maxSuggestions)
-  }, [value, kinds, maxSuggestions, minQueryLength, prependSuggestions, enableSuggestions])
+  }, [
+    value,
+    kinds,
+    maxSuggestions,
+    minQueryLength,
+    prependSuggestions,
+    enableSuggestions,
+    prependWhenEmpty,
+  ])
 
   const showList = open && suggestions.length > 0
 
@@ -79,6 +105,7 @@ export function SearchInputWithSuggestions({
       {leftSlot}
       <input
         {...inputProps}
+        ref={inputRef}
         type="text"
         value={value}
         placeholder={placeholder}

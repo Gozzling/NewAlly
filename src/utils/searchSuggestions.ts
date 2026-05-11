@@ -1,3 +1,4 @@
+import { useAppStore } from '@/store/useAppStore'
 import { UNITS } from '@/data/units'
 import { SYNERGIES } from '@/data/synergies'
 import { AUGMENTS } from '@/data/augments'
@@ -9,6 +10,7 @@ import {
 } from '@/data/items'
 import { ITEM_GUIDE_ENTRIES } from '@/data/itemGuideCatalog'
 import { EXAMPLE_SUMMONERS } from '@/data/exampleSummoners'
+import type { RiotRegion } from '@/types/riot'
 
 export type SearchSuggestionKind = 'unit' | 'item' | 'trait' | 'augment' | 'summoner'
 
@@ -16,6 +18,8 @@ export interface SearchSuggestion {
   kind: SearchSuggestionKind
   id: string
   label: string
+  /** Region for summoner lookups (e.g. recent Match History searches). */
+  region?: RiotRegion
 }
 
 export function normalizeSearchText(s: string): string {
@@ -42,7 +46,17 @@ export function labelMatchesQuery(label: string, query: string): boolean {
 
 let corpusCache: SearchSuggestion[] | null = null
 
+export function invalidateSearchCorpus(): void {
+  corpusCache = null
+}
+
 function buildCorpus(): SearchSuggestion[] {
+  const { gameData } = useAppStore.getState()
+  const champions = gameData.champions.length > 0 ? gameData.champions : UNITS
+  const traits = gameData.traits.length > 0 ? gameData.traits : SYNERGIES
+  const augments = gameData.augments.length > 0 ? gameData.augments : AUGMENTS
+  const guideItems = gameData.items.length > 0 ? gameData.items : ITEM_GUIDE_ENTRIES
+
   const out: SearchSuggestion[] = []
   const seen = new Set<string>()
 
@@ -63,17 +77,17 @@ function buildCorpus(): SearchSuggestion[] {
   }
   for (const c of ALL_COMPONENTS) addItem(c)
   for (const p of PSIONIC_ITEMS) addItem(p.name)
-  for (const e of ITEM_GUIDE_ENTRIES) addItem(e.name)
+  for (const e of guideItems) addItem(e.name)
 
-  for (const u of UNITS) {
+  for (const u of champions) {
     out.push({ kind: 'unit', id: u.id, label: u.name })
   }
 
-  for (const s of SYNERGIES) {
+  for (const s of traits) {
     out.push({ kind: 'trait', id: s.id, label: s.name })
   }
 
-  for (const a of AUGMENTS) {
+  for (const a of augments) {
     out.push({ kind: 'augment', id: a.id, label: a.name })
   }
 

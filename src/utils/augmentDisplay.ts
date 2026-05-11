@@ -1,3 +1,5 @@
+import { encodePublicIconFilename } from "@/utils/publicAssetUrl"
+
 /**
  * Augment icons are set-specific; we do not bundle Riot TFT augment art in-repo.
  * Place optional PNGs under `public/augment-icons/<slug>.png` (same slug rules as below).
@@ -7,5 +9,6 @@ export function augmentIconSlug(name: string): string {
 }
 
 export function augmentIconUrl(name: string): string {
-  return `/augment-icons/${augmentIconSlug(name)}.png`
+  const fileBase = augmentIconSlug(name)
+  return `/augment-icons/${encodePublicIconFilename(fileBase)}.png`
 }

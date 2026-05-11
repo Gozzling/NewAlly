@@ -11,6 +11,7 @@ export function Settings() {
 
   const storeSettings = useAppStore((s) => s.settings)
   const setStoreSettings = useAppStore((s) => s.setSettings)
+  const showToast = useAppStore((s) => s.showToast)
   const overlayPanels = useAppStore((s) => s.overlayPanels)
   const setOverlayPanels = useAppStore((s) => s.setOverlayPanels)
   const pipeline = useAppStore((s) => s.pipeline)
@@ -24,8 +25,6 @@ export function Settings() {
     if (fromLs) return fromLs
     return useAppStore.getState().settings.region
   })
-  const [saved, setSaved] = useState(false)
-
   const privacyPolicyHref =
     (import.meta.env.VITE_PRIVACY_POLICY_URL as string | undefined)?.trim() ||
     `${import.meta.env.BASE_URL}privacy.html`
@@ -37,8 +36,7 @@ export function Settings() {
     localStorage.setItem('tft-ally::summoner-name', summonerName.trim())
     localStorage.setItem('tft-ally::region', region)
     setStoreSettings({ region: region as RiotRegion })
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    showToast('Profile saved', 'success')
   }
 
   function handleClearCache() {
@@ -49,8 +47,7 @@ export function Settings() {
         localStorage.removeItem(k)
       }
     }
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    showToast('Local cache cleared', 'success')
   }
 
   return (
@@ -87,7 +84,7 @@ export function Settings() {
                 background: activeTab === tab.id ? 'var(--color-ally-accent)15' : 'transparent',
                 color: activeTab === tab.id ? 'var(--color-ally-accent)' : '#555',
                 cursor: 'pointer',
-                transition: 'all 0.15s ease',
+                transition: 'all 0.18s ease',
               }}
               onMouseEnter={(e) => {
                 if (activeTab !== tab.id) {
@@ -134,7 +131,12 @@ export function Settings() {
               >
                 <span style={{ fontSize: '13px', color: '#ccc' }}>{panel.label}</span>
                 <button
-                  onClick={() => setOverlayPanels({ ...overlayPanels, [panel.key]: !overlayPanels[panel.key as keyof typeof overlayPanels] })}
+                  onClick={() => {
+                    const key = panel.key as keyof typeof overlayPanels
+                    const next = !overlayPanels[key]
+                    setOverlayPanels({ ...overlayPanels, [key]: next })
+                    showToast(`${panel.label} ${next ? 'enabled' : 'disabled'} on overlay`, 'info')
+                  }}
                   style={{
                     width: '40px',
                     height: '22px',
@@ -176,6 +178,7 @@ export function Settings() {
                 max={100}
                 value={storeSettings.overlayOpacity ?? 90}
                 onChange={(e) => setStoreSettings({ ...storeSettings, overlayOpacity: Number(e.target.value) })}
+                onMouseUp={() => showToast('Overlay opacity updated', 'info')}
                 style={{
                   width: '100%',
                   accentColor: 'var(--color-ally-accent)',
@@ -292,32 +295,19 @@ export function Settings() {
                   borderRadius: '6px',
                   fontSize: '13px',
                   cursor: 'pointer',
-                  transition: 'all 0.15s ease',
+                  transition: 'all 0.18s ease',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'var(--color-ally-accent)80'
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--color-ally-accent) 80%, black)'
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#35c3e7'
+                  e.currentTarget.style.background = 'var(--color-ally-accent)'
                 }}
               >
                 <Save style={{ width: '16px', height: '16px' }} />
                 Save Profile
               </button>
             </div>
-
-            {saved && (
-              <div style={{
-                padding: '12px 16px',
-                borderRadius: '8px',
-                background: 'rgba(74, 222, 128, 0.1)',
-                border: '1px solid rgba(74, 222, 128, 0.3)',
-                color: '#4ade80',
-                fontSize: '13px',
-              }}>
-                Profile saved successfully.
-              </div>
-            )}
           </div>
         )}
 
@@ -345,6 +335,7 @@ export function Settings() {
                     onClick={() => {
                       setStoreSettings({ accentColor: accent.color })
                       document.documentElement.style.setProperty('--color-ally-accent', accent.color)
+                      showToast(`Accent: ${accent.name}`, 'success')
                     }}
                     style={{
                       width: '36px',
@@ -353,7 +344,7 @@ export function Settings() {
                       background: accent.color,
                       border: storeSettings.accentColor === accent.color ? '2px solid white' : '2px solid transparent',
                       cursor: 'pointer',
-                      transition: 'all 0.15s ease',
+                      transition: 'all 0.18s ease',
                     }}
                   />
                 ))}
@@ -371,7 +362,10 @@ export function Settings() {
             }}>
               <div className="flex gap-2">
                 <button
-                  onClick={() => setStoreSettings({ ...storeSettings, density: 'compact' })}
+                  onClick={() => {
+                    setStoreSettings({ ...storeSettings, density: 'compact' })
+                    showToast('Display density: Compact', 'info')
+                  }}
                   style={{
                     padding: '10px 16px',
                     borderRadius: '6px',
@@ -380,13 +374,16 @@ export function Settings() {
                     background: storeSettings.density === 'compact' ? 'var(--color-ally-accent)10' : 'transparent',
                     color: storeSettings.density === 'compact' ? 'var(--color-ally-accent)' : '#555',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
+                    transition: 'all 0.18s ease',
                   }}
                 >
                   Compact
                 </button>
                 <button
-                  onClick={() => setStoreSettings({ ...storeSettings, density: 'comfortable' })}
+                  onClick={() => {
+                    setStoreSettings({ ...storeSettings, density: 'comfortable' })
+                    showToast('Display density: Comfortable', 'info')
+                  }}
                   style={{
                     padding: '10px 16px',
                     borderRadius: '6px',
@@ -395,7 +392,7 @@ export function Settings() {
                     background: storeSettings.density === 'comfortable' ? 'var(--color-ally-accent)10' : 'transparent',
                     color: storeSettings.density === 'comfortable' ? 'var(--color-ally-accent)' : '#555',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
+                    transition: 'all 0.18s ease',
                   }}
                 >
                   Comfortable
@@ -418,6 +415,7 @@ export function Settings() {
                 max={18}
                 value={storeSettings.fontSize ?? 14}
                 onChange={(e) => setStoreSettings({ ...storeSettings, fontSize: Number(e.target.value) })}
+                onMouseUp={() => showToast('Font size updated', 'info')}
                 style={{
                   width: '100%',
                   accentColor: 'var(--color-ally-accent)',
@@ -455,10 +453,15 @@ export function Settings() {
               >
                 <span style={{ fontSize: '13px', color: '#ccc' }}>{notif.label}</span>
                 <button
-                  onClick={() => setStoreSettings({
-                    ...storeSettings,
-                    notifications: { ...storeSettings.notifications, [notif.key]: !storeSettings.notifications[notif.key as keyof typeof storeSettings.notifications] }
-                  })}
+                  onClick={() => {
+                    const key = notif.key as keyof typeof storeSettings.notifications
+                    const next = !storeSettings.notifications[key]
+                    setStoreSettings({
+                      ...storeSettings,
+                      notifications: { ...storeSettings.notifications, [key]: next },
+                    })
+                    showToast(`${notif.label}: ${next ? 'On' : 'Off'}`, 'info')
+                  }}
                   style={{
                     width: '40px',
                     height: '22px',
@@ -655,19 +658,6 @@ export function Settings() {
               <Trash2 style={{ width: '16px', height: '16px' }} />
               Clear Cache
             </button>
-
-            {saved && (
-              <div style={{
-                padding: '12px 16px',
-                borderRadius: '8px',
-                background: 'rgba(74, 222, 128, 0.1)',
-                border: '1px solid rgba(74, 222, 128, 0.3)',
-                color: '#4ade80',
-                fontSize: '13px',
-              }}>
-                Cache cleared successfully.
-              </div>
-            )}
           </div>
         )}
       </div>

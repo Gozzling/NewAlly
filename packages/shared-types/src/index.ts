@@ -1,6 +1,7 @@
 export type {
   IpcBackgroundErrorMessage,
   IpcCaptureStatusMessage,
+  IpcCoachMatchHistoryMessage,
   IpcGameStateMessage,
   IpcGepStatusMessage,
   IpcPersonalMatchMessage,

@@ -261,7 +261,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_animatech.tft_set17.png"
   },
   {
     "id": "syn_arbiter",
@@ -285,7 +286,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_arbiter.tft_set17.png"
   },
   {
     "id": "syn_bastion",
@@ -314,7 +316,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_9_bastion.png"
   },
   {
     "id": "syn_brawler",
@@ -344,7 +347,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_brawler.png"
   },
   {
     "id": "syn_bulwark",
@@ -359,7 +363,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     "bestUnits": [],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_bulwark.tft_set17.png"
   },
   {
     "id": "syn_challenger",
@@ -391,7 +396,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_challenger.tft_set17.png"
   },
   {
     "id": "syn_choose_trait",
@@ -401,7 +407,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     "bestUnits": [],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_missfortuneundetermindedtrait.tft_set17.png"
   },
   {
     "id": "syn_commander",
@@ -418,7 +425,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_commander.tft_set17.png"
   },
   {
     "id": "syn_conduit",
@@ -451,7 +459,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_channeler.tft_set17.png"
   },
   {
     "id": "syn_dark_lady",
@@ -466,7 +475,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     "bestUnits": [],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_darklady.tft_set17.png"
   },
   {
     "id": "syn_dark_star",
@@ -500,7 +510,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_darkstar.tft_set17.png"
   },
   {
     "id": "syn_divine_duelist",
@@ -517,7 +528,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_divineduelist.tft_set17.png"
   },
   {
     "id": "syn_doomer",
@@ -532,7 +544,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     "bestUnits": [],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_doomer.tft_set17.png"
   },
   {
     "id": "syn_eradicator",
@@ -549,7 +562,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_singularity.tft_set17.png"
   },
   {
     "id": "syn_factory_new",
@@ -564,7 +578,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     "bestUnits": [],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_factorynew.tft_set17.png"
   },
   {
     "id": "syn_fateweaver",
@@ -588,7 +603,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_fateweaver.tft_set17.png"
   },
   {
     "id": "syn_galaxy_hunter",
@@ -603,7 +619,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     "bestUnits": [],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_galaxyhunter.tft_set17.png"
   },
   {
     "id": "syn_gun_goddess",
@@ -618,7 +635,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     "bestUnits": [],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_gungoddess.tft_set17.png"
   },
   {
     "id": "syn_marauder",
@@ -647,7 +665,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_16_slayer.png"
   },
   {
     "id": "syn_mecha",
@@ -674,7 +693,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_mecha.tft_set17.png"
   },
   {
     "id": "syn_meeple",
@@ -710,7 +730,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_astronaut.tft_set17.png"
   },
   {
     "id": "syn_n_o_v_a",
@@ -735,7 +756,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_nova.tft_set17.png"
   },
   {
     "id": "syn_oracle",
@@ -750,7 +772,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     "bestUnits": [],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_12_arcana.tft_set12.png"
   },
   {
     "id": "syn_party_animal",
@@ -767,7 +790,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_partyanimal.tft_set17.png"
   },
   {
     "id": "syn_primordian",
@@ -790,7 +814,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_primordian.tft_set17.png"
   },
   {
     "id": "syn_psionic",
@@ -815,7 +840,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_psyops.tft_set17.png"
   },
   {
     "id": "syn_redeemer",
@@ -830,7 +856,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     "bestUnits": [],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_redeemer.tft_set17.png"
   },
   {
     "id": "syn_replicator",
@@ -855,7 +882,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_replicator.tft_set17.png"
   },
   {
     "id": "syn_rogue",
@@ -889,7 +917,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_rogue.tft_set17.png"
   },
   {
     "id": "syn_shepherd",
@@ -919,7 +948,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_shepherd.tft_set17.png"
   },
   {
     "id": "syn_sniper",
@@ -948,7 +978,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_6_sniper.png"
   },
   {
     "id": "syn_space_groove",
@@ -987,7 +1018,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_spacegroove.tft_set17.png"
   },
   {
     "id": "syn_stargazer",
@@ -1029,7 +1061,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_stargazer.tft_set17.png"
   },
   {
     "id": "syn_timebreaker",
@@ -1057,7 +1090,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_timebreaker.tft_set17.png"
   },
   {
     "id": "syn_vanguard",
@@ -1087,7 +1121,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_12_vanguard.tft_set12.png"
   },
   {
     "id": "syn_voyager",
@@ -1124,7 +1159,8 @@ export const SYNERGIES_FROM_RIOT_DATA = [
     ],
     "bestComps": [],
     "counters": [],
-    "type": "hybrid"
+    "type": "hybrid",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_voyager.tft_set17.png"
   }
 ]
 

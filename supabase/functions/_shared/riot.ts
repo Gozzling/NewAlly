@@ -107,8 +107,22 @@ export async function riotPlatformFetchOrNull<T>(
 
   if (res.status === 404) return null;
   if (res.status === 429) throw new RiotError("Rate limited by Riot", "RATE_LIMIT", 429);
-  if (res.status === 403) throw new RiotError("Invalid API key", "FORBIDDEN", 403);
-  if (!res.ok) throw new RiotError(`Riot API error ${res.status}`, "API_ERROR", res.status);
+  if (res.status === 403) {
+    const hint = (await res.text().catch(() => "")).slice(0, 280);
+    throw new RiotError(
+      hint ? `Forbidden (403): ${hint}` : "Forbidden (403): invalid key or product not allowed (e.g. spectator)",
+      "FORBIDDEN",
+      403,
+    );
+  }
+  if (!res.ok) {
+    const hint = (await res.text().catch(() => "")).slice(0, 280);
+    throw new RiotError(
+      hint ? `Riot API error ${res.status}: ${hint}` : `Riot API error ${res.status}`,
+      "API_ERROR",
+      res.status,
+    );
+  }
 
   const text = await res.text();
   if (!text || !text.trim()) return null;
@@ -146,7 +160,7 @@ export function jsonResponse(data: unknown, status = 200): Response {
     headers: {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
     },
   });

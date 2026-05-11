@@ -13,6 +13,8 @@ export interface Synergy {
   bestComps: string[]
   counters: string[]
   type: "offense" | "defense" | "utility" | "hybrid"
+  /** Community Dragon URL from Riot `icon_path` when present (see `generate-tft-from-riot.mjs`). */
+  iconUrl?: string
 }
 
 import { SYNERGIES_FROM_RIOT_DATA } from "./tftFromRiot.generated"

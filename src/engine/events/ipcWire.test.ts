@@ -2,17 +2,20 @@ import { describe, it, expect } from "vitest";
 import {
   createIpcBackgroundErrorMessage,
   createIpcCaptureStatusMessage,
+  createIpcCoachMatchHistoryMessage,
   createIpcGameStateMessage,
   createIpcGepStatusMessage,
   createIpcPersonalMatchMessage,
   isIpcBackgroundErrorMessage,
   isIpcCaptureStatusMessage,
+  isIpcCoachMatchHistoryMessage,
   isIpcGameStateMessage,
   isIpcGepStatusMessage,
   isIpcPersonalMatchMessage,
   isIpcTftPayload,
   TFT_LIVE_CHANNEL,
 } from "./ipcWire";
+import { emptyPlayerMatchHistorySummary } from "@/engine/recommendations/historySummary";
 import { EMPTY_STATE } from "@/store/useAppStore";
 
 describe("ipcWire", () => {
@@ -47,6 +50,15 @@ describe("ipcWire", () => {
     expect(isIpcCaptureStatusMessage({ kind: "capture_status", running: true, framesThisSession: NaN })).toBe(
       false,
     );
+  });
+
+  it("isIpcCoachMatchHistoryMessage validates summary shape", () => {
+    const summary = emptyPlayerMatchHistorySummary();
+    const msg = createIpcCoachMatchHistoryMessage(summary);
+    expect(isIpcCoachMatchHistoryMessage(msg)).toBe(true);
+    expect(isIpcTftPayload(msg)).toBe(true);
+    expect(isIpcCoachMatchHistoryMessage({ kind: "coach_match_history", summary: null })).toBe(false);
+    expect(isIpcCoachMatchHistoryMessage({ kind: "coach_match_history", summary: {} })).toBe(false);
   });
 
   it("isIpcPersonalMatchMessage validates match row", () => {

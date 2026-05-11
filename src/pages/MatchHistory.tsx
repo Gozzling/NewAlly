@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, type ReactNode } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import {
   fetchPlayerMatchHistory,
@@ -21,6 +21,9 @@ import { unitIconUrl } from '@/utils/unitDisplay'
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { EXAMPLE_SUMMONERS } from '@/data/exampleSummoners'
+import { StatAbbr } from '@/components/StatAbbr'
+import { AllySpinner } from '@/components/AllyLoading'
+import { mhHistoryToSuggestions, pushMhSearchHistory, readMhSearchHistory } from '@/utils/searchHistoryStorage'
 
 const REGIONS: { label: string; value: RiotRegion }[] = [
   { label: 'NA',  value: 'na1' },
@@ -36,8 +39,8 @@ const C = {
   bg:         '#0d0d0d',
   surface:    '#1f1f1f',
   border:     '#1a1a1a',
-  accent:     '#00d4ff',
-  accentDim:  'rgba(0,212,255,0.12)',
+  accent:     'var(--color-ally-accent)',
+  accentDim:  'color-mix(in srgb, var(--color-ally-accent) 14%, transparent)',
   win:        '#34d399',
   winDim:     'rgba(52,211,153,0.12)',
   loss:       '#ef4444',
@@ -47,7 +50,7 @@ const C = {
   faint:      '#484848',
   chartGreen: '#34d399',
   chartRed:   '#ef4444',
-  chartCyan:  '#00d4ff',
+  chartCyan:  'var(--color-ally-accent)',
 }
 
 /* ─── Helpers ─── */
@@ -326,7 +329,7 @@ function ErrorDisplay({ error, onRetry, onLoadCached, isRetrying }: {
 }
 
 /* ─── Empty State Component ─── */
-function EmptyState({ message }: { message: string }) {
+function EmptyState({ message, hint, action }: { message: string; hint?: string; action?: ReactNode }) {
   return (
     <div style={{
       flex: 1,
@@ -342,7 +345,7 @@ function EmptyState({ message }: { message: string }) {
         height: 64,
         borderRadius: '50%',
         background: 'rgba(255,255,255,0.05)',
-        border: '2px solid rgba(255,255,255,0.1)',
+        border: `2px solid color-mix(in srgb, ${C.accent} 20%, transparent)`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -358,9 +361,17 @@ function EmptyState({ message }: { message: string }) {
         fontFamily: 'Rajdhani, sans-serif',
         fontSize: 14,
         textAlign: 'center',
+        maxWidth: 360,
+        lineHeight: 1.5,
       }}>
         {message}
+        {hint ? (
+          <div style={{ marginTop: 10, fontSize: 12, color: C.faint }}>
+            {hint}
+          </div>
+        ) : null}
       </div>
+      {action}
     </div>
   )
 }
@@ -445,7 +456,7 @@ function MatchRow({ match, index }: { match: MatchRowData; index: number }) {
           {isNonStandard && (
             <span style={{
               padding: '1px 5px', borderRadius: 3,
-              background: 'rgba(0,212,255,0.15)', border: '1px solid rgba(0,212,255,0.3)',
+              background: C.accentDim, border: `1px solid color-mix(in srgb, ${C.accent} 30%, transparent)`,
               color: C.accent, fontSize: 8, fontWeight: 700, letterSpacing: '0.05em',
             }}>
               {gameTypeLabel}
@@ -517,11 +528,14 @@ function MatchRow({ match, index }: { match: MatchRowData; index: number }) {
       </div>
 
       {/* LP delta */}
-      <div style={{
-        fontFamily: 'Rajdhani, sans-serif', fontSize: 15, fontWeight: 900,
-        color: match.result === 'loss' ? C.loss : C.win, textAlign: 'center',
-        letterSpacing: '-0.01em',
-      }}>
+      <div
+        title="Estimated LP change for this game. Riot does not return exact LP per match; this is an approximation from placement."
+        style={{
+          fontFamily: 'Rajdhani, sans-serif', fontSize: 15, fontWeight: 900,
+          color: match.result === 'loss' ? C.loss : C.win, textAlign: 'center',
+          letterSpacing: '-0.01em',
+        }}
+      >
         {match.result === 'loss' ? `${match.lpChange}` : `+${match.lpChange}`}
       </div>
 
@@ -530,7 +544,12 @@ function MatchRow({ match, index }: { match: MatchRowData; index: number }) {
         fontFamily: 'Rajdhani, sans-serif', fontSize: 11,
         color: C.muted, textAlign: 'right',
       }}>
-        {match.lpAtEnd} LP
+        {match.lpAtEnd}{' '}
+        <StatAbbr
+          className="inline text-inherit"
+          text="LP"
+          tip="Running total League Points after this game, estimated from recent matches and your current rank."
+        />
       </div>
 
       {/* Result text */}
@@ -597,8 +616,13 @@ export function MatchHistory({
   const [searchErr, setSearchErr]        = useState<string | null>(null)
   const [isRetrying, setIsRetrying]      = useState(false)
   const [isShowingCached, setIsShowingCached] = useState(false)
+  const [mhSearchHistTick, setMhSearchHistTick] = useState(0)
 
   const summonerExamples = useMemo(() => [...EXAMPLE_SUMMONERS], [])
+  const mhSearchPrepend = useMemo(
+    () => mhHistoryToSuggestions(readMhSearchHistory()),
+    [mhSearchHistTick],
+  )
   const { placeholderAnimated: mhSearchPlaceholder } = useTypewriterPlaceholder(
     summonerExamples,
     searchQuery.length > 0,
@@ -623,6 +647,8 @@ export function MatchHistory({
       console.log('[DEBUG] playerCard:', JSON.stringify(card))
       console.log('[MH] fetchPlayerCard returned:', card)
       setSelectedPlayer(card)
+      pushMhSearchHistory(searchQuery.trim(), searchRegion)
+      setMhSearchHistTick((n) => n + 1)
     } catch (err) {
       console.error('[MH] handleSearch error:', err)
       setSearchErr(err instanceof Error ? err.message : 'Player not found')
@@ -776,20 +802,51 @@ export function MatchHistory({
   const QUEUE_FILTERS = ['All', 'Ranked', 'Normal', 'Hyper Roll', 'Double Up'] as const
   const [queueFilter, setQueueFilter] = useState<typeof QUEUE_FILTERS[number]>('All')
 
+  const PLACEMENT_FILTERS = ['All', 'Top 4', 'Bottom 4'] as const
+  const [placementFilter, setPlacementFilter] = useState<typeof PLACEMENT_FILTERS[number]>('All')
+  const DATE_RANGE_FILTERS = ['All time', 'Last week', 'Last month'] as const
+  const [dateRangeFilter, setDateRangeFilter] = useState<typeof DATE_RANGE_FILTERS[number]>('All time')
+  const [compFilter, setCompFilter] = useState<string>('all')
+
+  const compOptions = useMemo(() => {
+    const names = new Set<string>()
+    for (const m of matches) {
+      if (m.comp && m.comp.trim()) names.add(m.comp.trim())
+    }
+    return [...names].sort((a, b) => a.localeCompare(b))
+  }, [matches])
+
+  useEffect(() => {
+    if (compFilter !== 'all' && !compOptions.includes(compFilter)) setCompFilter('all')
+  }, [compOptions, compFilter])
+
   /* ─── Filtered matches ─── */
   const filteredMatches = useMemo(() => {
-    if (queueFilter === 'All') return matches
-    return matches.filter(m => {
-      const gameType = m.gameType.toLowerCase()
-      switch (queueFilter) {
-        case 'Ranked': return gameType === 'standard'
-        case 'Normal': return gameType === 'normal'
-        case 'Hyper Roll': return gameType === 'hyperroll'
-        case 'Double Up': return gameType === 'doubleup'
-        default: return true
-      }
-    })
-  }, [matches, queueFilter])
+    let list = matches
+    if (queueFilter !== 'All') {
+      list = list.filter((m) => {
+        const gameType = m.gameType.toLowerCase()
+        switch (queueFilter) {
+          case 'Ranked': return gameType === 'standard'
+          case 'Normal': return gameType === 'normal'
+          case 'Hyper Roll': return gameType === 'hyperroll'
+          case 'Double Up': return gameType === 'doubleup'
+          default: return true
+        }
+      })
+    }
+    if (placementFilter === 'Top 4') list = list.filter((m) => m.placement <= 4)
+    if (placementFilter === 'Bottom 4') list = list.filter((m) => m.placement > 4)
+    if (dateRangeFilter !== 'All time') {
+      const now = Date.now()
+      const ms = dateRangeFilter === 'Last week' ? 7 * 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000
+      list = list.filter((m) => now - new Date(m.date).getTime() <= ms)
+    }
+    if (compFilter !== 'all') {
+      list = list.filter((m) => (m.comp ?? '').trim() === compFilter)
+    }
+    return list
+  }, [matches, queueFilter, placementFilter, dateRangeFilter, compFilter])
 
   /* ─── Stats calculations ─── */
   const stats = useMemo(() => {
@@ -844,14 +901,14 @@ export function MatchHistory({
 
   /* ─── LP chart data ─── */
   const chartData = useMemo((): Array<MatchRowData & { x: string; label: string; rankAbbr: string }> => {
-    if (!matches.length) return []
-    return matches.map((m, i) => ({
+    if (!filteredMatches.length) return []
+    return filteredMatches.map((m) => ({
       ...m,
       x: m.date,
       label: new Date(m.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       rankAbbr: formatRankAbbreviation(m.tier, m.rank)
     }))
-  }, [matches])
+  }, [filteredMatches])
 
   /* ─── Guard: no player selected ─── */
   if (!selectedPlayer?.puuid) {
@@ -878,6 +935,11 @@ export function MatchHistory({
             onChange={setSearchQuery}
             placeholder={mhSearchPlaceholder || 'Summoner name…'}
             kinds={['summoner']}
+            prependWhenEmpty
+            prependSuggestions={mhSearchPrepend}
+            onSuggestionPick={(s) => {
+              if (s.region) setSearchRegion(s.region)
+            }}
             wrapperClassName="relative flex-1"
             listZIndex={300}
             leftSlot={
@@ -982,7 +1044,7 @@ export function MatchHistory({
             {selectedPlayer.profileIconId ? (
               <img
                 src={`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${selectedPlayer.profileIconId}.png`}
-                style={{width:'80px', height:'80px', borderRadius:'50%', objectFit:'cover', border:'2px solid #35c3e740'}}
+                style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: `2px solid color-mix(in srgb, ${C.accent} 25%, transparent)` }}
                 onError={(e) => { e.currentTarget.style.display='none' }}
               />
             ) : (
@@ -1011,7 +1073,7 @@ export function MatchHistory({
           {/* Rank display - clean text */}
           <div style={{ textAlign: 'center' }}>
             <div style={{
-              color: '#35c3e7',
+              color: C.accent,
               fontSize: 11,
               fontWeight: 700,
               letterSpacing: '0.1em',
@@ -1021,7 +1083,12 @@ export function MatchHistory({
               {selectedPlayer.tier || 'Unranked'} {selectedPlayer.rank || ''}
             </div>
             <div style={{ color: '#888', fontSize: 11 }}>
-              {selectedPlayer.lp ?? 0} LP
+              {selectedPlayer.lp ?? 0}{' '}
+              <StatAbbr
+                className="inline text-inherit border-ally-border"
+                text="LP"
+                tip="League Points — your position on the ranked ladder for TFT in this region."
+              />
             </div>
           </div>
 
@@ -1054,7 +1121,10 @@ export function MatchHistory({
                 {stats.avgPlace}
               </div>
               <div style={{ color: '#555', fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                AVG PLACE
+                <StatAbbr
+                  text="AVG PLACE"
+                  tip="Average finish (1 = first) across the matches currently filtered below."
+                />
               </div>
             </div>
             <div style={{ textAlign: 'center' }}>
@@ -1062,7 +1132,10 @@ export function MatchHistory({
                 {stats.top4Rate}%
               </div>
               <div style={{ color: '#555', fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                TOP 4%
+                <StatAbbr
+                  text="TOP 4%"
+                  tip="Percent of games where you placed 1st–4th. In ranked, top 4 usually gains LP."
+                />
               </div>
             </div>
             <div style={{ textAlign: 'center' }}>
@@ -1070,7 +1143,10 @@ export function MatchHistory({
                 {stats.winRate}%
               </div>
               <div style={{ color: '#555', fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                WIN%
+                <StatAbbr
+                  text="WIN%"
+                  tip="Percent of games where you placed 1st."
+                />
               </div>
             </div>
           </div>
@@ -1101,6 +1177,8 @@ export function MatchHistory({
             {QUEUE_FILTERS.map(filter => (
               <button
                 key={filter}
+                type="button"
+                className="ally-transition-filter"
                 onClick={() => setQueueFilter(filter)}
                 style={{
                   padding: '8px 16px',
@@ -1109,17 +1187,80 @@ export function MatchHistory({
                   fontWeight: 700,
                   border: 'none',
                   background: 'transparent',
-                  color: queueFilter === filter ? '#35c3e7' : '#555',
+                  color: queueFilter === filter ? C.accent : '#555',
                   cursor: 'pointer',
-                  transition: 'all 0.12s',
                   fontFamily: 'Rajdhani, sans-serif',
                   letterSpacing: '0.04em',
-                  borderBottom: queueFilter === filter ? '2px solid #35c3e7' : '2px solid transparent',
+                  borderBottom: queueFilter === filter ? `2px solid ${C.accent}` : '2px solid transparent',
                 }}
               >
                 {filter}
               </button>
             ))}
+          </div>
+
+          {/* Placement / date / comp filters */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginTop: 4 }}>
+            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', color: C.faint, marginRight: 4 }}>FILTERS</span>
+            <select
+              value={placementFilter}
+              onChange={(e) => setPlacementFilter(e.target.value as typeof PLACEMENT_FILTERS[number])}
+              className="ally-transition-filter"
+              style={{
+                background: C.bg,
+                border: `1px solid ${C.border}`,
+                borderRadius: 6,
+                color: C.text,
+                fontSize: 11,
+                padding: '6px 10px',
+                fontFamily: 'Rajdhani, sans-serif',
+                cursor: 'pointer',
+              }}
+            >
+              {PLACEMENT_FILTERS.map((p) => (
+                <option key={p} value={p} style={{ background: C.surface }}>{p}</option>
+              ))}
+            </select>
+            <select
+              value={dateRangeFilter}
+              onChange={(e) => setDateRangeFilter(e.target.value as typeof DATE_RANGE_FILTERS[number])}
+              className="ally-transition-filter"
+              style={{
+                background: C.bg,
+                border: `1px solid ${C.border}`,
+                borderRadius: 6,
+                color: C.text,
+                fontSize: 11,
+                padding: '6px 10px',
+                fontFamily: 'Rajdhani, sans-serif',
+                cursor: 'pointer',
+              }}
+            >
+              {DATE_RANGE_FILTERS.map((d) => (
+                <option key={d} value={d} style={{ background: C.surface }}>{d}</option>
+              ))}
+            </select>
+            <select
+              value={compFilter}
+              onChange={(e) => setCompFilter(e.target.value)}
+              className="ally-transition-filter"
+              style={{
+                background: C.bg,
+                border: `1px solid ${C.border}`,
+                borderRadius: 6,
+                color: C.text,
+                fontSize: 11,
+                padding: '6px 10px',
+                fontFamily: 'Rajdhani, sans-serif',
+                cursor: 'pointer',
+                maxWidth: 220,
+              }}
+            >
+              <option value="all" style={{ background: C.surface }}>All comps</option>
+              {compOptions.map((c) => (
+                <option key={c} value={c} style={{ background: C.surface }}>{c}</option>
+              ))}
+            </select>
           </div>
 
           {/* LP History chart */}
@@ -1132,7 +1273,10 @@ export function MatchHistory({
               textTransform: 'uppercase', color: C.muted, marginBottom: 8,
               display: 'flex', alignItems: 'center', gap: 8,
             }}>
-              <span>LP Progression · {chartData.length} games</span>
+              <span>
+                <StatAbbr text="LP" tip="League Points over time — estimated from your match history and current rank." />{' '}
+                Progression · {chartData.length} games
+              </span>
               {isShowingCached && (
                 <span style={{
                   padding: '2px 6px',
@@ -1153,12 +1297,12 @@ export function MatchHistory({
                   <defs>
                     <linearGradient id="liquidGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor={C.chartCyan} stopOpacity="0.3" />
-                      <stop offset="50%" stopColor="#00d4ff" stopOpacity="0.15" />
+                      <stop offset="50%" stopColor={C.chartCyan} stopOpacity="0.15" />
                       <stop offset="100%" stopColor={C.chartCyan} stopOpacity="0" />
                     </linearGradient>
                     <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
                       <stop offset="0%" stopColor={C.chartCyan} />
-                      <stop offset="50%" stopColor="#00d4ff" />
+                      <stop offset="50%" stopColor={C.chartCyan} />
                       <stop offset="100%" stopColor={C.chartCyan} />
                     </linearGradient>
                     <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -1272,13 +1416,13 @@ export function MatchHistory({
               fontSize: 11,
               fontWeight: 700,
               letterSpacing: '0.04em',
-              transition: 'box-shadow 0.15s ease',
+              transition: 'box-shadow 0.18s ease',
               cursor: 'default',
             }}
             onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 0 12px #f59e0b' }}
             onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none' }}
             >
-              Avg Place · {stats.avgPlace}
+              <StatAbbr text="Avg Place" tip="Average placement (1–8) in filtered games." /> · {stats.avgPlace}
             </div>
             <div style={{
               padding: '6px 16px',
@@ -1289,13 +1433,13 @@ export function MatchHistory({
               fontSize: 11,
               fontWeight: 700,
               letterSpacing: '0.04em',
-              transition: 'box-shadow 0.15s ease',
+              transition: 'box-shadow 0.18s ease',
               cursor: 'default',
             }}
-            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 0 12px #00d4ff' }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 0 12px color-mix(in srgb, ${C.accent} 55%, transparent)` }}
             onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none' }}
             >
-              Top 4 Rate · {stats.top4Rate}%
+              <StatAbbr text="Top 4 Rate" tip="Share of games finishing 1st–4th." /> · {stats.top4Rate}%
             </div>
             <div style={{
               padding: '6px 16px',
@@ -1306,13 +1450,13 @@ export function MatchHistory({
               fontSize: 11,
               fontWeight: 700,
               letterSpacing: '0.04em',
-              transition: 'box-shadow 0.15s ease',
+              transition: 'box-shadow 0.18s ease',
               cursor: 'default',
             }}
             onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 0 12px #34d399' }}
             onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none' }}
             >
-              Win Rate · {stats.winRate}%
+              <StatAbbr text="Win Rate" tip="Share of games where you finished 1st." /> · {stats.winRate}%
             </div>
           </div>
         </div>
@@ -1328,7 +1472,42 @@ export function MatchHistory({
           isRetrying={isRetrying}
         />
       ) : filteredMatches.length === 0 ? (
-        <EmptyState message="No matches found for this player" />
+        matches.length === 0 ? (
+          <EmptyState
+            message="No matches loaded for this player"
+            hint="Try another queue tab, pull to load more when online, or search a different Riot ID."
+          />
+        ) : (
+          <EmptyState
+            message="No matches match your filters"
+            hint="Placement, date range, or comp filter may be too narrow."
+            action={
+              <button
+                type="button"
+                onClick={() => {
+                  setQueueFilter('All')
+                  setPlacementFilter('All')
+                  setDateRangeFilter('All time')
+                  setCompFilter('all')
+                }}
+                style={{
+                  marginTop: 8,
+                  padding: '8px 18px',
+                  borderRadius: 8,
+                  border: `1px solid ${C.accent}`,
+                  background: C.accentDim,
+                  color: C.accent,
+                  fontFamily: 'Rajdhani, sans-serif',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Reset filters
+              </button>
+            }
+          />
+        )
       ) : (
         <>
           {/* Placement distribution chart */}
@@ -1409,8 +1588,12 @@ export function MatchHistory({
             }}>
               <span>#</span>
               <span>Game</span>
-              <span style={{ textAlign: 'center' }}>LP</span>
-              <span style={{ textAlign: 'right' }}>Total</span>
+              <span style={{ textAlign: 'center' }}>
+                <StatAbbr text="LP" tip="Estimated LP change for that game (approximation)." />
+              </span>
+              <span style={{ textAlign: 'right' }}>
+                <StatAbbr text="TOTAL" tip="Estimated LP after that game (running total)." />
+              </span>
               <span style={{ textAlign: 'center' }}>Result</span>
             </div>
 
@@ -1419,7 +1602,10 @@ export function MatchHistory({
             {/* Infinite scroll sentinel */}
             <div ref={loadMoreRef} style={{ padding: '12px', textAlign: 'center' }}>
               {loadingMore && (
-                <span style={{ color: C.muted, fontSize: 11 }}>Loading more…</span>
+                <span className="inline-flex items-center justify-center gap-2 font-sans text-ally-muted" style={{ fontSize: 11 }}>
+                  <AllySpinner className="scale-90" />
+                  Loading more…
+                </span>
               )}
               {!hasMore && filteredMatches.length > 0 && (
                 <span style={{ color: C.faint, fontSize: 11 }}>All games loaded</span>
@@ -1443,8 +1629,8 @@ export function MatchHistory({
           to { opacity: 1; transform: translateY(0); }
         }
         @keyframes glow {
-          0%, 100% { box-shadow: 0 0 8px #35c3e740; }
-          50% { box-shadow: 0 0 20px #35c3e7aa; }
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.88; }
         }
         @keyframes liquidWave {
           0%, 100% { transform: translateY(0); }

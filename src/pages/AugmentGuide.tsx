@@ -1,15 +1,18 @@
-import { useEffect, useMemo, useState } from 'react'
-import { augmentIconUrl } from '@/utils/augmentDisplay'
+import { useEffect, useMemo, useState, Fragment } from 'react'
+import { augmentIconUrl as localBundledAugmentIconUrl } from '@/utils/augmentDisplay'
+import { useAppStore } from '@/store/useAppStore'
+import type { Augment } from '@/data/augments'
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
+import { ReferenceDetailModal } from '@/components/ReferenceDetailModal'
 
 /* ─── Design tokens ─── */
 const C = {
   bg:         '#0e0e0e',
   surface:    '#111111',
   border:     '#2a2a2a',
-  accent:     '#35c3e7',
-  accentDim:  'rgba(53, 195, 231, 0.15)',
+  accent:     'var(--color-ally-accent)',
+  accentDim:  'color-mix(in srgb, var(--color-ally-accent) 16%, transparent)',
   text:       '#ffffff',
   muted:      '#9ca3af',
   content:    '#0e0e0e',
@@ -21,373 +24,6 @@ const TIER_COLORS: Record<string, { text: string; bg: string; border: string; ac
   silver: { text: '#9aa4af', bg: 'rgba(154, 164, 175, 0.1)', border: 'rgba(154, 164, 175, 0.3)', accent: '#9aa4af', glow: 'none' }
 }
 
-interface Augment {
-  id: string
-  name: string
-  tier: 'prismatic' | 'gold' | 'silver'
-  description: string
-  effect: string
-  bestComps: string[]
-  pickRate: number
-  winRate: number
-  avgPlacement: number
-  synergies: string[]
-  counters: string[]
-  tags: string[]
-}
-
-const AUGMENTS: Augment[] = [
-  {
-    id: "aug_space_god_blessing",
-    name: "Space God Blessing",
-    tier: "prismatic",
-    description: "At the start of each combat, choose 1 of 3 Divine Boons. Boons grant powerful team-wide buffs for that round.",
-    effect: "1 Divine Boon per round (choice of 3)",
-    bestComps: ["Divine Ascension", "Arbiter Court", "Any"],
-    pickRate: 15.2,
-    winRate: 54.1,
-    avgPlacement: 3.5,
-    synergies: ["Divine Right", "Arbiter's Gaze"],
-    counters: [],
-    tags: ["boon", "prismatic", "combat"]
-  },
-  {
-    id: "aug_divine_right",
-    name: "Divine Right",
-    tier: "gold",
-    description: "Divine units gain a bonus boon effect permanently after each combat they survive. Stacks up to 3 times.",
-    effect: "Divine units scale permanently via boons",
-    bestComps: ["Divine Ascension", "Space Groove"],
-    pickRate: 21.5,
-    winRate: 52.8,
-    avgPlacement: 3.6,
-    synergies: ["Space God Blessing", "Meeple Mayhem"],
-    counters: ["Anti-Divine"],
-    tags: ["boon", "trait", "gold", "combat"]
-  },
-  {
-    id: "aug_arbiters_gaze",
-    name: "Arbiter's Gaze",
-    tier: "gold",
-    description: "Arbiter units gain +15% damage and +10% damage reduction. Arbiter abilities have 20% chance to trigger twice.",
-    effect: "+15% damage, +10% DR, 20% double cast",
-    bestComps: ["Arbiter Court", "Divine Ascension"],
-    pickRate: 18.3,
-    winRate: 53.2,
-    avgPlacement: 3.4,
-    synergies: ["Space God Blessing", "Divine Right"],
-    counters: ["Anti-Arbiter"],
-    tags: ["trait", "gold", "offense", "defense"]
-  },
-  {
-    id: "aug_meeple_mayhem",
-    name: "Meeple Mayhem",
-    tier: "gold",
-    description: "Meeple units gain +20% attack speed and +10% ability power. Meeple abilities create clones on cast.",
-    effect: "+20% AS, +10% AP, clone on cast",
-    bestComps: ["Meeple Mayhem", "N.O.V.A. Core"],
-    pickRate: 16.8,
-    winRate: 51.9,
-    avgPlacement: 3.7,
-    synergies: ["Divine Right", "N.O.V.A. Surge"],
-    counters: ["Anti-Meeple"],
-    tags: ["trait", "gold", "offense", "utility"]
-  },
-  {
-    id: "aug_nova_surge",
-    name: "N.O.V.A. Surge",
-    tier: "gold",
-    description: "N.O.V.A. units gain +25% ability power and +15% mana generation. N.O.V.A. abilities chain to nearby enemies.",
-    effect: "+25% AP, +15% mana, chain abilities",
-    bestComps: ["N.O.V.A. Core", "Stargazer Council"],
-    pickRate: 19.4,
-    winRate: 52.5,
-    avgPlacement: 3.5,
-    synergies: ["Meeple Mayhem", "Stargazer's Call"],
-    counters: ["Anti-N.O.V.A."],
-    tags: ["trait", "gold", "AP", "mana"]
-  },
-  {
-    id: "aug_stargazers_call",
-    name: "Stargazer's Call",
-    tier: "gold",
-    description: "Stargazer units gain +20% damage and +15% ability power. Stargazer abilities have 25% chance to trigger twice.",
-    effect: "+20% damage, +15% AP, 25% double cast",
-    bestComps: ["Stargazer Council", "N.O.V.A. Core"],
-    pickRate: 17.2,
-    winRate: 53.8,
-    avgPlacement: 3.3,
-    synergies: ["N.O.V.A. Surge", "Cosmic Harmony"],
-    counters: ["Anti-Stargazer"],
-    tags: ["trait", "gold", "offense", "AP"]
-  },
-  {
-    id: "aug_cosmic_harmony",
-    name: "Cosmic Harmony",
-    tier: "silver",
-    description: "All units gain +5% damage and +5% ability power. Synergies grant +2% bonus stats per active trait.",
-    effect: "+5% damage, +5% AP, +2% per trait",
-    bestComps: ["Any", "Multi-Trait"],
-    pickRate: 24.1,
-    winRate: 50.3,
-    avgPlacement: 4.1,
-    synergies: [],
-    counters: [],
-    tags: ["economy", "silver", "utility"]
-  },
-  {
-    id: "aug_space_groove",
-    name: "Space Groove",
-    tier: "silver",
-    description: "Space Groove units gain +10% attack speed and +5% ability power. Space Groove abilities have 15% chance to trigger twice.",
-    effect: "+10% AS, +5% AP, 15% double cast",
-    bestComps: ["Space Groove", "Vanguard Arbiter"],
-    pickRate: 22.8,
-    winRate: 51.2,
-    avgPlacement: 3.9,
-    synergies: ["Divine Right", "Vanguard's Might"],
-    counters: [],
-    tags: ["trait", "silver", "offense", "utility"]
-  },
-  {
-    id: "aug_vanguard_might",
-    name: "Vanguard's Might",
-    tier: "silver",
-    description: "Vanguard units gain +15% damage and +10% damage reduction. Vanguard abilities taunt nearby enemies.",
-    effect: "+15% damage, +10% DR, taunt",
-    bestComps: ["Vanguard Arbiter", "Bastion N.O.V.A."],
-    pickRate: 20.5,
-    winRate: 50.8,
-    avgPlacement: 4.0,
-    synergies: ["Space Groove", "Bastion's Shield"],
-    counters: [],
-    tags: ["trait", "silver", "offense", "defense"]
-  },
-  {
-    id: "aug_bastion_shield",
-    name: "Bastion's Shield",
-    tier: "silver",
-    description: "Bastion units gain +10% damage and +15% damage reduction. Bastion abilities shield allies.",
-    effect: "+10% damage, +15% DR, shield allies",
-    bestComps: ["Bastion N.O.V.A.", "Vanguard Arbiter"],
-    pickRate: 19.7,
-    winRate: 51.5,
-    avgPlacement: 3.8,
-    synergies: ["Vanguard's Might", "N.O.V.A. Surge"],
-    counters: [],
-    tags: ["trait", "silver", "defense", "utility"]
-  },
-  {
-    id: "aug_primordial_swarm",
-    name: "Primordial Swarm",
-    tier: "silver",
-    description: "Primordian units gain +15% attack speed and +10% ability power. Primordian abilities spawn swarmlings on hit.",
-    effect: "+15% AS, +10% AP, spawn swarmlings",
-    bestComps: ["Primordian Swarm", "Brawler Vanguard"],
-    pickRate: 18.2,
-    winRate: 50.1,
-    avgPlacement: 4.2,
-    synergies: ["Brawler's Fury", "Rogue's Edge"],
-    counters: [],
-    tags: ["trait", "silver", "offense", "utility"]
-  },
-  {
-    id: "aug_brawler_fury",
-    name: "Brawler's Fury",
-    tier: "silver",
-    description: "Brawler units gain +20% damage and +10% attack speed. Brawler abilities heal on hit.",
-    effect: "+20% damage, +10% AS, heal on hit",
-    bestComps: ["Brawler Vanguard", "Primordian Swarm"],
-    pickRate: 17.9,
-    winRate: 49.8,
-    avgPlacement: 4.3,
-    synergies: ["Primordial Swarm", "Vanguard's Might"],
-    counters: [],
-    tags: ["trait", "silver", "offense", "sustain"]
-  },
-  {
-    id: "aug_rogue_edge",
-    name: "Rogue's Edge",
-    tier: "silver",
-    description: "Rogue units gain +25% damage and +15% attack speed. Rogue abilities crit more often.",
-    effect: "+25% damage, +15% AS, more crits",
-    bestComps: ["Rogue Anima", "Challenger Sniper"],
-    pickRate: 16.5,
-    winRate: 50.5,
-    avgPlacement: 4.0,
-    synergies: ["Primordial Swarm", "Challenger's Strike"],
-    counters: [],
-    tags: ["trait", "silver", "offense", "crit"]
-  },
-  {
-    id: "aug_challenger_strike",
-    name: "Challenger's Strike",
-    tier: "silver",
-    description: "Challenger units gain +20% damage and +10% attack speed. Challenger abilities dash to backline.",
-    effect: "+20% damage, +10% AS, dash to backline",
-    bestComps: ["Challenger Sniper", "Rogue Anima"],
-    pickRate: 15.8,
-    winRate: 51.0,
-    avgPlacement: 3.9,
-    synergies: ["Rogue's Edge", "Sniper's Focus"],
-    counters: [],
-    tags: ["trait", "silver", "offense", "mobility"]
-  },
-  {
-    id: "aug_sniper_focus",
-    name: "Sniper's Focus",
-    tier: "silver",
-    description: "Sniper units gain +15% damage and +20% attack speed. Sniper abilities have +1 range.",
-    effect: "+15% damage, +20% AS, +1 range",
-    bestComps: ["Sniper Timebreaker", "Challenger Sniper"],
-    pickRate: 14.7,
-    winRate: 51.3,
-    avgPlacement: 3.8,
-    synergies: ["Challenger's Strike", "Timebreaker's Echo"],
-    counters: [],
-    tags: ["trait", "silver", "offense", "range"]
-  },
-  {
-    id: "aug_timebreaker_echo",
-    name: "Timebreaker's Echo",
-    tier: "silver",
-    description: "Timebreaker units gain +10% damage and +15% ability power. Timebreaker abilities slow enemies.",
-    effect: "+10% damage, +15% AP, slow enemies",
-    bestComps: ["Timebreaker Sniper", "Sniper's Focus"],
-    pickRate: 13.9,
-    winRate: 50.7,
-    avgPlacement: 4.1,
-    synergies: ["Sniper's Focus", "Psionic Overload"],
-    counters: [],
-    tags: ["trait", "silver", "offense", "utility"]
-  },
-  {
-    id: "aug_psionic_overload",
-    name: "Psionic Overload",
-    tier: "silver",
-    description: "Psionic units gain +20% ability power and +10% mana generation. Psionic abilities chain to nearby enemies.",
-    effect: "+20% AP, +10% mana, chain abilities",
-    bestComps: ["Psionic Marauder", "Timebreaker Sniper"],
-    pickRate: 12.5,
-    winRate: 49.9,
-    avgPlacement: 4.2,
-    synergies: ["Timebreaker's Echo", "Marauder's Charge"],
-    counters: [],
-    tags: ["trait", "silver", "AP", "mana"]
-  },
-  {
-    id: "aug_marauder_charge",
-    name: "Marauder's Charge",
-    tier: "silver",
-    description: "Marauder units gain +15% damage and +10% attack speed. Marauder abilities gain bonus damage on kill.",
-    effect: "+15% damage, +10% AS, bonus damage on kill",
-    bestComps: ["Marauder Psionic", "Psionic Overload"],
-    pickRate: 11.8,
-    winRate: 50.2,
-    avgPlacement: 4.0,
-    synergies: ["Psionic Overload", "Voyager's Journey"],
-    counters: [],
-    tags: ["trait", "silver", "offense", "sustain"]
-  },
-  {
-    id: "aug_voyager_journey",
-    name: "Voyager's Journey",
-    tier: "silver",
-    description: "Voyager units gain +10% damage and +15% ability power. Voyager abilities heal allies.",
-    effect: "+10% damage, +15% AP, heal allies",
-    bestComps: ["Voyager Marauder", "Marauder's Charge"],
-    pickRate: 10.9,
-    winRate: 50.6,
-    avgPlacement: 3.9,
-    synergies: ["Marauder's Charge", "Replicator's Field"],
-    counters: [],
-    tags: ["trait", "silver", "AP", "support"]
-  },
-  {
-    id: "aug_replicator_field",
-    name: "Replicator's Field",
-    tier: "silver",
-    description: "Replicator units gain +15% ability power and +10% mana generation. Replicator abilities create clones.",
-    effect: "+15% AP, +10% mana, create clones",
-    bestComps: ["Replicator Voyager", "Voyager's Journey"],
-    pickRate: 9.7,
-    winRate: 49.5,
-    avgPlacement: 4.3,
-    synergies: ["Voyager's Journey", "Shepherd's Blessing"],
-    counters: [],
-    tags: ["trait", "silver", "AP", "utility"]
-  },
-  {
-    id: "aug_shepherd_blessing",
-    name: "Shepherd's Blessing",
-    tier: "silver",
-    description: "Shepherd units gain +10% damage and +20% ability power. Shepherd abilities shield allies.",
-    effect: "+10% damage, +20% AP, shield allies",
-    bestComps: ["Shepherd Replicator", "Replicator's Field"],
-    pickRate: 8.8,
-    winRate: 50.1,
-    avgPlacement: 4.1,
-    synergies: ["Replicator's Field", "Anima's Grace"],
-    counters: [],
-    tags: ["trait", "silver", "AP", "support"]
-  },
-  {
-    id: "aug_anima_grace",
-    name: "Anima's Grace",
-    tier: "silver",
-    description: "Anima units gain +15% damage and +10% ability power. Anima abilities heal on hit.",
-    effect: "+15% damage, +10% AP, heal on hit",
-    bestComps: ["Anima Shepherd", "Shepherd's Blessing"],
-    pickRate: 7.9,
-    winRate: 49.8,
-    avgPlacement: 4.2,
-    synergies: ["Shepherd's Blessing", "Dark Star's Embrace"],
-    counters: [],
-    tags: ["trait", "silver", "offense", "sustain"]
-  },
-  {
-    id: "aug_dark_star_embrace",
-    name: "Dark Star's Embrace",
-    tier: "silver",
-    description: "Dark Star units gain +20% damage and +15% ability power. Dark Star abilities gain bonus on ally death.",
-    effect: "+20% damage, +15% AP, bonus on ally death",
-    bestComps: ["Dark Star Anima", "Anima's Grace"],
-    pickRate: 7.2,
-    winRate: 50.4,
-    avgPlacement: 3.9,
-    synergies: ["Anima's Grace", "Mecha's Might"],
-    counters: [],
-    tags: ["trait", "silver", "offense", "AP"]
-  },
-  {
-    id: "aug_mecha_might",
-    name: "Mecha's Might",
-    tier: "silver",
-    description: "Mecha units gain +15% damage and +10% damage reduction. Mecha abilities shield self.",
-    effect: "+15% damage, +10% DR, shield self",
-    bestComps: ["Mecha Dark Star", "Dark Star's Embrace"],
-    pickRate: 6.5,
-    winRate: 49.7,
-    avgPlacement: 4.4,
-    synergies: ["Dark Star's Embrace", "Conduit's Flow"],
-    counters: [],
-    tags: ["trait", "silver", "offense", "defense"]
-  },
-  {
-    id: "aug_conduit_flow",
-    name: "Conduit's Flow",
-    tier: "silver",
-    description: "Trait-focused augment for Conduit (TFT mana trait). Verify exact numbers in-game — not from Riot string tables.",
-    effect: "Conduit synergy (see client)",
-    bestComps: ["Conduit Mecha", "Mecha's Might"],
-    pickRate: 5.8,
-    winRate: 50.0,
-    avgPlacement: 4.1,
-    synergies: ["Mecha's Might", "Stargazer's Call"],
-    counters: [],
-    tags: ["trait", "silver", "AP", "utility"]
-  }
-]
 
 interface AugmentGuideProps {
   query: string
@@ -403,13 +39,22 @@ interface AugmentGuideProps {
 const AUGMENT_GUIDE_PLACEHOLDER_WORDS = ['Prismatic', 'Divine Right', 'Space Groove']
 
 export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFilter, setTagFilter, onAugmentSelect, initialAugment }: AugmentGuideProps) {
+  const augments = useAppStore((s) => s.gameData.augments)
   const [selectedAugment, setSelectedAugment] = useState<Augment | null>(null)
+
+  const augmentTagOptions = useMemo(() => {
+    const tags = new Set<string>()
+    for (const a of augments) {
+      for (const t of a.tags) tags.add(t)
+    }
+    return ["all", ...[...tags].sort((a, b) => a.localeCompare(b))]
+  }, [augments])
 
   useEffect(() => {
     if (!initialAugment) return
-    const a = AUGMENTS.find((x) => x.name === initialAugment || x.id === initialAugment)
+    const a = augments.find((x) => x.name === initialAugment || x.id === initialAugment)
     if (a) setSelectedAugment(a)
-  }, [initialAugment])
+  }, [initialAugment, augments])
 
   const { placeholderAnimated: augmentsSearchPlaceholder } = useTypewriterPlaceholder(
     AUGMENT_GUIDE_PLACEHOLDER_WORDS,
@@ -417,11 +62,11 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
   )
 
   const filtered = useMemo(() => {
-    let list = query ? AUGMENTS.filter(a =>
+    let list = query ? augments.filter(a =>
       a.name.toLowerCase().includes(query.toLowerCase()) ||
       a.description.toLowerCase().includes(query.toLowerCase()) ||
       a.tags.some(t => t.toLowerCase().includes(query.toLowerCase()))
-    ) : [...AUGMENTS]
+    ) : [...augments]
 
     if (tierFilter !== 'all') {
       list = list.filter(a => a.tier === tierFilter)
@@ -433,9 +78,10 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
 
     const tierOrder = { prismatic: 0, gold: 1, silver: 2 }
     return list.sort((a, b) => tierOrder[a.tier] - tierOrder[b.tier])
-  }, [query, tierFilter, tagFilter])
+  }, [query, tierFilter, tagFilter, augments])
 
   const handleAugmentClick = (augment: Augment) => {
+    onAugmentSelect(augment.id)
     setSelectedAugment(augment)
   }
 
@@ -443,11 +89,8 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
     setSelectedAugment(null)
   }
 
-  if (selectedAugment) {
-    return <AugmentDetail augment={selectedAugment} onBack={handleBack} />
-  }
-
   return (
+    <Fragment>
     <div className="flex h-screen" style={{ animation: 'pageEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1)' }}>
       {/* Left Sidebar */}
       <div className="flex-shrink-0 flex flex-col" style={{
@@ -515,7 +158,7 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
             Tag
           </div>
           <div className="flex flex-wrap gap-2">
-            {(['all', 'boon', 'trait', 'economy', 'offense', 'defense', 'AP', 'mana', 'sustain', 'utility', 'crit', 'mobility', 'range', 'support'] as const).map((tag) => (
+            {augmentTagOptions.map((tag) => (
               <button
                 key={tag}
                 onClick={() => setTagFilter(tag)}
@@ -586,6 +229,15 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
         }
       `}</style>
     </div>
+
+    <ReferenceDetailModal
+      open={Boolean(selectedAugment)}
+      onClose={handleBack}
+      ariaLabel={selectedAugment ? `${selectedAugment.name} augment details` : 'Augment details'}
+    >
+      {selectedAugment ? <AugmentDetail augment={selectedAugment} onBack={handleBack} embedded /> : null}
+    </ReferenceDetailModal>
+    </Fragment>
   )
 }
 
@@ -642,7 +294,7 @@ function AugmentCard({ augment, index, onClick }: { augment: Augment; index: num
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, paddingLeft: 8 }}>
         <img
-          src={augmentIconUrl(augment.name)}
+          src={augment.iconUrl ?? localBundledAugmentIconUrl(augment.name)}
           alt=""
           width={36}
           height={36}
@@ -690,41 +342,42 @@ function AugmentCard({ augment, index, onClick }: { augment: Augment; index: num
   )
 }
 
-function AugmentDetail({ augment, onBack }: { augment: Augment; onBack: () => void }) {
+function AugmentDetail({ augment, onBack, embedded = false }: { augment: Augment; onBack: () => void; embedded?: boolean }) {
   const tierColors = TIER_COLORS[augment.tier] ?? TIER_COLORS.silver
 
   return (
     <div className="h-full overflow-y-auto" style={{
       background: C.content,
-      padding: '16px',
+      padding: embedded ? '12px 16px 20px' : '16px',
       animation: 'detailEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
     }}>
-      {/* Back Button */}
-      <button
-        onClick={onBack}
-        style={{
-          marginBottom: '16px',
-          padding: '6px 12px',
-          fontSize: '13px',
-          fontWeight: 500,
-          borderRadius: '6px',
-          background: 'transparent',
-          border: '1px solid transparent',
-          color: '#555',
-          cursor: 'pointer',
-          transition: 'all 0.15s ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.color = C.accent
-          e.currentTarget.style.borderColor = C.accent
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.color = '#555'
-          e.currentTarget.style.borderColor = 'transparent'
-        }}
-      >
-        ← Augments
-      </button>
+      {!embedded ? (
+        <button
+          onClick={onBack}
+          style={{
+            marginBottom: '16px',
+            padding: '6px 12px',
+            fontSize: '13px',
+            fontWeight: 500,
+            borderRadius: '6px',
+            background: 'transparent',
+            border: '1px solid transparent',
+            color: '#555',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = C.accent
+            e.currentTarget.style.borderColor = C.accent
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = '#555'
+            e.currentTarget.style.borderColor = 'transparent'
+          }}
+        >
+          ← Augments
+        </button>
+      ) : null}
 
       {/* Augment Name + Tier */}
       <div className="flex items-center gap-4 mb-8" style={{ animation: 'statCardEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.1s both' }}>
@@ -737,7 +390,7 @@ function AugmentDetail({ augment, onBack }: { augment: Augment; onBack: () => vo
           }}
         />
         <img
-          src={augmentIconUrl(augment.name)}
+          src={augment.iconUrl ?? localBundledAugmentIconUrl(augment.name)}
           alt=""
           width={44}
           height={44}

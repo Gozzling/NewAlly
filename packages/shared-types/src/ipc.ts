@@ -29,6 +29,12 @@ export type IpcCaptureStatusMessage = {
   framesThisSession: number;
 };
 
+/** Desktop → overlay/lobby: persisted coach aggregate (`PlayerMatchHistorySummary`). */
+export type IpcCoachMatchHistoryMessage = {
+  kind: "coach_match_history";
+  summary: unknown;
+};
+
 /** Slim personal match row for coach / analytics (no `raw` blob). Synced to desktop & overlay after GEP match end. */
 export type IpcPersonalMatchMessage = {
   kind: "personal_match";
@@ -57,4 +63,5 @@ export type IpcTftPayload =
   | IpcGepStatusMessage
   | IpcBackgroundErrorMessage
   | IpcCaptureStatusMessage
-  | IpcPersonalMatchMessage;
+  | IpcPersonalMatchMessage
+  | IpcCoachMatchHistoryMessage;

@@ -23,6 +23,11 @@ Overwolf Native app for Teamfight Tactics. 3 windows: background (controller), o
 | `ally-border`       | #2a2a2a   | Borders, dividers            |
 | `ally-hover`        | #252525   | Hover states                 |
 
+## Current TFT set + coach history
+- **Set number & static meta version**: `src/meta/tftCurrentSet.ts` (`CURRENT_TFT_SET_NUMBER`, `STATIC_META_VERSION`). Prefer importing from there instead of hard-coding set IDs in UI or the recommendation engine.
+- **Coach cache (desktop + overlay)**: TTL ~1h, key prefix `tft-ally::coach-mh:` in `localStorage` (see `useCoachMatchHistory.ts`). Overlay and desktop are different renderers; the overlay also reads this cache and listens for `storage` because Zustand is not shared across windows.
+- **IPC**: `IpcCoachMatchHistoryMessage` (`kind: "coach_match_history"`) on `TFT_LIVE_CHANNEL` mirrors a fresh `PlayerMatchHistorySummary` to overlay/lobby after desktop fetch or when explicitly broadcast.
+
 ## Folder structure
 ```
 packages/

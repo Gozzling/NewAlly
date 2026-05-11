@@ -12,6 +12,21 @@ import { fileURLToPath } from "url"
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, "..")
 
+const CD_RAW_BASE = "https://raw.communitydragon.org/latest/game/assets"
+
+/** Same as `scripts/lib/communityDragon.mjs` — raw CD URL from Riot `icon_path` / `squareIconPath`. */
+function cdAssetUrl(assetPath) {
+  if (!assetPath || typeof assetPath !== "string") return null
+  const idx = assetPath.indexOf("/ASSETS/")
+  if (idx === -1) return null
+  const rest = assetPath.slice(idx + "/ASSETS/".length)
+  const urlPath = rest
+    .split("/")
+    .map((s) => s.toLowerCase())
+    .join("/")
+  return `${CD_RAW_BASE}/${urlPath}`
+}
+
 const TFT_CHAMPIONS_URL =
   "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/tftchampions.json"
 const TFT_TRAITS_URL =
@@ -171,7 +186,7 @@ function buildSynergies(traitsJson, traitToUnits) {
     const desc = stripTooltip(tr.tooltip_text) || name
     const bestUnits = traitToUnits.get(name) ?? []
 
-    synergies.push({
+    const row = {
       id: normSynId(name),
       name,
       description: desc,
@@ -180,7 +195,10 @@ function buildSynergies(traitsJson, traitToUnits) {
       bestComps: [],
       counters: [],
       type: "hybrid",
-    })
+    }
+    const iconUrl = cdAssetUrl(tr.icon_path)
+    if (iconUrl) row.iconUrl = iconUrl
+    synergies.push(row)
   }
 
   synergies.sort((a, b) => a.name.localeCompare(b.name))

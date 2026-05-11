@@ -2,6 +2,7 @@ import type { TftGameState } from "@/types/tft";
 import type {
   IpcBackgroundErrorMessage,
   IpcCaptureStatusMessage,
+  IpcCoachMatchHistoryMessage,
   IpcGameStateMessage,
   IpcGepStatusMessage,
   IpcPersonalMatchMessage,
@@ -11,6 +12,7 @@ import type {
 export type {
   IpcBackgroundErrorMessage,
   IpcCaptureStatusMessage,
+  IpcCoachMatchHistoryMessage,
   IpcGameStateMessage,
   IpcGepStatusMessage,
   IpcPersonalMatchMessage,
@@ -55,6 +57,16 @@ export function isIpcCaptureStatusMessage(payload: unknown): payload is IpcCaptu
   );
 }
 
+export function isIpcCoachMatchHistoryMessage(payload: unknown): payload is IpcCoachMatchHistoryMessage {
+  if (!payload || typeof payload !== "object") return false;
+  const p = payload as Record<string, unknown>;
+  if (p.kind !== "coach_match_history") return false;
+  const s = p.summary;
+  if (!s || typeof s !== "object") return false;
+  const o = s as Record<string, unknown>;
+  return typeof o.windowSize === "number";
+}
+
 export function isIpcPersonalMatchMessage(payload: unknown): payload is IpcPersonalMatchMessage {
   if (!payload || typeof payload !== "object") return false;
   const p = payload as Record<string, unknown>;
@@ -77,7 +89,8 @@ export function isIpcTftPayload(payload: unknown): payload is IpcTftPayload {
     isIpcGepStatusMessage(payload) ||
     isIpcBackgroundErrorMessage(payload) ||
     isIpcCaptureStatusMessage(payload) ||
-    isIpcPersonalMatchMessage(payload)
+    isIpcPersonalMatchMessage(payload) ||
+    isIpcCoachMatchHistoryMessage(payload)
   );
 }
 
@@ -102,4 +115,8 @@ export function createIpcCaptureStatusMessage(
 
 export function createIpcPersonalMatchMessage(match: IpcPersonalMatchMessage["match"]): IpcPersonalMatchMessage {
   return { kind: "personal_match", match };
+}
+
+export function createIpcCoachMatchHistoryMessage(summary: unknown): IpcCoachMatchHistoryMessage {
+  return { kind: "coach_match_history", summary };
 }

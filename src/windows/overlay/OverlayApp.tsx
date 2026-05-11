@@ -15,7 +15,7 @@ function HudBar({ gold, roundType, stage, health }: { gold?: number; roundType?:
       <span className="text-neutral-500">|</span>
       <span className="text-white">{stage ?? '–'}</span>
       <span className="text-neutral-500">|</span>
-      <span className="text-[#35c3e7]">{roundType ?? '–'}</span>
+      <span className="text-ally-accent">{roundType ?? '–'}</span>
       <span className="text-neutral-500">|</span>
       <span className="text-red-400">HP: {health ?? '–'}</span>
     </div>
@@ -45,7 +45,7 @@ const toggleGuideMode = useAppStore((s) => s.toggleGuideMode);
     <div className="w-full h-full relative pointer-events-none">
       <div className="flex items-center justify-between mb-2">
         <HudBar gold={state.gold} roundType={state.round_type} stage={state.stage} health={state.health} />
-        <button onClick={() => toggleGuideMode(!guideModeEnabled)} className="text-xs bg-[#35c3e7]/20 hover:bg-[#35c3e7]/30 text-[#35c3e7] hover:text-white transition-colors px-2 py-1 rounded">
+        <button onClick={() => toggleGuideMode(!guideModeEnabled)} className="text-xs bg-ally-accent/20 hover:bg-ally-accent/30 text-ally-accent hover:text-white transition-colors px-2 py-1 rounded pointer-events-auto">
           Guide Mode: {guideModeEnabled ? 'On' : 'Off'}
         </button>
       </div>

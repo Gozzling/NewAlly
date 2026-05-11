@@ -7,8 +7,8 @@ const C = {
   bg:         '#181818',
   surface:    '#1f1f1f',
   border:     '#2a2a2a',
-  accent:     '#00d4ff',
-  accentDim:  'rgba(0,212,255,0.12)',
+  accent:     'var(--color-ally-accent)',
+  accentDim:  'color-mix(in srgb, var(--color-ally-accent) 14%, transparent)',
   text:       '#ffffff',
   muted:      '#a1a1a1',
 }

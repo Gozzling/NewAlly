@@ -17,6 +17,8 @@ export interface ItemGuideEntry {
   tier: "S" | "A" | "B" | "C"
   bestOn: string[]
   iconSlug?: string
+  /** Community Dragon PNG when loaded from `cdragon/tft` sync */
+  iconUrl?: string
 }
 
 type RawRow = { name: string; stats: string; effect: string }

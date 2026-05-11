@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
-import { SYNERGIES } from '../data/synergies'
-import { unitIconUrl } from '@/utils/unitDisplay'
+import { useEffect, useMemo, useState, Fragment } from 'react'
+import type { Synergy } from '@/data/synergies'
+import { useAppStore } from '@/store/useAppStore'
+import { traitIconUrl, unitIconUrl } from '@/utils/cdnIcons'
 import { Shield, Swords, Zap, Hexagon } from 'lucide-react'
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
+import { ReferenceDetailModal } from '@/components/ReferenceDetailModal'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -37,13 +39,14 @@ interface SynergyGuideProps {
 const TRAIT_GUIDE_PLACEHOLDER_WORDS = ['Bastion', 'Rogue', 'Sniper', 'Brawler', 'Dark Star']
 
 export function SynergyGuide({ query, setQuery, typeFilter, setTypeFilter, onSynergySelect, initialTrait }: SynergyGuideProps) {
-  const [selectedSynergy, setSelectedSynergy] = useState<(typeof SYNERGIES)[0] | null>(null)
+  const traits = useAppStore((s) => s.gameData.traits)
+  const [selectedSynergy, setSelectedSynergy] = useState<Synergy | null>(null)
 
   useEffect(() => {
     if (!initialTrait) return
-    const syn = SYNERGIES.find((s) => s.name === initialTrait || s.id === initialTrait)
+    const syn = traits.find((s) => s.name === initialTrait || s.id === initialTrait)
     if (syn) setSelectedSynergy(syn)
-  }, [initialTrait])
+  }, [initialTrait, traits])
 
   const { placeholderAnimated: traitsSearchPlaceholder } = useTypewriterPlaceholder(
     TRAIT_GUIDE_PLACEHOLDER_WORDS,
@@ -51,12 +54,13 @@ export function SynergyGuide({ query, setQuery, typeFilter, setTypeFilter, onSyn
   )
 
   const filtered = useMemo(() => {
-    let list = query ? SYNERGIES.filter((s) => s.name.toLowerCase().includes(query.toLowerCase()) || s.bestUnits.some((u) => u.toLowerCase().includes(query.toLowerCase()))) : SYNERGIES
+    let list = query ? traits.filter((s) => s.name.toLowerCase().includes(query.toLowerCase()) || s.bestUnits.some((u) => u.toLowerCase().includes(query.toLowerCase()))) : traits
     if (typeFilter !== 'all') list = list.filter((s) => s.type === typeFilter)
     return list
-  }, [query, typeFilter])
+  }, [query, typeFilter, traits])
 
-  const handleSynergyClick = (synergy: (typeof SYNERGIES)[0]) => {
+  const handleSynergyClick = (synergy: Synergy) => {
+    onSynergySelect(synergy.id)
     setSelectedSynergy(synergy)
   }
 
@@ -64,11 +68,8 @@ export function SynergyGuide({ query, setQuery, typeFilter, setTypeFilter, onSyn
     setSelectedSynergy(null)
   }
 
-  if (selectedSynergy) {
-    return <SynergyDetail synergy={selectedSynergy} onBack={handleBack} />
-  }
-
   return (
+    <Fragment>
     <div className="flex h-screen" style={{ animation: 'pageEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1)' }}>
       {/* Left Sidebar */}
       <div className="flex-shrink-0 flex flex-col" style={{
@@ -180,11 +181,21 @@ export function SynergyGuide({ query, setQuery, typeFilter, setTypeFilter, onSyn
         }
       `}</style>
     </div>
+
+    <ReferenceDetailModal
+      open={Boolean(selectedSynergy)}
+      onClose={handleBack}
+      ariaLabel={selectedSynergy ? `${selectedSynergy.name} trait details` : 'Trait details'}
+    >
+      {selectedSynergy ? <SynergyDetail synergy={selectedSynergy} onBack={handleBack} embedded /> : null}
+    </ReferenceDetailModal>
+    </Fragment>
   )
 }
 
-function SynergyCard({ synergy, index, onClick }: { synergy: (typeof SYNERGIES)[0]; index: number; onClick: () => void }) {
+function SynergyCard({ synergy, index, onClick }: { synergy: Synergy; index: number; onClick: () => void }) {
   const typeColors = TYPE_COLORS[synergy.type] ?? TYPE_COLORS.hybrid
+  const traitIcon = traitIconUrl(synergy.name)
 
   return (
     <div
@@ -208,8 +219,24 @@ function SynergyCard({ synergy, index, onClick }: { synergy: (typeof SYNERGIES)[
       }}
     >
       {/* Trait Name + Type Badge */}
-      <div className="flex items-center justify-between mb-3">
-        <div style={{ fontSize: '13px', fontWeight: 600, color: 'white' }}>{synergy.name}</div>
+      <div className="flex items-center justify-between mb-3 gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          {traitIcon ? (
+            <img
+              src={traitIcon}
+              alt=""
+              width={32}
+              height={32}
+              className="h-8 w-8 shrink-0 rounded-md object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = "none"
+              }}
+            />
+          ) : null}
+          <div className="min-w-0 truncate" style={{ fontSize: '13px', fontWeight: 600, color: 'white' }}>
+            {synergy.name}
+          </div>
+        </div>
         <div
           style={{
             padding: '2px 8px',
@@ -257,44 +284,66 @@ function SynergyCard({ synergy, index, onClick }: { synergy: (typeof SYNERGIES)[
   )
 }
 
-function SynergyDetail({ synergy, onBack }: { synergy: (typeof SYNERGIES)[0]; onBack: () => void }) {
+function SynergyDetail({
+  synergy,
+  onBack,
+  embedded = false,
+}: {
+  synergy: Synergy
+  onBack: () => void
+  embedded?: boolean
+}) {
   const typeColors = TYPE_COLORS[synergy.type] ?? TYPE_COLORS.hybrid
+  const traitIcon = traitIconUrl(synergy.name)
 
   return (
     <div className="h-full overflow-y-auto" style={{
       background: C.content,
-      padding: '16px',
+      padding: embedded ? '12px 16px 20px' : '16px',
       animation: 'detailEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
     }}>
-      {/* Back Button */}
-      <button
-        onClick={onBack}
-        style={{
-          marginBottom: '16px',
-          padding: '6px 12px',
-          fontSize: '13px',
-          fontWeight: 500,
-          borderRadius: '6px',
-          background: 'transparent',
-          border: '1px solid transparent',
-          color: '#555',
-          cursor: 'pointer',
-          transition: 'all 0.15s ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.color = C.accent
-          e.currentTarget.style.borderColor = C.accent
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.color = '#555'
-          e.currentTarget.style.borderColor = 'transparent'
-        }}
-      >
-        ← Synergies
-      </button>
+      {!embedded ? (
+        <button
+          onClick={onBack}
+          style={{
+            marginBottom: '16px',
+            padding: '6px 12px',
+            fontSize: '13px',
+            fontWeight: 500,
+            borderRadius: '6px',
+            background: 'transparent',
+            border: '1px solid transparent',
+            color: '#555',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = C.accent
+            e.currentTarget.style.borderColor = C.accent
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = '#555'
+            e.currentTarget.style.borderColor = 'transparent'
+          }}
+        >
+          ← Synergies
+        </button>
+      ) : null}
 
       {/* Trait Name + Type */}
       <div className="flex items-center gap-4 mb-8" style={{ animation: 'statCardEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.1s both' }}>
+        {traitIcon ? (
+          <img
+            src={traitIcon}
+            alt=""
+            width={40}
+            height={40}
+            className="h-10 w-10 shrink-0 rounded-lg object-cover"
+            onError={(e) => {
+              e.currentTarget.style.display = "none"
+            }}
+          />
+        ) : null}
         <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'white' }}>{synergy.name}</h2>
         <div
           style={{

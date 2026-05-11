@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
-import { unitIconUrl } from '@/utils/unitDisplay'
-import { itemIconUrl } from '@/utils/itemDisplay'
+import { useEffect, useMemo, useState, Fragment } from 'react'
+import { UnitPortrait } from '@/components/UnitPortrait'
+import { itemIconUrl as localBundledItemIconUrl } from '@/utils/itemDisplay'
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
-import { ITEM_GUIDE_ENTRIES, type ItemGuideCategory, type ItemGuideEntry } from '@/data/itemGuideCatalog'
+import { useAppStore } from '@/store/useAppStore'
+import type { ItemGuideCategory, ItemGuideEntry } from '@/data/itemGuideCatalog'
+import { ReferenceDetailModal } from '@/components/ReferenceDetailModal'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -11,7 +13,7 @@ const C = {
   surface:    'var(--color-ally-card)',
   border:     'var(--color-ally-border)',
   accent:     'var(--color-ally-accent)',
-  accentDim:  'var(--color-ally-accent)15',
+  accentDim:  'color-mix(in srgb, var(--color-ally-accent) 18%, transparent)',
   text:       'var(--color-ally-text)',
   muted:      'var(--color-ally-muted)',
   content:    'var(--color-ally-bg)',
@@ -50,13 +52,14 @@ interface ItemsGuideProps {
 const ITEMS_GUIDE_PLACEHOLDER_WORDS = ['Omniweapon', 'Blue Buff', 'Anima Emblem', 'Thresh\'s Lantern']
 
 export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter, tagFilter, setTagFilter, tierFilter, setTierFilter, onItemSelect, initialItem }: ItemsGuideProps) {
+  const guideItems = useAppStore((s) => s.gameData.items)
   const [selectedItem, setSelectedItem] = useState<ItemGuideEntry | null>(null)
 
   useEffect(() => {
     if (!initialItem) return
-    const it = ITEM_GUIDE_ENTRIES.find((i) => i.name === initialItem)
+    const it = guideItems.find((i) => i.name === initialItem)
     if (it) setSelectedItem(it)
-  }, [initialItem])
+  }, [initialItem, guideItems])
 
   const { placeholderAnimated: itemsSearchPlaceholder } = useTypewriterPlaceholder(
     ITEMS_GUIDE_PLACEHOLDER_WORDS,
@@ -65,7 +68,7 @@ export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter,
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    let list = [...ITEM_GUIDE_ENTRIES]
+    let list = [...guideItems]
     if (q) {
       list = list.filter((i) => {
         const hay = `${i.name} ${i.stats} ${i.effect} ${i.components?.join(' ') ?? ''}`.toLowerCase()
@@ -78,9 +81,10 @@ export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter,
 
     const tierOrder = { S: 0, A: 1, B: 2, C: 3 }
     return list.sort((a, b) => tierOrder[a.tier] - tierOrder[b.tier])
-  }, [query, categoryFilter, tagFilter, tierFilter])
+  }, [query, categoryFilter, tagFilter, tierFilter, guideItems])
 
   const handleItemClick = (item: ItemGuideEntry) => {
+    onItemSelect(item.name)
     setSelectedItem(item)
   }
 
@@ -88,11 +92,8 @@ export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter,
     setSelectedItem(null)
   }
 
-  if (selectedItem) {
-    return <ItemDetail item={selectedItem} onBack={handleBack} onItemSelect={onItemSelect} />
-  }
-
   return (
+    <Fragment>
     <div className="flex h-screen" style={{ animation: 'pageEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1)' }}>
       {/* Left Sidebar */}
       <div className="flex-shrink-0 flex flex-col" style={{
@@ -141,9 +142,9 @@ export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter,
                   padding: '3px 10px',
                   borderRadius: '4px',
                   fontSize: '11px',
-                  border: categoryFilter === id ? '1px solid #35c3e740' : '1px solid #2a2a2a',
-                  background: categoryFilter === id ? '#35c3e710' : 'transparent',
-                  color: categoryFilter === id ? '#35c3e7' : '#555',
+                  border: categoryFilter === id ? `1px solid color-mix(in srgb, ${C.accent} 25%, transparent)` : '1px solid #2a2a2a',
+                  background: categoryFilter === id ? C.accentDim : 'transparent',
+                  color: categoryFilter === id ? C.accent : '#555',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -168,9 +169,9 @@ export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter,
                   padding: '3px 10px',
                   borderRadius: '4px',
                   fontSize: '11px',
-                  border: tagFilter === tag ? '1px solid #35c3e740' : '1px solid #2a2a2a',
-                  background: tagFilter === tag ? '#35c3e710' : 'transparent',
-                  color: tagFilter === tag ? '#35c3e7' : '#555',
+                  border: tagFilter === tag ? `1px solid color-mix(in srgb, ${C.accent} 25%, transparent)` : '1px solid #2a2a2a',
+                  background: tagFilter === tag ? C.accentDim : 'transparent',
+                  color: tagFilter === tag ? C.accent : '#555',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -195,9 +196,9 @@ export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter,
                   padding: '3px 10px',
                   borderRadius: '4px',
                   fontSize: '11px',
-                  border: tierFilter === tier ? '1px solid #35c3e740' : '1px solid #2a2a2a',
-                  background: tierFilter === tier ? '#35c3e710' : 'transparent',
-                  color: tierFilter === tier ? '#35c3e7' : '#555',
+                  border: tierFilter === tier ? `1px solid color-mix(in srgb, ${C.accent} 25%, transparent)` : '1px solid #2a2a2a',
+                  background: tierFilter === tier ? C.accentDim : 'transparent',
+                  color: tierFilter === tier ? C.accent : '#555',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -215,16 +216,28 @@ export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter,
         padding: '16px',
         animation: 'contentEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.15s both',
       }}>
-        <div className="grid grid-cols-3 gap-3">
-          {filtered.map((item, index) => (
-            <ItemCard
-              key={item.name}
-              item={item}
-              index={index}
-              onClick={() => handleItemClick(item)}
-            />
-          ))}
-        </div>
+        {filtered.length === 0 ? (
+          <div
+            className="flex flex-col items-center justify-center rounded-xl border border-ally-border bg-ally-card px-8 py-16 text-center"
+            style={{ minHeight: 280 }}
+          >
+            <p className="font-display text-ally-text text-lg font-semibold mb-2">No items match</p>
+            <p className="text-ally-muted text-sm max-w-md">
+              Try clearing search or filters — widen the category, tag, or tier to see more gear.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-3">
+            {filtered.map((item, index) => (
+              <ItemCard
+                key={item.name}
+                item={item}
+                index={index}
+                onClick={() => handleItemClick(item)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <style>{`
@@ -258,6 +271,22 @@ export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter,
         }
       `}</style>
     </div>
+
+    <ReferenceDetailModal
+      open={Boolean(selectedItem)}
+      onClose={handleBack}
+      ariaLabel={selectedItem ? `${selectedItem.name} item details` : 'Item details'}
+    >
+      {selectedItem ? (
+        <ItemDetail
+          item={selectedItem}
+          onBack={handleBack}
+          onItemSelect={onItemSelect}
+          embedded
+        />
+      ) : null}
+    </ReferenceDetailModal>
+    </Fragment>
   )
 }
 
@@ -299,7 +328,7 @@ function ItemCard({ item, index, onClick }: { item: ItemGuideEntry; index: numbe
 
       <div className="flex items-start gap-3 mb-2">
         <img
-          src={itemIconUrl(item.name, item.iconSlug)}
+          src={item.iconUrl ?? localBundledItemIconUrl(item.name, item.iconSlug)}
           alt=""
           width={40}
           height={40}
@@ -330,15 +359,9 @@ function ItemCard({ item, index, onClick }: { item: ItemGuideEntry; index: numbe
         {item.bestOn.slice(0, 3).map((unit) => (
           <div
             key={unit}
-            style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'2px'}}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}
           >
-            <img
-              src={unitIconUrl(unit)}
-              alt={unit}
-              title={unit}
-              style={{width:'28px',height:'28px',borderRadius:'4px',objectFit:'cover'}}
-              onError={(e) => { e.currentTarget.parentElement!.style.display='none' }}
-            />
+            <UnitPortrait name={unit} size={28} radius={4} />
           </div>
         ))}
       </div>
@@ -346,46 +369,57 @@ function ItemCard({ item, index, onClick }: { item: ItemGuideEntry; index: numbe
   )
 }
 
-function ItemDetail({ item, onBack, onItemSelect }: { item: ItemGuideEntry; onBack: () => void; onItemSelect: (unitName: string) => void }) {
+function ItemDetail({
+  item,
+  onBack,
+  onItemSelect,
+  embedded = false,
+}: {
+  item: ItemGuideEntry
+  onBack: () => void
+  onItemSelect: (unitName: string) => void
+  embedded?: boolean
+}) {
   const tierColors = TIER_COLORS[item.tier] ?? TIER_COLORS.C
 
   return (
     <div className="h-full overflow-y-auto" style={{
       background: C.content,
-      padding: '16px',
+      padding: embedded ? '12px 16px 20px' : '16px',
       animation: 'detailEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
     }}>
-      {/* Back Button */}
-      <button
-        onClick={onBack}
-        style={{
-          marginBottom: '16px',
-          padding: '6px 12px',
-          fontSize: '13px',
-          fontWeight: 500,
-          borderRadius: '6px',
-          background: 'transparent',
-          border: '1px solid transparent',
-          color: '#555',
-          cursor: 'pointer',
-          transition: 'all 0.15s ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.color = C.accent
-          e.currentTarget.style.borderColor = C.accent
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.color = '#555'
-          e.currentTarget.style.borderColor = 'transparent'
-        }}
-      >
-        ← Items
-      </button>
+      {!embedded ? (
+        <button
+          onClick={onBack}
+          style={{
+            marginBottom: '16px',
+            padding: '6px 12px',
+            fontSize: '13px',
+            fontWeight: 500,
+            borderRadius: '6px',
+            background: 'transparent',
+            border: '1px solid transparent',
+            color: '#555',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = C.accent
+            e.currentTarget.style.borderColor = C.accent
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = '#555'
+            e.currentTarget.style.borderColor = 'transparent'
+          }}
+        >
+          ← Items
+        </button>
+      ) : null}
 
       {/* Item Name + Tier */}
       <div className="flex items-center gap-4 mb-8" style={{ animation: 'statCardEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.1s both' }}>
         <img
-          src={itemIconUrl(item.name, item.iconSlug)}
+          src={item.iconUrl ?? localBundledItemIconUrl(item.name, item.iconSlug)}
           alt=""
           width={48}
           height={48}
@@ -501,13 +535,7 @@ function ItemDetail({ item, onBack, onItemSelect }: { item: ItemGuideEntry; onBa
               style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',cursor:'pointer',animation:`pillEnter 0.2s cubic-bezier(0.25, 1, 0.5, 1) ${i * 50}ms both`}}
               onClick={() => onItemSelect(unit)}
             >
-              <img
-                src={unitIconUrl(unit)}
-                alt={unit}
-                title={unit}
-                style={{width:'48px',height:'48px',borderRadius:'8px',objectFit:'cover'}}
-                onError={(e) => { e.currentTarget.parentElement!.style.display='none' }}
-              />
+              <UnitPortrait name={unit} size={48} radius={8} />
               <div style={{ fontSize: '11px', color: '#555' }}>{unit}</div>
             </div>
           ))}

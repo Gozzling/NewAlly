@@ -8,8 +8,8 @@ const C = {
   bg:         '#181818',
   surface:    '#1f1f1f',
   border:     '#2a2a2a',
-  accent:     '#00d4ff',
-  accentDim:  'rgba(0,212,255,0.12)',
+  accent:     'var(--color-ally-accent)',
+  accentDim:  'color-mix(in srgb, var(--color-ally-accent) 14%, transparent)',
   text:       '#ffffff',
   muted:      '#a1a1a1',
 }
@@ -53,44 +53,55 @@ const TAG_ICONS: Record<string, React.ReactNode> = {
 interface ItemDetailProps {
   itemName: string
   onBack: () => void
+  /** Hide back control; used inside ReferenceDetailModal. */
+  embedded?: boolean
 }
 
-export function ItemDetail({ itemName, onBack }: ItemDetailProps) {
+export function ItemDetail({ itemName, onBack, embedded = false }: ItemDetailProps) {
   const item = findGuideItem(itemName)
   if (!item) return null
 
   const tierColors = TIER_COLORS[item.tier] ?? TIER_COLORS.C
 
   return (
-    <div style={{ padding: '20px', background: C.bg, minHeight: '100vh', animation: 'pageEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1)' }}>
+    <div
+      style={{
+        padding: embedded ? '16px' : '20px',
+        background: C.bg,
+        minHeight: embedded ? undefined : '100vh',
+        animation: 'pageEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+      }}
+    >
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-        <button
-          onClick={onBack}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '8px 16px',
-            background: C.surface,
-            border: `1px solid ${C.border}`,
-            borderRadius: '8px',
-            color: C.text,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = C.accent
-            e.currentTarget.style.background = C.accentDim
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = C.border
-            e.currentTarget.style.background = C.surface
-          }}
-        >
-          <ArrowLeft style={{ width: '16px', height: '16px' }} />
-          <span style={{ fontSize: '13px', fontWeight: 600 }}>Back</span>
-        </button>
+        {!embedded ? (
+          <button
+            onClick={onBack}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 16px',
+              background: C.surface,
+              border: `1px solid ${C.border}`,
+              borderRadius: '8px',
+              color: C.text,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = C.accent
+              e.currentTarget.style.background = C.accentDim
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = C.border
+              e.currentTarget.style.background = C.surface
+            }}
+          >
+            <ArrowLeft style={{ width: '16px', height: '16px' }} />
+            <span style={{ fontSize: '13px', fontWeight: 600 }}>Back</span>
+          </button>
+        ) : null}
         <img
           src={itemIconUrl(item.name, item.iconSlug)}
           alt=""

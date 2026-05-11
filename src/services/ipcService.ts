@@ -4,13 +4,16 @@ import {
   emitAllyEvent,
   isIpcBackgroundErrorMessage,
   isIpcCaptureStatusMessage,
+  isIpcCoachMatchHistoryMessage,
   isIpcGameStateMessage,
   isIpcGepStatusMessage,
   isIpcPersonalMatchMessage,
 } from "@/engine/events";
+import { persistCachedCoachSummary } from "@/hooks/useCoachMatchHistory";
 import type { PersonalMatchRecord } from "@/services/indexedDbService";
 import { useAppStore } from "@/store/useAppStore";
 import type { TftGameState } from "@/types/tft";
+import type { PlayerMatchHistorySummary } from "@ally/shared-types";
 
 /**
  * Subscribe to payloads broadcast from the background controller on `TFT_LIVE_CHANNEL`.
@@ -42,6 +45,18 @@ export function subscribeToStateSnapshots(): () => void {
 
     if (isIpcPersonalMatchMessage(payload)) {
       useAppStore.getState().addPersonalMatch(payload.match as PersonalMatchRecord);
+      return;
+    }
+
+    if (isIpcCoachMatchHistoryMessage(payload)) {
+      const summary = payload.summary as PlayerMatchHistorySummary;
+      useAppStore.getState().setCoachMatchHistory(summary);
+      const app = useAppStore.getState();
+      const region = app.settings.region;
+      const puuid = app.selectedPlayer?.puuid;
+      if (region && puuid) {
+        persistCachedCoachSummary(region, puuid, summary);
+      }
       return;
     }
 

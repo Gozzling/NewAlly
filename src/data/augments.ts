@@ -14,6 +14,8 @@ export interface Augment {
   synergies: string[]
   counters: string[]
   tags: string[]
+  /** When set, raw CD HUD path resolved to a PNG on raw.communitydragon.org */
+  iconUrl?: string
 }
 
 export const AUGMENTS: Augment[] = [

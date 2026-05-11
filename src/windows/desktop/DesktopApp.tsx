@@ -1,7 +1,21 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { subscribeToStateSnapshots } from '@/services/ipcService';
-import { getServerStatus, fetchPlayerCard, getActiveGame, RiotApiError } from '@/services/riotApiClient';
+import {
+  getServerStatus,
+  fetchPlayerCard,
+  getActiveGame,
+  fetchMatchIds,
+  fetchMatchDetail,
+  regionToMatchRegion,
+  RiotApiError,
+} from '@/services/riotApiClient';
+import type { RiotRegion } from '@/types/riot';
+import {
+  globalHistoryToSuggestions,
+  pushGlobalSearchHistory,
+  readGlobalSearchHistory,
+} from '@/utils/searchHistoryStorage';
 import { SupabaseError } from '@/services/supabaseService';
 import { TeamBuilder } from '@/pages/TeamBuilder';
 import { CompCard } from '@/components/CompCard';
@@ -12,10 +26,17 @@ import { ItemsGuide } from '@/pages/ItemsGuide';
 import { AugmentGuide } from '@/pages/AugmentGuide';
 import { Settings } from '@/pages/Settings';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { ToastHost } from '@/components/ToastHost';
+import { AllySpinner } from '@/components/AllyLoading';
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions';
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder';
 import { UNITS } from '@/data/units';
+import { SYNERGIES } from '@/data/synergies';
+import { ITEM_GUIDE_ENTRIES } from '@/data/itemGuideCatalog';
 import { AUGMENTS } from '@/data/augments';
+import { CURRENT_TFT_SET_NUMBER } from '@/meta/tftCurrentSet';
+import { getSetData } from '@/services/cdnDataService';
+import { invalidateSearchCorpus } from '@/utils/searchSuggestions';
 import { ITEM_RECIPES } from '@/data/itemRecipes';
 import { EXAMPLE_SUMMONERS } from '@/data/exampleSummoners';
 import type { SearchSuggestion } from '@/utils/searchSuggestions';
@@ -178,6 +199,54 @@ function displayNameFromSpectatorParticipant(p: Record<string, unknown>): string
   return 'Unknown'
 }
 
+function riotLookupFromParticipant(p: Record<string, unknown>): string | null {
+  const gn = p.riotIdGameName
+  const tl = p.riotIdTagLine
+  if (typeof gn === 'string' && gn.length > 0 && typeof tl === 'string' && tl.length > 0) {
+    return `${gn}#${tl}`
+  }
+  if (typeof p.riotId === 'string' && p.riotId.includes('#')) return p.riotId
+  return null
+}
+
+function parseSpectatorGameLengthSeconds(active: Record<string, unknown>): number {
+  const gl = active.gameLength
+  if (typeof gl === 'number' && gl >= 0) {
+    if (gl > 100_000) return Math.floor(gl / 1000)
+    return Math.floor(gl)
+  }
+  const rawStart = active.gameStartTime as number | undefined
+  if (typeof rawStart === 'number' && rawStart > 0) {
+    const startMs = rawStart > 10_000_000_000 ? rawStart : rawStart * 1000
+    return Math.max(0, Math.floor((Date.now() - startMs) / 1000))
+  }
+  return 0
+}
+
+const INGAME_MOCK_PLAYERS = [
+  { name: 'Gozling', tagline: 'Goz', rank: 'Platinum II', lp: 93, recentPlacements: [2, 4, 1], avgPlace: 3.8, predictedComp: 'N.O.V.A. Sniper', profileIconId: 4568 },
+  { name: 'DoubleUp61', tagline: 'DU', rank: 'Diamond I', lp: 45, recentPlacements: [1, 3, 2], avgPlace: 2.1, predictedComp: 'Arcanist Academy', profileIconId: 3456 },
+  { name: 'TFTMaster', tagline: 'TFT', rank: 'Master IV', lp: 12, recentPlacements: [1, 1, 2], avgPlace: 1.3, predictedComp: 'Fated Academy', profileIconId: 2345 },
+  { name: 'SynergyKing', tagline: 'SK', rank: 'Emerald I', lp: 78, recentPlacements: [3, 2, 4], avgPlace: 3.2, predictedComp: 'Storyweaver', profileIconId: 5678 },
+  { name: 'CompBuilder', tagline: 'CB', rank: 'Platinum I', lp: 56, recentPlacements: [4, 3, 2], avgPlace: 3.5, predictedComp: 'Behemoth', profileIconId: 6789 },
+  { name: 'RankChaser', tagline: 'RC', rank: 'Diamond III', lp: 34, recentPlacements: [2, 1, 3], avgPlace: 2.4, predictedComp: 'Umbral', profileIconId: 7890 },
+  { name: 'MetaSlave', tagline: 'MS', rank: 'Emerald II', lp: 67, recentPlacements: [3, 4, 2], avgPlace: 3.1, predictedComp: 'Inkshadow', profileIconId: 8901 },
+  { name: 'LuckySeven', tagline: 'LS', rank: 'Platinum III', lp: 89, recentPlacements: [4, 2, 3], avgPlace: 3.6, predictedComp: 'Mythic', profileIconId: 9012 },
+] as const
+
+type LiveLobbyPlayer = {
+  puuid: string
+  name: string
+  profileIconId: number
+  riotLookup: string | null
+  statsStatus: 'pending' | 'loading' | 'done' | 'error'
+  tier: string | null
+  rank: string | null
+  lp: number | null
+  recentPlacements: number[]
+  statsError?: string
+}
+
 function formatInGameError(err: unknown): string {
   if (err instanceof RiotApiError) {
     if (err.code === 'NOT_FOUND') {
@@ -204,125 +273,177 @@ function formatInGameError(err: unknown): string {
 
 /* ─── In Game Page ─── */
 function InGamePage() {
-  const MOCK_PLAYERS = [
-    { name: 'Gozling', tagline: 'Goz', rank: 'Platinum II', lp: 93, recentPlacements: [2,4,1], avgPlace: 3.8, predictedComp: 'N.O.V.A. Sniper', profileIconId: 4568 },
-    { name: 'DoubleUp61', tagline: 'DU', rank: 'Diamond I', lp: 45, recentPlacements: [1,3,2], avgPlace: 2.1, predictedComp: 'Arcanist Academy', profileIconId: 3456 },
-    { name: 'TFTMaster', tagline: 'TFT', rank: 'Master IV', lp: 12, recentPlacements: [1,1,2], avgPlace: 1.3, predictedComp: 'Fated Academy', profileIconId: 2345 },
-    { name: 'SynergyKing', tagline: 'SK', rank: 'Emerald I', lp: 78, recentPlacements: [3,2,4], avgPlace: 3.2, predictedComp: 'Storyweaver', profileIconId: 5678 },
-    { name: 'CompBuilder', tagline: 'CB', rank: 'Platinum I', lp: 56, recentPlacements: [4,3,2], avgPlace: 3.5, predictedComp: 'Behemoth', profileIconId: 6789 },
-    { name: 'RankChaser', tagline: 'RC', rank: 'Diamond III', lp: 34, recentPlacements: [2,1,3], avgPlace: 2.4, predictedComp: 'Umbral', profileIconId: 7890 },
-    { name: 'MetaSlave', tagline: 'MS', rank: 'Emerald II', lp: 67, recentPlacements: [3,4,2], avgPlace: 3.1, predictedComp: 'Inkshadow', profileIconId: 8901 },
-    { name: 'LuckySeven', tagline: 'LS', rank: 'Platinum III', lp: 89, recentPlacements: [4,2,3], avgPlace: 3.6, predictedComp: 'Mythic', profileIconId: 9012 },
-  ]
-
-  const [searchName, setSearchName] = useState(
+  const [searchInput, setSearchInput] = useState(
     () => (typeof localStorage !== 'undefined' ? localStorage.getItem('tft-ally::summoner-name') ?? '' : ''),
   )
-  const [ingameError, setIngameError] = useState<string | null>(null)
+  const [selectedRegion, setSelectedRegion] = useState<RiotRegion>(() => {
+    if (typeof localStorage === 'undefined') {
+      return useAppStore.getState().settings.region ?? 'euw1'
+    }
+    return (
+      (localStorage.getItem('tft-ally::region') as RiotRegion | null) ??
+      useAppStore.getState().settings.region ??
+      'euw1'
+    )
+  })
+  const [isLoading, setIsLoading] = useState(false)
+  const [loadingPhase, setLoadingPhase] = useState<'player' | 'lobby' | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [activeGame, setActiveGame] = useState<Record<string, unknown> | null>(null)
+  const [hasSearched, setHasSearched] = useState(false)
+  const [livePlayers, setLivePlayers] = useState<LiveLobbyPlayer[]>([])
+  const [liveTimerSeconds, setLiveTimerSeconds] = useState(0)
+
+  const gameTimerAnchorRef = useRef<{ baseSec: number; atMs: number } | null>(null)
+  const gameTimerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
   const ingameSummonerExamples = useMemo(() => [...EXAMPLE_SUMMONERS], [])
   const { placeholderAnimated: ingameSearchPlaceholder } = useTypewriterPlaceholder(
     ingameSummonerExamples,
-    searchName.length > 0,
+    searchInput.length > 0,
   )
-  const [region, setRegion] = useState(() => {
-    if (typeof localStorage === 'undefined') return 'na1'
-    return localStorage.getItem('tft-ally::region') ?? 'na1'
-  })
-  const [loading, setLoading] = useState(false)
-  const [loadingPhase, setLoadingPhase] = useState<'player' | 'lobby' | null>(null)
-  const [gameFound, setGameFound] = useState(true)
-  const [showingDemo, setShowingDemo] = useState(true)
-  const [players, setPlayers] = useState(MOCK_PLAYERS)
-  const [gameData, setGameData] = useState<any>(null)
-  const [gameLength, setGameLength] = useState(0)
-  const gameTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const handleSearch = async () => {
-    if (!searchName.trim()) return
-
-    const hashIdx = searchName.lastIndexOf('#')
-    if (hashIdx === -1 || !searchName.slice(hashIdx + 1).trim()) {
-      setShowingDemo(false)
-      setGameFound(false)
-      setIngameError('Enter a full Riot ID with tag, e.g. Name#NA1 (the #tag is required for lookup).')
-      return
+  const stopGameTimer = useCallback(() => {
+    if (gameTimerIntervalRef.current) {
+      clearInterval(gameTimerIntervalRef.current)
+      gameTimerIntervalRef.current = null
     }
+    gameTimerAnchorRef.current = null
+  }, [])
 
-    if (gameTimerRef.current) {
-      clearInterval(gameTimerRef.current)
-      gameTimerRef.current = null
-    }
-
-    setLoading(true)
-    setLoadingPhase('player')
-    setShowingDemo(false)
-    setGameFound(false)
-    setGameData(null)
-    setGameLength(0)
-    setIngameError(null)
-
-    try {
-      const card = await fetchPlayerCard(searchName.trim(), region as any)
-      setLoadingPhase('lobby')
-      const activeGame = await getActiveGame(card.puuid, region as any)
-
-      if (!activeGame) {
-        setGameFound(false)
-        setIngameError(
-          'No active TFT lobby for this player right now. Start a match, or try again once they are in game.',
-        )
-        return
+  const startGameTimer = useCallback(
+    (game: Record<string, unknown>) => {
+      stopGameTimer()
+      const baseSec = parseSpectatorGameLengthSeconds(game)
+      gameTimerAnchorRef.current = { baseSec, atMs: Date.now() }
+      const tick = () => {
+        const a = gameTimerAnchorRef.current
+        if (!a) return
+        setLiveTimerSeconds(a.baseSec + Math.floor((Date.now() - a.atMs) / 1000))
       }
-
-      setGameData(activeGame)
-      setGameFound(true)
-
-      const participants = (activeGame as any).participants || []
-      const parsedPlayers = participants.map((p: any) => ({
-        name: displayNameFromSpectatorParticipant(p as Record<string, unknown>),
-        tagline: '',
-        rank: 'Fetching...',
-        lp: 0,
-        recentPlacements: [],
-        avgPlace: 0,
-        predictedComp: 'Loading...',
-        profileIconId: p.profileIconId || 0,
-        puuid: p.puuid,
-      }))
-
-      setPlayers(parsedPlayers)
-
-      const rawStart = (activeGame as any).gameStartTime as number | undefined
-      const startTime =
-        typeof rawStart === 'number' && rawStart > 0
-          ? rawStart > 10_000_000_000
-            ? rawStart
-            : rawStart * 1000
-          : Date.now()
-      const initialLength = Math.max(0, Math.floor((Date.now() - startTime) / 1000))
-      setGameLength(initialLength)
-
-      gameTimerRef.current = setInterval(() => {
-        setGameLength(Math.max(0, Math.floor((Date.now() - startTime) / 1000)))
-      }, 1000)
-    } catch (err) {
-      console.error('[INGAME] Search error:', err)
-      setGameFound(false)
-      setIngameError(formatInGameError(err))
-    } finally {
-      setLoading(false)
-      setLoadingPhase(null)
-    }
-  }
+      tick()
+      gameTimerIntervalRef.current = setInterval(tick, 1000)
+    },
+    [stopGameTimer],
+  )
 
   useEffect(() => {
     return () => {
-      if (gameTimerRef.current) {
-        clearInterval(gameTimerRef.current)
-        gameTimerRef.current = null
-      }
+      stopGameTimer()
     }
-  }, [])
+  }, [stopGameTimer])
+
+  const handleLoadStats = useCallback(
+    async (rowIndex: number) => {
+      const row = livePlayers[rowIndex]
+      if (!row || row.statsStatus === 'loading') return
+      if (!row.riotLookup) {
+        setLivePlayers((prev) =>
+          prev.map((p, i) =>
+            i === rowIndex
+              ? { ...p, statsStatus: 'error', statsError: 'Riot ID (Name#TAG) not available for this player.' }
+              : p,
+          ),
+        )
+        return
+      }
+      setLivePlayers((prev) => prev.map((p, i) => (i === rowIndex ? { ...p, statsStatus: 'loading', statsError: undefined } : p)))
+      try {
+        const card = await fetchPlayerCard(row.riotLookup, selectedRegion)
+        const matchRegion = regionToMatchRegion(selectedRegion)
+        const ids = await fetchMatchIds(card.puuid, selectedRegion, matchRegion, 3, 0)
+        const placements: number[] = []
+        for (const id of ids.slice(0, 3)) {
+          const detail = await fetchMatchDetail(id, matchRegion)
+          const part = detail.info.participants.find((pp) => pp.puuid === card.puuid)
+          if (part) placements.push(part.placement)
+        }
+        setLivePlayers((prev) =>
+          prev.map((p, i) =>
+            i === rowIndex
+              ? {
+                  ...p,
+                  statsStatus: 'done',
+                  tier: card.tier,
+                  rank: card.rank,
+                  lp: card.lp,
+                  recentPlacements: placements,
+                }
+              : p,
+          ),
+        )
+      } catch (err) {
+        console.error('[INGAME] Load stats error:', err)
+        setLivePlayers((prev) =>
+          prev.map((p, i) =>
+            i === rowIndex ? { ...p, statsStatus: 'error', statsError: formatInGameError(err) } : p,
+          ),
+        )
+      }
+    },
+    [livePlayers, selectedRegion],
+  )
+
+  const handleSearch = async () => {
+    if (!searchInput.trim()) return
+
+    const hashIdx = searchInput.lastIndexOf('#')
+    if (hashIdx === -1 || !searchInput.slice(hashIdx + 1).trim()) {
+      setHasSearched(true)
+      setActiveGame(null)
+      setError('Enter a full Riot ID with tag, e.g. Name#NA1 (the #tag is required for lookup).')
+      return
+    }
+
+    stopGameTimer()
+    setIsLoading(true)
+    setLoadingPhase('player')
+    setHasSearched(true)
+    setActiveGame(null)
+    setLivePlayers([])
+    setLiveTimerSeconds(0)
+    setError(null)
+
+    try {
+      const card = await fetchPlayerCard(searchInput.trim(), selectedRegion)
+      setLoadingPhase('lobby')
+      const game = await getActiveGame(card.puuid, selectedRegion)
+
+      if (!game) {
+        setActiveGame(null)
+        setLivePlayers([])
+        setError(null)
+        return
+      }
+
+      setActiveGame(game)
+      const participants = (game.participants as unknown[]) || []
+      const parsed: LiveLobbyPlayer[] = participants.map((raw) => {
+        const p = raw as Record<string, unknown>
+        return {
+          puuid: typeof p.puuid === 'string' ? p.puuid : String(p.puuid ?? ''),
+          name: displayNameFromSpectatorParticipant(p),
+          profileIconId: typeof p.profileIconId === 'number' ? p.profileIconId : 0,
+          riotLookup: riotLookupFromParticipant(p),
+          statsStatus: 'pending',
+          tier: null,
+          rank: null,
+          lp: null,
+          recentPlacements: [],
+        }
+      })
+      setLivePlayers(parsed)
+      startGameTimer(game)
+    } catch (err) {
+      console.error('[INGAME] Search error:', err)
+      setActiveGame(null)
+      setLivePlayers([])
+      setError(formatInGameError(err))
+    } finally {
+      setIsLoading(false)
+      setLoadingPhase(null)
+    }
+  }
 
   const getPlacementColor = (place: number) => {
     if (place === 1) return '#fbbf24'
@@ -346,54 +467,77 @@ function InGamePage() {
     return modes[queueId] || 'Unknown'
   }
 
-  const displayPlayers = showingDemo ? MOCK_PLAYERS : players
+  const onRegionChange = (r: string) => {
+    const next = r as RiotRegion
+    setSelectedRegion(next)
+    if (typeof localStorage !== 'undefined') localStorage.setItem('tft-ally::region', next)
+  }
+
+  const rawQueue = activeGame?.gameQueueConfigId
+  const queueId = typeof rawQueue === 'number' ? rawQueue : typeof rawQueue === 'string' ? Number(rawQueue) : NaN
+
+  const showDemoGrid = !hasSearched && !isLoading
+  const showLiveGrid = Boolean(activeGame && !isLoading)
+  const showNotInGame = hasSearched && !isLoading && !activeGame && !error
 
   return (
     <div style={{ padding: '16px' }}>
-      {showingDemo && (
-        <div style={{
-          background: '#1a1a0a',
-          border: '1px solid #f0b42930',
-          borderRadius: '6px',
-          padding: '8px 12px',
-          fontSize: '11px',
-          color: '#f0b429',
-          marginBottom: '12px',
-        }}>
-          Demo lobby — search your Riot ID (e.g. Name#TAG) and region to load a live TFT game via spectator API (no Overwolf required).
+      {showDemoGrid && (
+        <div
+          style={{
+            background: '#1a1a0a',
+            border: '1px solid #f0b42930',
+            borderRadius: '6px',
+            padding: '8px 12px',
+            fontSize: '11px',
+            color: '#f0b429',
+            marginBottom: '12px',
+          }}
+        >
+          Live game detection requires Overwolf. Showing demo data.
         </div>
       )}
 
-      {gameData && !showingDemo && (
-        <div style={{
-          background: '#1f1f1f',
-          border: '1px solid #1a1a1a',
-          borderRadius: '8px',
-          padding: '12px',
-          marginBottom: '16px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}>
-          <div>
-            <div style={{ fontSize: '11px', color: '#a1a1a1', marginBottom: '4px' }}>Game Mode</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: 'white' }}>
-              {getGameMode((gameData as any).gameQueueConfigId)}
-            </div>
+      {activeGame && !isLoading && (
+        <div
+          style={{
+            background: '#0f0f1c',
+            border: '1px solid #1a1a2e',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            marginBottom: '16px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderLeft: '3px solid #35c3e7',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                color: '#35c3e7',
+                border: '1px solid #35c3e7',
+                borderRadius: '6px',
+                padding: '4px 10px',
+              }}
+            >
+              {getGameMode(Number.isFinite(queueId) ? queueId : 0)}
+            </span>
           </div>
-          <div>
-            <div style={{ fontSize: '11px', color: '#a1a1a1', marginBottom: '4px' }}>Game Length</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#35c3e7' }}>
-              {formatGameLength(gameLength)}
-            </div>
+          <div style={{ fontSize: '14px', fontWeight: 700, color: '#35c3e7' }}>
+            Live: {formatGameLength(liveTimerSeconds)}
           </div>
         </div>
       )}
 
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
         <SearchInputWithSuggestions
-          value={searchName}
-          onChange={setSearchName}
+          value={searchInput}
+          onChange={setSearchInput}
           placeholder={ingameSearchPlaceholder || 'Summoner name…'}
           kinds={['summoner']}
           wrapperClassName="flex-1"
@@ -416,8 +560,8 @@ function InGamePage() {
           }}
         />
         <select
-          value={region}
-          onChange={(e) => setRegion(e.target.value)}
+          value={selectedRegion}
+          onChange={(e) => onRegionChange(e.target.value)}
           style={{
             background: '#1a1a1a',
             border: '1px solid #1a1a1a',
@@ -436,7 +580,7 @@ function InGamePage() {
         <button
           type="button"
           onClick={() => void handleSearch()}
-          disabled={loading}
+          disabled={isLoading}
           style={{
             background: '#35c3e7',
             border: 'none',
@@ -444,16 +588,16 @@ function InGamePage() {
             padding: '8px 16px',
             fontSize: '13px',
             color: 'white',
-            cursor: loading ? 'not-allowed' : 'pointer',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
             fontWeight: 600,
-            opacity: loading ? 0.75 : 1,
+            opacity: isLoading ? 0.75 : 1,
           }}
         >
           Search
         </button>
       </div>
 
-      {ingameError && !loading && (
+      {error && !isLoading && (
         <div
           role="alert"
           style={{
@@ -469,10 +613,10 @@ function InGamePage() {
             marginBottom: '12px',
           }}
         >
-          <div style={{ flex: 1, minWidth: 0 }}>{ingameError}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>{error}</div>
           <button
             type="button"
-            onClick={() => setIngameError(null)}
+            onClick={() => setError(null)}
             aria-label="Dismiss"
             style={{
               flexShrink: 0,
@@ -491,73 +635,67 @@ function InGamePage() {
         </div>
       )}
 
-      {loading ? (
+      {isLoading ? (
         <>
-        <div style={{
-          background: '#1f1f1f',
-          border: '1px solid #1a1a1a',
-          borderRadius: '8px',
-          padding: '10px 12px',
-          marginBottom: '12px',
-        }}>
-          <div style={{ fontSize: '12px', fontWeight: 600, color: 'white', marginBottom: '3px' }}>
-            {loadingPhase === 'player' && 'Resolving player…'}
-            {loadingPhase === 'lobby' && 'Fetching live lobby…'}
-            {!loadingPhase && 'Loading…'}
+          <div
+            style={{
+              background: '#1f1f1f',
+              border: '1px solid #1a1a1a',
+              borderRadius: '8px',
+              padding: '10px 12px',
+              marginBottom: '12px',
+            }}
+          >
+            <div className="mb-1 flex items-center gap-2 text-white" style={{ fontSize: '12px', fontWeight: 600 }}>
+              <AllySpinner className="text-ally-accent" />
+              <span>
+                {loadingPhase === 'player' && 'Resolving player…'}
+                {loadingPhase === 'lobby' && 'Fetching live lobby…'}
+                {!loadingPhase && 'Loading…'}
+              </span>
+            </div>
+            <div style={{ fontSize: '11px', color: '#a1a1a1' }}>
+              {loadingPhase === 'player' && 'Looking up account with Riot'}
+              {loadingPhase === 'lobby' && 'Spectator API for this region'}
+              {!loadingPhase && 'Please wait'}
+            </div>
           </div>
-          <div style={{ fontSize: '11px', color: '#a1a1a1' }}>
-            {loadingPhase === 'player' && 'Looking up account with Riot'}
-            {loadingPhase === 'lobby' && 'Spectator API for this region'}
-            {!loadingPhase && 'Please wait'}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  height: '120px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(90deg, #111827 25%, #1f2937 50%, #111827 75%)',
+                  backgroundSize: '200% 100%',
+                  animation: 'shimmer 1.5s infinite',
+                }}
+              />
+            ))}
           </div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              style={{
-                height: '120px',
-                borderRadius: '10px',
-                background: 'linear-gradient(90deg, #111827 25%, #1f2937 50%, #111827 75%)',
-                backgroundSize: '200% 100%',
-                animation: 'shimmer 1.5s infinite',
-              }}
-            />
-          ))}
-        </div>
         </>
-      ) : gameFound ? (
+      ) : showDemoGrid ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-          {displayPlayers.map((player, i) => (
+          {INGAME_MOCK_PLAYERS.map((player, i) => (
             <div
               key={i}
               style={{
-                background: '#1f1f1f',
-                border: '1px solid #1a1a1a',
+                background: '#0f0f1c',
+                border: '1px solid #1a1a2e',
                 borderRadius: '10px',
                 padding: '12px',
-                transition: 'all 0.15s ease',
-                cursor: 'pointer',
                 display: 'flex',
                 gap: '12px',
                 alignItems: 'center',
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#35c3e730'
-                e.currentTarget.style.transform = 'translateY(-1px)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#1a1a1a'
-                e.currentTarget.style.transform = 'translateY(0)'
-              }}
             >
               <div
                 style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
                   background: '#1a1a1a',
-                  border: '2px solid #1a1a1a',
                   overflow: 'hidden',
                   flexShrink: 0,
                 }}
@@ -566,19 +704,19 @@ function InGamePage() {
                   src={`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${player.profileIconId}.png`}
                   alt={player.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  onError={(e) => { e.currentTarget.style.display = 'none' }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                  }}
                 />
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: 'white', marginBottom: '2px' }}>
-                  {player.name}
-                </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'white', marginBottom: '2px' }}>{player.name}</div>
                 <div style={{ fontSize: '11px', color: '#a1a1a1', marginBottom: '6px' }}>
                   {player.rank}
                   {player.lp > 0 ? ` · ${player.lp} LP` : ''}
                 </div>
-                <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
-                  {player.recentPlacements.length > 0 ? player.recentPlacements.map((place, j) => (
+                <div style={{ display: 'flex', gap: '4px', marginBottom: '6px', flexWrap: 'wrap' }}>
+                  {player.recentPlacements.map((place, j) => (
                     <div
                       key={j}
                       style={{
@@ -596,50 +734,148 @@ function InGamePage() {
                     >
                       {place}
                     </div>
-                  )) : (
-                    <div style={{ fontSize: '10px', color: '#555' }}>Fetching stats...</div>
-                  )}
+                  ))}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
                   <div style={{ fontSize: '11px', color: '#a1a1a1' }}>
-                    Avg: <span style={{ color: 'white', fontWeight: 600 }}>{player.avgPlace > 0 ? player.avgPlace.toFixed(1) : '-'}</span>
+                    Avg:{' '}
+                    <span style={{ color: 'white', fontWeight: 600 }}>{player.avgPlace > 0 ? player.avgPlace.toFixed(1) : '-'}</span>
                   </div>
-                  <div style={{ fontSize: '11px', color: '#35c3e7', fontWeight: 600 }}>
-                    {player.predictedComp}
-                  </div>
+                  <div style={{ fontSize: '11px', color: '#35c3e7', fontWeight: 600 }}>{player.predictedComp}</div>
                 </div>
               </div>
             </div>
           ))}
         </div>
-      ) : (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '200px',
-          color: '#a1a1a1',
-          fontSize: '14px',
-          textAlign: 'center',
-          padding: '16px 12px',
-        }}>
-          <div style={{ maxWidth: 340, lineHeight: 1.5 }}>
-            <div style={{ fontWeight: 600, color: '#a1a1a1', marginBottom: '8px' }}>
-              No lobby to show
-            </div>
-            <div style={{ fontSize: '13px', color: '#a1a1a1' }}>
-              {ingameError
-                ? 'Fix the issue above or try another Riot ID. Spectator only returns data while a TFT game is active.'
-                : 'Search for a player who is currently in a TFT match.'}
-            </div>
-            {!ingameError && (
-              <div style={{ fontSize: '11px', color: '#888', marginTop: '10px' }}>
-                Tip: use the exact Riot ID format (Name#TAG).
+      ) : showLiveGrid ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+          {livePlayers.map((player, i) => (
+            <div
+              key={player.puuid || i}
+              style={{
+                background: '#0f0f1c',
+                border: '1px solid #1a1a2e',
+                borderRadius: '10px',
+                padding: '12px',
+                display: 'flex',
+                gap: '12px',
+                alignItems: 'center',
+              }}
+            >
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  background: '#1a1a1a',
+                  overflow: 'hidden',
+                  flexShrink: 0,
+                }}
+              >
+                <img
+                  src={`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${player.profileIconId}.png`}
+                  alt={player.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                  }}
+                />
               </div>
-            )}
-          </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'white', marginBottom: '4px' }}>{player.name}</div>
+                {player.statsStatus === 'pending' && (
+                  <div style={{ fontSize: '11px', color: '#a1a1a1', marginBottom: '6px' }}>Loading stats...</div>
+                )}
+                {player.statsStatus === 'error' && (
+                  <div style={{ fontSize: '10px', color: '#fca5a5', marginBottom: '6px' }}>{player.statsError ?? 'Failed to load'}</div>
+                )}
+                {player.statsStatus === 'done' && (
+                  <>
+                    <div style={{ fontSize: '11px', color: '#a1a1a1', marginBottom: '6px' }}>
+                      {player.tier && player.rank ? `${player.tier} ${player.rank}` : 'Unranked'}
+                      {player.lp != null && player.lp > 0 ? ` · ${player.lp} LP` : ''}
+                    </div>
+                    <div style={{ display: 'flex', gap: '4px', marginBottom: '6px', flexWrap: 'wrap' }}>
+                      {player.recentPlacements.length > 0 ? (
+                        player.recentPlacements.map((place, j) => (
+                          <div
+                            key={j}
+                            style={{
+                              width: '24px',
+                              height: '24px',
+                              borderRadius: '4px',
+                              background: getPlacementColor(place),
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              color: 'white',
+                            }}
+                          >
+                            {place}
+                          </div>
+                        ))
+                      ) : (
+                        <span style={{ fontSize: '10px', color: '#555' }}>No recent matches</span>
+                      )}
+                    </div>
+                  </>
+                )}
+                <button
+                  type="button"
+                  disabled={player.statsStatus === 'loading'}
+                  onClick={() => void handleLoadStats(i)}
+                  style={{
+                    marginTop: '4px',
+                    fontSize: '10px',
+                    fontWeight: 600,
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    border: '1px solid #35c3e7',
+                    background: 'transparent',
+                    color: '#35c3e7',
+                    cursor: player.statsStatus === 'loading' ? 'not-allowed' : 'pointer',
+                    opacity: player.statsStatus === 'loading' ? 0.5 : 1,
+                  }}
+                >
+                  {player.statsStatus === 'loading' ? 'Loading…' : player.statsStatus === 'done' ? 'Refresh stats' : 'Load stats'}
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
-      )}
+      ) : showNotInGame ? (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '200px',
+            color: '#a1a1a1',
+            fontSize: '14px',
+            textAlign: 'center',
+            padding: '16px 12px',
+          }}
+        >
+          Not currently in a TFT game
+        </div>
+      ) : hasSearched && error ? (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '120px',
+            color: '#a1a1a1',
+            fontSize: '13px',
+            textAlign: 'center',
+            padding: '16px 12px',
+          }}
+        >
+          Fix the issue above and try again.
+        </div>
+      ) : null}
 
       <style>{`
         @keyframes shimmer {
@@ -653,8 +889,10 @@ function InGamePage() {
 
 export function DesktopApp() {
   const state = useAppStore((s: any) => s.gameState);
+  const gameData = useAppStore((s) => s.gameData);
   const accentColor = useAppStore((s: any) => s.settings.accentColor) ?? '#35c3e7';
   const settingsRegion = useAppStore((s: any) => s.settings.region as string | undefined);
+  const setStoreSettings = useAppStore((s: any) => s.setSettings);
   const lastRawRef = useRef<string>('');
   const [activePage, setActivePage] = useState<string>('in-game');
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
@@ -662,6 +900,8 @@ export function DesktopApp() {
   const [selectedTraitId, setSelectedTraitId] = useState<string | null>(null);
   const [selectedAugmentId, setSelectedAugmentId] = useState<string | null>(null);
   const [headerSearch, setHeaderSearch] = useState('');
+  const [globalSearchHistTick, setGlobalSearchHistTick] = useState(0);
+  const headerSearchInputRef = useRef<HTMLInputElement>(null);
   const [matchHistorySummonerPrefill, setMatchHistorySummonerPrefill] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [serverStatus, setServerStatus] = useState<'online'|'issues'|'offline'|'unknown'|'error'>('unknown');
@@ -696,26 +936,66 @@ export function DesktopApp() {
     const items = Object.keys(ITEM_RECIPES)
     const summoners = [...EXAMPLE_SUMMONERS]
     const out: string[] = []
-    const rounds = Math.max(items.length, UNITS.length, AUGMENTS.length, summoners.length)
+    const champs = gameData.champions
+    const augList = gameData.augments
+    const rounds = Math.max(
+      items.length,
+      champs.length > 0 ? champs.length : UNITS.length,
+      augList.length > 0 ? augList.length : AUGMENTS.length,
+      summoners.length,
+    )
     for (let i = 0; i < rounds; i++) {
       out.push(items[i % items.length])
-      out.push(UNITS[i % UNITS.length].name)
-      out.push(AUGMENTS[i % AUGMENTS.length].name)
+      const roster = champs.length > 0 ? champs : UNITS
+      const augs = augList.length > 0 ? augList : AUGMENTS
+      out.push(roster[i % roster.length].name)
+      out.push(augs[i % augs.length].name)
       out.push(summoners[i % summoners.length])
     }
     return out
-  }, [])
+  }, [gameData.champions, gameData.augments])
 
   const { placeholderAnimated: headerPlaceholderAnimated } = useTypewriterPlaceholder(
     headerTypewriterWords,
     headerSearch.length > 0,
   )
 
+  const globalSearchPrepend = useMemo(
+    () => globalHistoryToSuggestions(readGlobalSearchHistory()),
+    [globalSearchHistTick],
+  )
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' && settingsOpen) {
+        setSettingsOpen(false);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        const t = e.target as HTMLElement | null;
+        if (t?.closest?.('[data-no-global-search-focus="true"]')) return;
+        e.preventDefault();
+        headerSearchInputRef.current?.focus();
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [settingsOpen]);
+
   const clearMatchHistorySummonerPrefill = useCallback(() => {
     setMatchHistorySummonerPrefill(null)
   }, [])
 
   function handleGlobalSearchPick(s: SearchSuggestion) {
+    const region = settingsRegion as RiotRegion | undefined;
+    pushGlobalSearchHistory(
+      s.kind === 'summoner'
+        ? { ...s, region: s.region ?? region ?? 'euw1' }
+        : s,
+    );
+    setGlobalSearchHistTick((n) => n + 1);
+    if (s.kind === 'summoner' && s.region) {
+      setStoreSettings({ region: s.region });
+    }
     setSelectedUnitId(null)
     setSelectedItemId(null)
     setSelectedTraitId(null)
@@ -723,7 +1003,8 @@ export function DesktopApp() {
     switch (s.kind) {
       case 'unit': {
         setActivePage('units')
-        const u = UNITS.find((x) => x.name === s.label)
+        const roster = gameData.champions.length > 0 ? gameData.champions : UNITS
+        const u = roster.find((x) => x.name === s.label)
         setSelectedUnitId(u ? u.name : s.label)
         setUnitQuery(s.label)
         break
@@ -753,6 +1034,41 @@ export function DesktopApp() {
 
   useEffect(() => {
     return subscribeToStateSnapshots();
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadGameData() {
+      const { setGameData, setGameDataLoading } = useAppStore.getState();
+      setGameDataLoading(true);
+      try {
+        const data = await getSetData();
+        if (cancelled) return;
+        setGameData(data, 'cdn');
+      } catch (err) {
+        if (cancelled) return;
+        console.warn('[APP] CDN failed, using bundled data:', err);
+        setGameData(
+          {
+            setNumber: CURRENT_TFT_SET_NUMBER,
+            champions: UNITS,
+            traits: SYNERGIES,
+            items: ITEM_GUIDE_ENTRIES,
+            augments: AUGMENTS,
+          },
+          'bundled',
+        );
+      } finally {
+        if (!cancelled) {
+          invalidateSearchCorpus();
+          useAppStore.getState().setGameDataLoading(false);
+        }
+      }
+    }
+    void loadGameData();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const setPersonalMatches = useAppStore((s) => s.setPersonalMatches);
@@ -803,6 +1119,17 @@ export function DesktopApp() {
     ? JSON.stringify(state.raw, null, 2)
     : 'Waiting for data...';
   if (rawJson !== lastRawRef.current) lastRawRef.current = rawJson;
+
+  if (gameData.isLoading) {
+    return (
+      <ThemeProvider>
+        <div className="flex h-screen w-full flex-col items-center justify-center bg-ally-bg font-sans text-ally-text">
+          <AllySpinner />
+          <p className="mt-4 text-sm text-ally-muted">Loading game data…</p>
+        </div>
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider>
@@ -865,12 +1192,15 @@ export function DesktopApp() {
           <SearchInputWithSuggestions
             value={headerSearch}
             onChange={setHeaderSearch}
-            placeholder={headerPlaceholderAnimated || 'Search items, units, traits…'}
+            placeholder={headerPlaceholderAnimated || 'Search… (Ctrl+K)'}
             kinds="all"
             maxSuggestions={10}
+            prependWhenEmpty
+            prependSuggestions={globalSearchPrepend}
             onSuggestionPick={handleGlobalSearchPick}
             listZIndex={200}
             wrapperClassName="w-64"
+            inputRef={headerSearchInputRef}
             inputClassName="bg-[#1a1a1a] border-none rounded-lg px-3 py-1.5 text-[13px] text-white placeholder:text-[#555] outline-none w-full transition-colors focus-visible:ring-2 focus-visible:ring-[#35c3e7]"
             inputStyle={{ boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.05)' }}
           />
@@ -907,7 +1237,7 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
 
             {/* Settings Dropdown */}
             {settingsOpen && (
-              <div className="absolute right-0 top-10 w-56 bg-[#1a1a1a] rounded-lg p-4 z-50" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.5), inset 1px 1px 2px rgba(255,255,255,0.03), inset -1px -1px 2px rgba(0,0,0,0.3)' }}>
+              <div className="ally-dropdown-surface absolute right-0 top-10 z-50 w-56 rounded-lg bg-[#1a1a1a] p-4" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.5), inset 1px 1px 2px rgba(255,255,255,0.03), inset -1px -1px 2px rgba(0,0,0,0.3)' }}>
                 <div className="text-white text-sm">Settings</div>
               </div>
             )}
@@ -950,15 +1280,15 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
                   setSelectedTraitId(null)
                   setSelectedAugmentId(null)
                 }}
-                className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ease-out focus-visible:ring-2 focus-visible:ring-[#35c3e7] hover:shadow-lg ${
+                className={`ally-transition-filter w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ease-out focus-visible:ring-2 focus-visible:ring-ally-accent hover:shadow-lg ${
                   activePage === tab.id
-                    ? 'bg-[#1a1a1a] text-[#35c3e7]'
+                    ? 'bg-[#1a1a1a] text-ally-accent'
                     : 'text-[#555] hover:bg-[#1a1a1a] hover:text-white hover:scale-105'
                 }`}
               >
                 {tab.icon}
               </button>
-              <div className="absolute left-12 top-1/2 -translate-y-1/2 bg-[#1a1a1a] text-white text-[12px] px-4 py-2 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50" style={{ boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.05), inset -1px -1px 2px rgba(0,0,0,0.4)' }}>
+              <div className="absolute left-12 top-1/2 z-50 -translate-y-1/2 rounded-lg bg-[#1a1a1a] px-4 py-2 text-[12px] text-white whitespace-nowrap opacity-0 transition-opacity duration-200 pointer-events-none group-hover:opacity-100" style={{ boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.05), inset -1px -1px 2px rgba(0,0,0,0.4)' }}>
                 {tab.label}
               </div>
             </div>
@@ -968,9 +1298,9 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
           <div className="relative group">
             <button
               onClick={() => setActivePage('settings')}
-              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ease-out focus-visible:ring-2 focus-visible:ring-[#35c3e7] hover:shadow-lg ${
+              className={`ally-transition-filter w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ease-out focus-visible:ring-2 focus-visible:ring-ally-accent hover:shadow-lg ${
                 activePage === 'settings'
-                  ? 'bg-[#1a1a1a] text-[#35c3e7]'
+                  ? 'bg-[#1a1a1a] text-ally-accent'
                   : 'text-[#555] hover:bg-[#1a1a1a] hover:text-white hover:scale-105'
               }`}
             >
@@ -979,7 +1309,7 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
               </svg>
             </button>
-            <div className="absolute left-12 top-1/2 -translate-y-1/2 bg-[#1a1a1a] text-white text-[12px] px-4 py-2 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50" style={{ boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.05), inset -1px -1px 2px rgba(0,0,0,0.4)' }}>
+            <div className="absolute left-12 top-1/2 z-50 -translate-y-1/2 rounded-lg bg-[#1a1a1a] px-4 py-2 text-[12px] text-white whitespace-nowrap opacity-0 transition-opacity duration-200 pointer-events-none group-hover:opacity-100" style={{ boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.05), inset -1px -1px 2px rgba(0,0,0,0.4)' }}>
               Settings
             </div>
           </div>
@@ -998,11 +1328,11 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
         </div>
 
         {/* Page Content */}
-        <div key={activePage} className={`flex-1 overflow-y-auto min-h-0 h-full bg-[#0d0d0d] custom-scrollbar ${
+        <div key={activePage} className={`ally-page-surface flex-1 min-h-0 h-full overflow-y-auto bg-[#0d0d0d] custom-scrollbar ${
           ['units','traits','items','augments','team-builder','match-history'].includes(activePage)
             ? ''
             : 'px-8 py-6'
-        }`} style={{animation:'fadeIn 0.15s ease'}}>
+        }`}>
           {activePage === 'in-game' ? (
             <InGamePage />
           ) : activePage === 'comps' ? (
@@ -1172,6 +1502,7 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
         </div>
       </div>
       </div>
+      <ToastHost />
     </ThemeProvider>
   );
 }

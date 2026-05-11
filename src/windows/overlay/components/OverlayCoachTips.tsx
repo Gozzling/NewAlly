@@ -1,24 +1,66 @@
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles } from "lucide-react";
-import { recommendationsFromGameState, summarizePersonalMatches } from "@/engine/recommendations";
-import { COACH_HISTORY_MAX_GAMES, readCachedCoachSummary } from "@/hooks/useCoachMatchHistory";
-import { STATIC_META_VERSION } from "@/meta/tftCurrentSet";
+import { ChevronDown, ChevronRight, Sparkles } from "lucide-react";
+import type { PlayerMatchHistorySummary } from "@ally/shared-types";
+import {
+  buildPlayerHistorySummary,
+  recommendationsFromGameState,
+  summarizePersonalMatches,
+} from "@/engine/recommendations";
+import { emptyPlayerMatchHistorySummary } from "@/engine/recommendations/historySummary";
+import {
+  COACH_HISTORY_MAX_GAMES,
+  persistCachedCoachSummary,
+  readCachedCoachSummary,
+} from "@/hooks/useCoachMatchHistory";
+import { CURRENT_TFT_SET_NUMBER, STATIC_META_VERSION } from "@/meta/tftCurrentSet";
+import { broadcastCoachMatchHistorySummary } from "@/services/coachBroadcast";
+import { fetchPlayerMatchHistoryForSet } from "@/services/matchHistoryService";
 import { useAppStore } from "@/store/useAppStore";
 import type { TftGameState } from "@/types/tft";
 
 const COACH_LS_PREFIX = "tft-ally::coach-mh:";
+const REC_GAMESTATE_DEBOUNCE_MS = 280;
+
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebounced(value), delayMs);
+    return () => window.clearTimeout(t);
+  }, [value, delayMs]);
+  return debounced;
+}
+
+function resolveOverlayMatchHistory(
+  personalLen: number,
+  personalSummary: PlayerMatchHistorySummary | null,
+  coachFromStore: PlayerMatchHistorySummary | null,
+  region: string | null,
+  puuid: string | null,
+): PlayerMatchHistorySummary {
+  if (personalLen > 0 && personalSummary) return personalSummary;
+  if (coachFromStore) return coachFromStore;
+  if (region && puuid) {
+    const cached = readCachedCoachSummary(region, puuid);
+    if (cached) return cached;
+  }
+  return emptyPlayerMatchHistorySummary();
+}
 
 /**
  * Live coaching lines (same engine as Team Builder).
- * - With GEP `personalMatches`, uses those.
- * - Else reads the shared localStorage coach cache (filled by Team Builder / {@link useCoachMatchHistory}) so the in-game overlay matches desktop without a shared Zustand instance.
+ * - GEP `personalMatches` when present.
+ * - Else Zustand coach (IPC or local hydrate) → shared localStorage TTL cache → empty.
+ * Recommendations use debounced game state to avoid jitter; panel can collapse to a single row.
  */
 export function OverlayCoachTips() {
   const gameState = useAppStore((s) => s.gameState) as TftGameState;
+  const debouncedGameState = useDebouncedValue(gameState, REC_GAMESTATE_DEBOUNCE_MS);
   const personalMatches = useAppStore((s) => s.personalMatches);
+  const coachFromStore = useAppStore((s) => s.coachMatchHistory);
   const region = useAppStore((s) => s.settings.region);
   const puuid = useAppStore((s) => s.selectedPlayer?.puuid);
 
+  const [expanded, setExpanded] = useState(true);
   const [cacheEpoch, setCacheEpoch] = useState(0);
 
   useEffect(() => {
@@ -29,39 +71,80 @@ export function OverlayCoachTips() {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  const cachedFromDesktop = useMemo(() => {
-    if (!puuid || !region) return null;
-    return readCachedCoachSummary(region, puuid);
-  }, [puuid, region, cacheEpoch]);
+  /** When the overlay has player context but no GEP rows and no cache, fetch set-scoped history (best-effort). */
+  useEffect(() => {
+    if (personalMatches.length > 0) return;
+    if (!puuid || !region) return;
+    if (readCachedCoachSummary(region, puuid)) return;
 
-  const matchHistory = useMemo(() => {
-    if (personalMatches.length > 0) {
-      return summarizePersonalMatches(personalMatches, COACH_HISTORY_MAX_GAMES);
-    }
-    return cachedFromDesktop ?? summarizePersonalMatches([], 40);
-  }, [personalMatches, cachedFromDesktop]);
+    let cancelled = false;
+    void (async () => {
+      try {
+        const raw = await fetchPlayerMatchHistoryForSet(puuid, region, CURRENT_TFT_SET_NUMBER);
+        if (cancelled) return;
+        const summary = buildPlayerHistorySummary(raw, Math.min(raw.length, COACH_HISTORY_MAX_GAMES));
+        persistCachedCoachSummary(region, puuid, summary);
+        broadcastCoachMatchHistorySummary(summary);
+        useAppStore.getState().setCoachMatchHistory(summary);
+        setCacheEpoch((n) => n + 1);
+      } catch {
+        /* ignore — overlay-only hydration */
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [personalMatches.length, puuid, region]);
+
+  const personalSummary = useMemo(() => {
+    if (personalMatches.length === 0) return null;
+    return summarizePersonalMatches(personalMatches, COACH_HISTORY_MAX_GAMES);
+  }, [personalMatches]);
+
+  const matchHistory = useMemo(
+    () =>
+      resolveOverlayMatchHistory(
+        personalMatches.length,
+        personalSummary,
+        coachFromStore,
+        region ?? null,
+        puuid ?? null,
+      ),
+    [personalMatches.length, personalSummary, coachFromStore, region, puuid, cacheEpoch],
+  );
 
   const recs = useMemo(
-    () => recommendationsFromGameState(gameState, matchHistory, STATIC_META_VERSION).slice(0, 3),
-    [gameState, matchHistory],
+    () =>
+      recommendationsFromGameState(debouncedGameState, matchHistory, STATIC_META_VERSION).slice(0, 3),
+    [debouncedGameState, matchHistory],
   );
 
   if (recs.length === 0) return null;
 
   return (
-    <div className="bg-[#1f1f1f]/90 border border-[#2a2a2a] rounded-lg p-2 space-y-1.5 pointer-events-none">
-      <div className="flex items-center gap-1 text-[9px] uppercase tracking-wider text-neutral-500">
-        <Sparkles className="w-3 h-3 text-[#35c3e7]" />
-        <span>Coach</span>
+    <div className="pointer-events-none select-none">
+      <div className="bg-ally-card/90 border border-ally-border rounded-lg p-2 space-y-1.5">
+        <button
+          type="button"
+          onClick={() => setExpanded((e) => !e)}
+          className="pointer-events-auto flex w-full items-center gap-1 text-[9px] uppercase tracking-wider text-neutral-500 hover:text-neutral-300"
+        >
+          {expanded ? <ChevronDown className="w-3 h-3 shrink-0" /> : <ChevronRight className="w-3 h-3 shrink-0" />}
+          <Sparkles className="w-3 h-3 text-ally-accent" />
+          <span>Coach</span>
+        </button>
+        {expanded ? (
+          <ul className="space-y-1">
+            {recs.map((r) => (
+              <li key={r.id} className="text-[9px] leading-snug text-neutral-300 border-l-2 border-ally-accent/50 pl-1.5">
+                <span className="font-semibold text-white/90">{r.title}</span>
+                <span className="block text-neutral-400 mt-0.5">{r.detail}</span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
-      <ul className="space-y-1">
-        {recs.map((r) => (
-          <li key={r.id} className="text-[9px] leading-snug text-neutral-300 border-l-2 border-[#35c3e7]/50 pl-1.5">
-            <span className="font-semibold text-white/90">{r.title}</span>
-            <span className="block text-neutral-400 mt-0.5">{r.detail}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

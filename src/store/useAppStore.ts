@@ -3,6 +3,12 @@ import type { PlayerMatchHistorySummary } from "@ally/shared-types";
 import type { TftGameState, BoardUnit } from "../types/tft";
 import type { PlayerCard, RiotRegion, Match } from "../types/riot";
 import { UNITS } from "../data/units";
+import type { Unit } from "../data/units";
+import type { Synergy } from "../data/synergies";
+import type { Augment } from "../data/augments";
+import type { ItemGuideEntry } from "../data/itemGuideCatalog";
+import type { TFTSetData } from "../services/cdnDataService";
+import { CURRENT_TFT_SET_NUMBER } from "../meta/tftCurrentSet";
 import type { PersonalMatchRecord } from "../services/indexedDbService";
 
 export interface RecentSearch {
@@ -68,8 +74,28 @@ export interface VisionCaptureStatus {
   framesThisSession: number;
 }
 
+export type AllyToastVariant = "success" | "info";
+
+export interface AllyToast {
+  id: number;
+  message: string;
+  variant: AllyToastVariant;
+}
+
+export interface GameDataState {
+  setNumber: number;
+  champions: Unit[];
+  traits: Synergy[];
+  items: ItemGuideEntry[];
+  augments: Augment[];
+  isLoading: boolean;
+  lastUpdated: number | null;
+  source: "cdn" | "bundled" | null;
+}
+
 export interface AppState {
   gameState: TftGameState;
+  gameData: GameDataState;
   pipeline: LivePipelineStatus;
   visionCapture: VisionCaptureStatus;
   windows: Record<string, string | null>;
@@ -99,6 +125,9 @@ export interface AppState {
    * Overlay and desktop readers use this + live `personalMatches` for recommendations.
    */
   coachMatchHistory: PlayerMatchHistorySummary | null;
+  toasts: AllyToast[];
+  showToast: (message: string, variant?: AllyToastVariant) => void;
+  dismissToast: (id: number) => void;
   setGameState: (partial: Partial<TftGameState>) => void;
   resetGameState: () => void;
   setPipelineGepStatus: (gepReady: boolean, lastGepError?: string | null) => void;
@@ -124,6 +153,8 @@ export interface AppState {
   addPersonalMatch: (match: PersonalMatchRecord) => void;
   updatePersonalMatchSyncStatus: (id: string, status: PersonalMatchRecord['syncStatus'], syncedAt?: number) => void;
   setCoachMatchHistory: (summary: PlayerMatchHistorySummary | null) => void;
+  setGameData: (data: TFTSetData, source: "cdn" | "bundled") => void;
+  setGameDataLoading: (loading: boolean) => void;
 }
 
 export const EMPTY_STATE: TftGameState = {
@@ -214,9 +245,21 @@ function loadStoredSavedComps(): SavedComp[] {
 const STORED_SETTINGS = loadStoredSettings();
 const STORED_SAVED_COMPS = loadStoredSavedComps();
 
+const DEFAULT_GAME_DATA: GameDataState = {
+  setNumber: CURRENT_TFT_SET_NUMBER,
+  champions: [],
+  traits: [],
+  items: [],
+  augments: [],
+  isLoading: true,
+  lastUpdated: null,
+  source: null,
+};
+
 export const useAppStore = create<AppState>(
   (set: (fn: (s: AppState) => Partial<AppState>) => void) => ({
     gameState: EMPTY_STATE,
+    gameData: DEFAULT_GAME_DATA,
     pipeline: {
       gepReady: false,
       lastGepError: null,
@@ -238,6 +281,20 @@ export const useAppStore = create<AppState>(
     guideModeEnabled: false,
     personalMatches: [],
     coachMatchHistory: null,
+    toasts: [],
+
+    showToast: (message: string, variant: AllyToastVariant = "success") => {
+      const id = Date.now() + Math.floor(Math.random() * 1000);
+      set((s: AppState) => ({
+        toasts: [...s.toasts, { id, message, variant }].slice(-4),
+      }));
+      window.setTimeout(() => {
+        set((s: AppState) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
+      }, 3200);
+    },
+
+    dismissToast: (id: number) =>
+      set((s: AppState) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 
     setGameState: (partial: Partial<TftGameState>) =>
       set((s: AppState) => ({ gameState: { ...s.gameState, ...partial } })),
@@ -328,7 +385,12 @@ export const useAppStore = create<AppState>(
 
     addSavedComp: (comp: SavedComp) =>
       set((s: AppState) => {
-        const next = [...s.savedComps, comp];
+        const MAX_SAVED = 32
+        const key = comp.name.trim().toLowerCase()
+        const withoutDup = s.savedComps.filter((c) => c.name.trim().toLowerCase() !== key)
+        let next = [...withoutDup, { ...comp, name: comp.name.trim() }]
+        next.sort((a, b) => a.timestamp - b.timestamp)
+        if (next.length > MAX_SAVED) next = next.slice(next.length - MAX_SAVED)
         try { localStorage.setItem('tft-ally::saved-comps', JSON.stringify(next)); } catch { /* ignore */ }
         return { savedComps: next };
       }),
@@ -354,8 +416,9 @@ export const useAppStore = create<AppState>(
           location: 'board',
         }));
         const traitCounts: Record<string, number> = {};
+        const roster = s.gameData.champions.length > 0 ? s.gameData.champions : UNITS;
         for (const unit of boardUnits) {
-          const unitData = UNITS.find((u) => u.name === unit.name);
+          const unitData = roster.find((u) => u.name === unit.name);
           if (!unitData) continue;
           for (const trait of unitData.traits) {
             traitCounts[trait] = (traitCounts[trait] || 0) + 1;
@@ -391,5 +454,24 @@ export const useAppStore = create<AppState>(
 
     setCoachMatchHistory: (coachMatchHistory: PlayerMatchHistorySummary | null) =>
       set(() => ({ coachMatchHistory })),
+
+    setGameData: (data: TFTSetData, source: "cdn" | "bundled") =>
+      set(() => ({
+        gameData: {
+          setNumber: data.setNumber,
+          champions: data.champions,
+          traits: data.traits,
+          items: data.items,
+          augments: data.augments,
+          isLoading: false,
+          lastUpdated: Date.now(),
+          source,
+        },
+      })),
+
+    setGameDataLoading: (loading: boolean) =>
+      set((s: AppState) => ({
+        gameData: { ...s.gameData, isLoading: loading },
+      })),
   })
 );

@@ -9,7 +9,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { UNITS } from '@/data/units'
-import { unitIconUrl } from '@/utils/unitDisplay'
+import { unitPortraitPrimaryUrl } from '@/utils/unitDisplay'
 import { SYNERGIES } from '@/data/synergies'
 import {
   buildGameStateFromBoard,
@@ -20,14 +20,15 @@ import { useCoachMatchHistory } from '@/hooks/useCoachMatchHistory'
 import { STATIC_META_VERSION } from '@/meta/tftCurrentSet'
 import { useAppStore } from '@/store/useAppStore'
 import type { MetaComp } from '@/types/tft'
+import { AllySpinner } from '@/components/AllyLoading'
 
 /* ─── Design tokens ─── */
 const C = {
   bg:         '#0d0d0d',
   surface:    '#1f1f1f',
   border:     '#1a1a1a',
-  accent:     '#00d4ff',
-  accentDim:  'rgba(0,212,255,0.12)',
+  accent:     'var(--color-ally-accent)',
+  accentDim:  'color-mix(in srgb, var(--color-ally-accent) 14%, transparent)',
   danger:     '#ef4444',
   dangerDim:  'rgba(239,68,68,0.12)',
   text:       '#ffffff',
@@ -89,7 +90,7 @@ function UnitPill({ name, traits, cost, placed, onClick }: {
         border: `1px solid ${placed ? C.accent : C.border}`,
         backgroundColor: placed ? `${C.accent}1a` : 'transparent',
         boxShadow: placed
-          ? `0 0 10px rgba(0,212,255,0.5), 0 0 22px rgba(0,212,255,0.18)`
+          ? `0 0 10px color-mix(in srgb, ${C.accent} 45%, transparent), 0 0 22px color-mix(in srgb, ${C.accent} 22%, transparent)`
           : 'none',
         color: placed ? C.accent : C.muted,
         minWidth: 72, maxWidth: 84,
@@ -114,6 +115,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
   const savedComps      = useAppStore(s => s.savedComps)
   const addSavedComp    = useAppStore(s => s.addSavedComp)
   const removeSavedComp = useAppStore(s => s.removeSavedComp)
+  const showToast       = useAppStore(s => s.showToast)
   const personalMatches = useAppStore((s) => s.personalMatches)
   const selectedPlayer  = useAppStore((s) => s.selectedPlayer)
 
@@ -146,10 +148,10 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
   const [sid, setSid]               = useState('')
   const [augs, setAugs]             = useState<string[]>([])
   const [comps, setComps]           = useState<string[]>([])
-  const [shareToast, setShareToast] = useState(false)
   const [unitDetail, setUnitDetail] = useState<string | null>(null)
   const [selHex, setSelHex]         = useState<string | null>(null)
   const [unitPanelBoard, setUnitPanelBoard] = useState<'player' | 'enemy'>('player')
+  const [unitFindQuery, setUnitFindQuery] = useState('')
 
   // Double-click detection
   const lastClickRef = useRef<{ time: number; idx: number | null }>({ time: 0, idx: null })
@@ -436,10 +438,21 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
     else pushHistory({ pBoard: [...pBoard], eBoard: nb })
   }
 
+  const sortedSavedComps = useMemo(
+    () => [...savedComps].sort((a, b) => b.timestamp - a.timestamp),
+    [savedComps],
+  )
+
   const saveComp = () => {
-    const n = window.prompt('Composition name:')
-    if (!n) return
-    addSavedComp({ id: Date.now().toString(), name: n, units: Object.values(pBoard).filter(Boolean) as string[], timestamp: Date.now() })
+    const units = Object.values(pBoard).filter(Boolean) as string[]
+    if (units.length === 0) {
+      window.alert('Place at least one unit on your board before saving.')
+      return
+    }
+    const n = window.prompt('Name this comp (e.g. Sniper Reroll, Arbiter Flex):', 'My comp')
+    if (!n?.trim()) return
+    addSavedComp({ id: Date.now().toString(), name: n.trim(), units, timestamp: Date.now() })
+    showToast(`Saved comp "${n.trim()}"`, 'success')
   }
   const loadComp = () => {
     if (!sid) return
@@ -451,7 +464,11 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
   }
   const deleteComp = () => {
     if (!sid) return
-    if (window.confirm(`Delete "${savedComps.find(x => x.id === sid)?.name}"?`)) { removeSavedComp(sid); setSid('') }
+    if (window.confirm(`Delete "${savedComps.find(x => x.id === sid)?.name}"?`)) {
+      removeSavedComp(sid)
+      setSid('')
+      showToast('Comp removed from saved list', 'info')
+    }
   }
   const shareComp = () => {
     const units = Object.values(pBoard).filter(Boolean) as string[]
@@ -460,11 +477,11 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
     const url = `${window.location.origin}?comp=${data}`
     try {
       navigator.clipboard.writeText(url)
+      showToast('Comp link copied to clipboard', 'success')
     } catch {
       window.prompt('Copy this link:', url)
+      showToast('Copy the link from the dialog', 'info')
     }
-    setShareToast(true)
-    setTimeout(() => setShareToast(false), 2000)
   }
 
   /* ─── Hex glyph ─── */
@@ -511,7 +528,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
               const iconY = pos.cy - iconSize / 2
               return (
                 <image
-                  href={unitIconUrl(unit)}
+                  href={unitPortraitPrimaryUrl(unit)}
                   x={iconX}
                   y={iconY}
                   width={iconSize}
@@ -535,7 +552,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
 
     return (
       <div style={{
-        position: 'relative',
+        position: 'relative' as const,
         background: bgCol,
         borderRadius: 8,
         border: `1px solid ${isEnemy ? '#3a1515' : C.border}`,
@@ -694,7 +711,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
           <select value={sid} onChange={e => setSid(e.target.value)}
             style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, color: C.text, fontSize: 10, padding: '4px 8px', cursor: 'pointer', fontFamily: 'Rajdhani, sans-serif' }}>
             <option value="" style={{ background: '#1a1a1a' }}>Load comp…</option>
-            {savedComps.map(c => (<option key={c.id} value={c.id} style={{ background: '#1a1a1a' }}>{c.name}</option>))}
+            {sortedSavedComps.map(c => (<option key={c.id} value={c.id} style={{ background: '#1a1a1a' }}>{c.name}</option>))}
           </select>
           <button disabled={!sid} onClick={loadComp}
             style={{ ...btnBase, background: 'transparent', border: `1px solid ${C.border}`, color: !sid ? C.muted : C.accent, padding: '4px 12px', fontSize: 10, fontWeight: 600, opacity: !sid ? 0.35 : 1 }}>
@@ -709,7 +726,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
             Delete
           </button>
           <button onClick={shareComp}
-            style={{ background:'transparent', border:'none', color:'#35c3e7', fontSize:'11px', cursor:'pointer', padding:'4px 8px' }}>
+            style={{ background:'transparent', border:'none', color: C.accent, fontSize:'11px', cursor:'pointer', padding:'4px 8px' }}>
             Share
           </button>
         </div>
@@ -741,23 +758,45 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
             </div>
           )}
           <div style={{ padding: '8px 12px 12px', display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 220, overflowY: 'auto' }}>
-            {[5, 4, 3, 2, 1].map(cost => {
-              const costUnits = UNITS.filter(u => u.cost === cost)
-              if (costUnits.length === 0) return null
-              return (
-                <div key={cost}>
-                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.cost[cost], marginBottom: 5 }}>
-                    ★ Cost {cost}
+            <input
+              type="search"
+              value={unitFindQuery}
+              onChange={(e) => setUnitFindQuery(e.target.value)}
+              placeholder="Find unit…"
+              data-no-global-search-focus="true"
+              className="w-full rounded-md border border-ally-border bg-ally-bg px-2.5 py-1.5 font-sans text-xs text-ally-text outline-none transition-colors duration-200 placeholder:text-ally-muted focus-visible:ring-2 focus-visible:ring-ally-accent"
+            />
+            {(() => {
+              const q = unitFindQuery.trim().toLowerCase()
+              const matchUnit = (u: (typeof UNITS)[number]) =>
+                !q ||
+                u.name.toLowerCase().includes(q) ||
+                u.traits.some((t) => t.toLowerCase().includes(q)) ||
+                u.id.toLowerCase().includes(q)
+              return [5, 4, 3, 2, 1].map((cost) => {
+                const costUnits = UNITS.filter((u) => u.cost === cost).filter(matchUnit)
+                if (costUnits.length === 0) return null
+                return (
+                  <div key={cost}>
+                    <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.cost[cost], marginBottom: 5 }}>
+                      ★ Cost {cost}
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                      {costUnits.map((u) => (
+                        <UnitPill
+                          key={u.id}
+                          name={u.name}
+                          traits={u.traits}
+                          cost={u.cost}
+                          placed={targetBoard.includes(u.name)}
+                          onClick={() => handleUnitClick(u.name)}
+                        />
+                      ))}
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                    {costUnits.map(u => (
-                      <UnitPill key={u.id} name={u.name} traits={u.traits} cost={u.cost}
-                        placed={targetBoard.includes(u.name)} onClick={() => handleUnitClick(u.name)} />
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })
+            })()}
           </div>
         </div>
       )}
@@ -767,7 +806,23 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
 
         {/* Left: player board + enemy board + stats */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {renderBoard(pBoard, false)}
+          <div style={{ position: 'relative' }}>
+            {renderBoard(pBoard, false)}
+            {!pBoard.some(Boolean) && (
+              <div
+                className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg"
+                style={{
+                  margin: 1,
+                  background: 'color-mix(in srgb, var(--color-ally-bg) 65%, transparent)',
+                  border: `1px dashed ${C.border}`,
+                }}
+              >
+                <p className="text-center font-display text-ally-muted px-6 text-xs leading-relaxed max-w-[220px]">
+                  Empty board — use <span className="text-ally-accent font-semibold">+ Units</span> or drag from the list to build a comp. Save multiple named boards from the toolbar (up to 32).
+                </p>
+              </div>
+            )}
+          </div>
 
           {/* Stats row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 2px', flexWrap: 'wrap' }}>
@@ -778,7 +833,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
             {dragHint && (
               <div style={{
                 padding: '3px 10px', borderRadius: 5,
-                background: `${C.accent}18`, border: `1px solid ${C.accent}50`,
+                background: C.accentDim, border: `1px solid color-mix(in srgb, ${C.accent} 35%, transparent)`,
                 fontSize: 9.5, color: C.accent, fontWeight: 600,
                 animation: 'hintSlide 0.15s ease-out',
                 fontFamily: 'Rajdhani, sans-serif',
@@ -794,14 +849,14 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
               <div
                 style={{
                   fontSize: '9px',
-                  color: '#35c3e7',
+                  color: C.accent,
                   marginBottom: '8px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
                 }}
               >
-                <Sparkles size={10} />
+                <Sparkles size={10} color="var(--color-ally-accent)" />
                 Personalized for {displayGameName} ({matchHistory.recentPlacements.length} games)
               </div>
             )}
@@ -813,7 +868,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
                 marginBottom: 10,
               }}
             >
-              <Sparkles size={12} color="#35c3e7" strokeWidth={2} className="shrink-0" />
+              <Sparkles size={12} color="var(--color-ally-accent)" strokeWidth={2} className="shrink-0" />
               <span
                 style={{
                   fontSize: 11,
@@ -838,7 +893,8 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
                 Add units to get coaching suggestions
               </div>
             ) : coachHistoryLoading || matchHistory === null ? (
-              <div style={{ fontSize: 11, color: '#333', textAlign: 'center', padding: '12px 0' }}>
+              <div className="flex items-center justify-center gap-2 py-3 font-sans text-xs text-ally-muted">
+                <AllySpinner />
                 Loading personalized tips…
               </div>
             ) : coachRecs !== null && coachRecs.length === 0 ? (
@@ -1092,22 +1148,16 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
         }
       `}</style>
 
-      {shareToast && (
-        <div style={{position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)', background:'#1a1a2e', border:'1px solid #35c3e740', color:'#35c3e7', padding:'8px 20px', borderRadius:'8px', fontSize:'12px', zIndex:1000, animation:'fadeIn 0.2s ease'}}>
-          Link copied to clipboard!
-        </div>
-      )}
-
       {unitDetail && (
-        <div style={{
+        <div className="ally-dropdown-surface" style={{
           position:'absolute', top:'50px', left:'50%',
           transform:'translateX(-50%)',
-          background:'#0f0f1e', border:'1px solid #35c3e740',
+          background:'#0f0f1e', border:'1px solid color-mix(in srgb, var(--color-ally-accent) 25%, transparent)',
           borderRadius:'10px', padding:'12px 16px', zIndex:100,
           display:'flex', alignItems:'center', gap:'12px',
           minWidth:'220px', boxShadow:'0 4px 24px #00000080'
         }}>
-          <img src={unitIconUrl(unitDetail)}
+          <img src={unitPortraitPrimaryUrl(unitDetail)}
             style={{width:'44px',height:'44px',borderRadius:'8px',objectFit:'cover'}} />
           <div style={{flex:1}}>
             <div style={{color:'white',fontWeight:600,fontSize:'13px'}}>{unitDetail}</div>
