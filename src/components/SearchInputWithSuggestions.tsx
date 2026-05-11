@@ -85,6 +85,18 @@ export function SearchInputWithSuggestions({
     prependWhenEmpty,
   ])
 
+  const groupedSuggestions = useMemo(() => {
+    const groups: Record<string, { icon?: string; suggestions: SearchSuggestion[] }> = {}
+    for (const s of suggestions) {
+      const groupName = s.group || suggestionKindLabel(s.kind)
+      if (!groups[groupName]) {
+        groups[groupName] = { icon: s.groupIcon, suggestions: [] }
+      }
+      groups[groupName].suggestions.push(s)
+    }
+    return groups
+  }, [suggestions])
+
   const showList = open && suggestions.length > 0
 
   const pick = (s: SearchSuggestion) => {
@@ -130,27 +142,46 @@ export function SearchInputWithSuggestions({
         aria-autocomplete="list"
       />
       {showList && (
-        <ul
-          className="absolute left-0 right-0 top-full mt-0.5 max-h-56 overflow-y-auto rounded-md border border-[#2a2a2a] bg-[#141414] py-1 shadow-lg"
+        <div
+          className="absolute left-0 right-0 top-full z-50 mt-1 max-h-[400px] overflow-y-auto rounded-lg border border-ally-border bg-ally-bg/95 p-1 shadow-2xl backdrop-blur-md animate-ally-dropdown-in"
           style={{ zIndex: listZIndex }}
-          role="listbox"
         >
-          {suggestions.map((s) => (
-            <li key={`${s.kind}:${s.id}:${s.label}`} role="option">
-              <button
-                type="button"
-                className="flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-[12px] text-white hover:bg-[#1f1f1f]"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => pick(s)}
-              >
-                <span className="shrink-0 rounded bg-[#252525] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#a1a1a1]">
-                  {suggestionKindLabel(s.kind)}
-                </span>
-                <span className="min-w-0 truncate">{s.label}</span>
-              </button>
-            </li>
+          {Object.entries(groupedSuggestions).map(([groupName, { icon, suggestions: groupItems }]) => (
+            <div key={groupName} className="mb-2 last:mb-0">
+              <div className="flex items-center gap-2 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-ally-accent">
+                {icon && <span>{icon}</span>}
+                <span>{groupName}</span>
+                <div className="h-px flex-1 bg-ally-accent/20" />
+              </div>
+              <ul role="listbox">
+                {groupItems.map((s) => (
+                  <li key={`${s.kind}:${s.id}:${s.label}`} role="option">
+                    <button
+                      type="button"
+                      className="group flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left transition-colors hover:bg-ally-accent/10"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => pick(s)}
+                    >
+                      <div className="flex h-6 w-6 items-center justify-center rounded bg-ally-card text-xs group-hover:bg-ally-accent group-hover:text-black transition-colors">
+                        {icon || '•'}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[13px] font-medium text-white group-hover:text-ally-accent">
+                          {s.label}
+                        </span>
+                        {s.group && (
+                          <span className="text-[9px] uppercase tracking-tighter text-ally-muted group-hover:text-ally-accent/70">
+                            {suggestionKindLabel(s.kind)}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   )
