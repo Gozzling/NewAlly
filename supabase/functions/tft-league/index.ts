@@ -1,6 +1,6 @@
 import { riotPlatformFetch, jsonResponse, errorResponse } from "../_shared/riot.ts";
 
-// GET /tft/league/v1/entries/by-summoner/{summonerId}
+// GET /tft/league/v1/entries/by-puuid/{puuid}
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -25,7 +25,7 @@ Deno.serve(async (req: Request) => {
 
     const data = await riotPlatformFetch(
       region,
-      `/tft/league/v1/by-puuid/${encodeURIComponent(summonerId)}`,
+      `/tft/league/v1/entries/by-puuid/${encodeURIComponent(summonerId)}`,
     );
 
     return jsonResponse(data);
