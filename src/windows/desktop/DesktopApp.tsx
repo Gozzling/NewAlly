@@ -32,9 +32,8 @@ import { ToastHost } from '@/components/ToastHost';
 import { AllySpinner } from '@/components/AllyLoading';
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions';
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder';
-import { BUNDLED_SET_DATA } from '@/services/cdnDataService';
+import { BUNDLED_SET_DATA, getSetData } from '@/services/cdnDataService';
 import { CURRENT_TFT_SET_NUMBER } from '@/meta/tftCurrentSet';
-import { getSetData } from '@/services/cdnDataService';
 import { invalidateSearchCorpus } from '@/utils/searchSuggestions';
 import { ITEM_RECIPES } from '@/data/itemRecipes';
 import { EXAMPLE_SUMMONERS } from '@/data/exampleSummoners';
@@ -572,70 +571,57 @@ function InGamePage() {
           </div>
         </>
       ) : showDemoGrid ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+        <div className="grid grid-cols-2 gap-3">
           {INGAME_MOCK_PLAYERS.length === 0 ? (
-            <div className="py-20 text-center text-ally-muted">
+            <div className="col-span-2 py-20 text-center text-ally-muted">
               <p>No active lobby detected.</p>
               <p className="text-xs mt-2 opacity-50 text-balance">Once you enter a TFT game, your opponents will appear here automatically.</p>
             </div>
-          ) : INGAME_MOCK_PLAYERS.map((player, i) => (
->>>>>>> 3639d62 (temp commit for rebase)
-=======
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-          {INGAME_MOCK_PLAYERS.length === 0 ? (
-            <div className="py-20 text-center text-ally-muted">
-              <p>No active lobby detected.</p>
-              <p className="text-xs mt-2 opacity-50 text-balance">Once you enter a TFT game, your opponents will appear here automatically.</p>
-            </div>
-          ) : INGAME_MOCK_PLAYERS.map((player, i) => (
->>>>>>> 3639d62 (temp commit for rebase)
-            <div
-              key={i}
-              className="bg-ally-card border border-ally-border rounded-lg p-3 flex gap-3 items-center hover:border-ally-accent/30 transition-colors shadow-card group"
-            >
-              <div className="w-8 h-8 rounded-md bg-ally-bg overflow-hidden shrink-0 border border-ally-border group-hover:border-ally-accent/50 transition-colors">
-                <img
-                  src={`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${player.profileIconId}.png`}
-                  alt={player.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none'
-                  }}
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-body font-bold text-ally-text mb-0.5 font-display uppercase tracking-wide truncate">{player.name}</div>
-                <div className="text-caption text-ally-muted mb-1.5 flex items-center gap-1 font-medium">
-                  {player.rank}
-                  {player.lp > 0 ? <span className="opacity-50">·</span> : null}
-                  {player.lp > 0 ? <span className="text-ally-text-dim font-numbers">{player.lp} LP</span> : ''}
+          ) : (
+            INGAME_MOCK_PLAYERS.map((player, i) => (
+              <div
+                key={i}
+                className="bg-ally-card border border-ally-border rounded-lg p-3 flex gap-3 items-center hover:border-ally-accent/30 transition-colors shadow-card group"
+              >
+                <div className="w-8 h-8 rounded-md bg-ally-bg overflow-hidden shrink-0 border border-ally-border group-hover:border-ally-accent/50 transition-colors">
+                  <img
+                    src={`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${player.profileIconId}.png`}
+                    alt={player.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none'
+                    }}
+                  />
                 </div>
-                <div style={{ display: 'flex', gap: '4px', marginBottom: '6px', flexWrap: 'wrap' }}>
-                  {player.recentPlacements.map((place: number, j: number) => (
->>>>>>> 3639d62 (temp commit for rebase)
-=======
-                <div style={{ display: 'flex', gap: '4px', marginBottom: '6px', flexWrap: 'wrap' }}>
-                  {player.recentPlacements.map((place: number, j: number) => (
->>>>>>> 3639d62 (temp commit for rebase)
-                    <div
-                      key={j}
-                      style={{ background: getPlacementColor(place) }}
-                      className="w-6 h-6 rounded flex items-center justify-center text-caption font-bold text-white font-numbers shadow-sm"
-                    >
-                      {place}
-                    </div>
-                  ))}
-                </div>
-                <div className="flex justify-between items-center gap-2">
-                  <div className="text-caption text-ally-muted font-display uppercase tracking-tight">
-                    Avg:{' '}
-                    <span className="text-ally-text font-numbers font-bold">{player.avgPlace > 0 ? player.avgPlace.toFixed(1) : '-'}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-body font-bold text-ally-text mb-0.5 font-display uppercase tracking-wide truncate">{player.name}</div>
+                  <div className="text-caption text-ally-muted mb-1.5 flex items-center gap-1 font-medium">
+                    {player.rank}
+                    {player.lp > 0 ? <span className="opacity-50">·</span> : null}
+                    {player.lp > 0 ? <span className="text-ally-text-dim font-numbers">{player.lp} LP</span> : ''}
                   </div>
-                  <div className="text-[10px] text-ally-accent font-bold font-display uppercase truncate max-w-[80px]">{player.predictedComp}</div>
+                  <div className="flex gap-1 mb-1.5 flex-wrap">
+                    {player.recentPlacements.map((place: number, j: number) => (
+                      <div
+                        key={j}
+                        style={{ background: getPlacementColor(place) }}
+                        className="w-6 h-6 rounded flex items-center justify-center text-caption font-bold text-white font-numbers shadow-sm"
+                      >
+                        {place}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-between items-center gap-2">
+                    <div className="text-caption text-ally-muted font-display uppercase tracking-tight">
+                      Avg:{' '}
+                      <span className="text-ally-text font-numbers font-bold">{player.avgPlace > 0 ? player.avgPlace.toFixed(1) : '-'}</span>
+                    </div>
+                    <div className="text-[10px] text-ally-accent font-bold font-display uppercase truncate max-w-[80px]">{player.predictedComp}</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       ) : showLiveGrid ? (
         <div className="grid grid-cols-2 gap-3">
