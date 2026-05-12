@@ -1,5 +1,5 @@
 // New streamlined comp card adhering to minimal editorial design
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Pin, PinOff, FilePlus, Monitor } from 'lucide-react';
 
 import type { MetaComp } from '@/types/tft';
@@ -18,7 +18,11 @@ interface CompCardNewProps {
   onOverlayToggle?: (comp: MetaComp) => void;
 }
 
-export function CompCardNew({ comp, isPinned, onPinToggle, onImport, onOverlayToggle }: CompCardNewProps) {
+/**
+ * CompCardNew provides a streamlined view of a meta composition.
+ * Memoized to ensure list performance remains high even with dozens of active cards.
+ */
+export const CompCardNew = React.memo(function CompCardNew({ comp, isPinned, onPinToggle, onImport, onOverlayToggle }: CompCardNewProps) {
   const [expanded, setExpanded] = useState(false);
   const tier = comp.tier ?? 'B';
     // Tier badge uses neutral styling per app color tokens
@@ -147,4 +151,4 @@ export function CompCardNew({ comp, isPinned, onPinToggle, onImport, onOverlayTo
       )}
     </div>
   );
-}
+})
