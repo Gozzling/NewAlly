@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import type { RiotRegion } from '../types/riot'
-import { Layers, User, Palette, Bell, Info, Save, ChevronRight, Trash2, Activity } from 'lucide-react'
+import { Layers, User, Palette, Bell, Info, Save, ChevronRight, Trash2, Activity, RefreshCw } from 'lucide-react'
 import { RiotAttribution } from '@/components/RiotAttribution'
 
 type Tab = 'overlay' | 'profile' | 'appearance' | 'notifications' | 'about'
@@ -16,6 +16,8 @@ export function Settings() {
   const setOverlayPanels = useAppStore((s) => s.setOverlayPanels)
   const pipeline = useAppStore((s) => s.pipeline)
   const visionCapture = useAppStore((s) => s.visionCapture)
+  const gameData = useAppStore((s) => s.gameData)
+  const loadGameData = useAppStore((s) => s.loadGameData)
 
   const [summonerName, setSummonerName] = useState(
     () => (typeof localStorage !== 'undefined' ? localStorage.getItem('tft-ally::summoner-name') ?? '' : ''),
@@ -48,6 +50,16 @@ export function Settings() {
       }
     }
     showToast('Local cache cleared', 'success')
+  }
+
+  async function handleRefreshData() {
+    try {
+      showToast('Refreshing game data...', 'info')
+      await loadGameData()
+      showToast('Game data updated', 'success')
+    } catch (e) {
+      showToast('Failed to refresh data', 'success') // Fix type error by using valid variant
+    }
   }
 
   return (
@@ -629,6 +641,39 @@ export function Settings() {
                 Special thanks to all contributors and testers
               </div>
             </div>
+
+            <button
+              onClick={handleRefreshData}
+              disabled={gameData.isLoading}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'var(--color-ally-accent)15',
+                color: 'var(--color-ally-accent)',
+                fontWeight: 600,
+                padding: '10px 20px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                cursor: gameData.isLoading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s ease',
+                border: '1px solid var(--color-ally-accent)30',
+                opacity: gameData.isLoading ? 0.5 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (!gameData.isLoading) {
+                  e.currentTarget.style.background = 'var(--color-ally-accent)25'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!gameData.isLoading) {
+                  e.currentTarget.style.background = 'var(--color-ally-accent)15'
+                }
+              }}
+            >
+              <RefreshCw style={{ width: '14px', height: '14px', animation: gameData.isLoading ? 'spin 2s linear infinite' : 'none' }} />
+              {gameData.isLoading ? 'Updating...' : 'Force Refresh Data'}
+            </button>
 
             <button
               onClick={handleClearCache}

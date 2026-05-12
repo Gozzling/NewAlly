@@ -2,10 +2,10 @@
  * Fetches Community Dragon bundled TFT JSON (`cdragon/tft/en_us.json`), maps it to Ally reference
  * types, and caches the result in IndexedDB for 24h.
  */
-import type { Unit } from "@/data/units"
-import type { Synergy } from "@/data/synergies"
-import type { Augment } from "@/data/augments"
-import type { ItemGuideEntry } from "@/data/itemGuideCatalog"
+import { UNITS, type Unit } from "@/data/units"
+import { SYNERGIES, type Synergy } from "@/data/synergies"
+import { AUGMENTS, type Augment } from "@/data/augments"
+import { ITEM_GUIDE_ENTRIES, type ItemGuideEntry } from "@/data/itemGuideCatalog"
 import { CURRENT_TFT_SET_NUMBER } from "@/meta/tftCurrentSet"
 import { cdGameAssetUrl } from "@/utils/cdnIcons"
 
@@ -425,18 +425,45 @@ export async function cacheSetData(data: TFTSetData): Promise<void> {
   })
 }
 
-export async function getSetData(): Promise<TFTSetData> {
-  const cached = await getCachedSetData()
+export const BUNDLED_SET_DATA: TFTSetData = {
+  setNumber: CURRENT_TFT_SET_NUMBER,
+  champions: UNITS,
+  traits: SYNERGIES,
+  items: ITEM_GUIDE_ENTRIES,
+  augments: AUGMENTS,
+}
 
-  if (cached && !isStale(cached)) {
-    return cached.data
-  }
-
-  const fresh = await fetchLatestSetData()
+export async function getSetData(): Promise<{ data: TFTSetData; source: "cdn" | "bundled" }> {
   try {
-    await cacheSetData(fresh)
-  } catch {
-    /* ignore cache write failures */
+    const cached = await getCachedSetData()
+    if (cached && !isStale(cached)) {
+      return { data: cached.data, source: "cdn" }
+    }
+  } catch (e) {
+    console.warn("CDN Cache read failed", e)
   }
-  return fresh
+
+  try {
+    const fresh = await fetchLatestSetData()
+    try {
+      await cacheSetData(fresh)
+    } catch {
+      /* ignore cache write failures */
+    }
+    return { data: fresh, source: "cdn" }
+  } catch (e) {
+    console.error("CDN fetch failed, falling back to bundled data", e)
+    return { data: BUNDLED_SET_DATA, source: "bundled" }
+  }
+}
+
+export function preloadCommonIcons(champions: Unit[]) {
+  if (typeof window === "undefined" || typeof Image === "undefined") return [];
+  // Simple background preloader for common icons
+  const images = champions.slice(0, 20).map((u) => {
+    const img = new Image();
+    img.src = u.iconUrl || "";
+    return img;
+  });
+  return images;
 }

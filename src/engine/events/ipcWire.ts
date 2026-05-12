@@ -6,6 +6,7 @@ import type {
   IpcGameStateMessage,
   IpcGepStatusMessage,
   IpcPersonalMatchMessage,
+  IpcGameDataMessage,
   IpcTftPayload,
 } from "@ally/shared-types";
 
@@ -16,6 +17,7 @@ export type {
   IpcGameStateMessage,
   IpcGepStatusMessage,
   IpcPersonalMatchMessage,
+  IpcGameDataMessage,
   IpcTftPayload,
 } from "@ally/shared-types";
 export { TFT_LIVE_CHANNEL } from "@ally/shared-types";
@@ -83,6 +85,12 @@ export function isIpcPersonalMatchMessage(payload: unknown): payload is IpcPerso
   return true;
 }
 
+export function isIpcGameDataMessage(payload: unknown): payload is IpcGameDataMessage {
+  if (!payload || typeof payload !== "object") return false;
+  const p = payload as Record<string, unknown>;
+  return p.kind === "game_data" && p.data != null && (p.source === "cdn" || p.source === "bundled");
+}
+
 export function isIpcTftPayload(payload: unknown): payload is IpcTftPayload {
   return (
     isIpcGameStateMessage(payload) ||
@@ -90,7 +98,8 @@ export function isIpcTftPayload(payload: unknown): payload is IpcTftPayload {
     isIpcBackgroundErrorMessage(payload) ||
     isIpcCaptureStatusMessage(payload) ||
     isIpcPersonalMatchMessage(payload) ||
-    isIpcCoachMatchHistoryMessage(payload)
+    isIpcCoachMatchHistoryMessage(payload) ||
+    isIpcGameDataMessage(payload)
   );
 }
 
@@ -119,4 +128,8 @@ export function createIpcPersonalMatchMessage(match: IpcPersonalMatchMessage["ma
 
 export function createIpcCoachMatchHistoryMessage(summary: unknown): IpcCoachMatchHistoryMessage {
   return { kind: "coach_match_history", summary };
+}
+
+export function createIpcGameDataMessage(data: unknown, source: "cdn" | "bundled"): IpcGameDataMessage {
+  return { kind: "game_data", data, source };
 }

@@ -1,6 +1,6 @@
 import { ArrowLeft } from 'lucide-react'
-import { UNITS } from '../data/units'
-import { unitIconUrl } from '@/utils/unitDisplay'
+import { useAppStore } from '@/store/useAppStore'
+import { UnitPortrait } from '@/components/UnitPortrait'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -35,7 +35,8 @@ interface UnitDetailProps {
 }
 
 export function UnitDetail({ unitId, onBack }: UnitDetailProps) {
-  const unit = UNITS.find((u) => u.id === unitId)
+  const champions = useAppStore(s => s.gameData.champions)
+  const unit = champions.find((u) => u.id === unitId)
   if (!unit) return null
 
   const tierColors = TIER_COLORS[unit.tier] ?? TIER_COLORS.C
@@ -88,17 +89,13 @@ export function UnitDetail({ unitId, onBack }: UnitDetailProps) {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-              <img
-                src={unitIconUrl(unit.name)}
-                alt={unit.name}
+              <UnitPortrait
+                name={unit.name}
+                size={80}
+                radius={12}
                 style={{
-                  width: '80px',
-                  height: '80px',
-                  borderRadius: '12px',
-                  objectFit: 'cover',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
                 }}
-                onError={(e) => { e.currentTarget.style.display = 'none' }}
               />
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '20px', fontWeight: 700, color: C.text, marginBottom: '8px' }}>{unit.name}</div>

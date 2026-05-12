@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState, Fragment } from 'react'
 import { UnitPortrait } from '@/components/UnitPortrait'
-import { itemIconUrl as localBundledItemIconUrl } from '@/utils/itemDisplay'
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { useAppStore } from '@/store/useAppStore'
 import type { ItemGuideCategory, ItemGuideEntry } from '@/data/itemGuideCatalog'
+import { itemPortraitUrls } from '@/utils/iconResolver'
+import { IconWithFallback } from '@/components/IconWithFallback'
 import { ReferenceDetailModal } from '@/components/ReferenceDetailModal'
 
 /* ─── Design tokens ─── */
@@ -62,7 +63,7 @@ export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter,
   }, [initialItem, guideItems])
 
   const { placeholderAnimated: itemsSearchPlaceholder } = useTypewriterPlaceholder(
-    ITEMS_GUIDE_PLACEHOLDER_WORDS,
+    guideItems.length > 0 ? guideItems.slice(0, 10).map(i => i.name) : ITEMS_GUIDE_PLACEHOLDER_WORDS,
     query.length > 0,
   )
 
@@ -327,13 +328,11 @@ function ItemCard({ item, index, onClick }: { item: ItemGuideEntry; index: numbe
       </div>
 
       <div className="flex items-start gap-3 mb-2">
-        <img
-          src={item.iconUrl ?? localBundledItemIconUrl(item.name, item.iconSlug)}
-          alt=""
-          width={40}
-          height={40}
-          style={{ borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
-          onError={(e) => { e.currentTarget.style.display = 'none' }}
+        <IconWithFallback
+          urls={itemPortraitUrls(item.name, item.iconUrl, item.iconSlug)}
+          alt={item.name}
+          size={40}
+          style={{ borderRadius: 6, flexShrink: 0 }}
         />
         <div className="text-white text-sm font-bold">{item.name}</div>
       </div>
@@ -418,13 +417,11 @@ function ItemDetail({
 
       {/* Item Name + Tier */}
       <div className="flex items-center gap-4 mb-8" style={{ animation: 'statCardEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.1s both' }}>
-        <img
-          src={item.iconUrl ?? localBundledItemIconUrl(item.name, item.iconSlug)}
-          alt=""
-          width={48}
-          height={48}
-          style={{ borderRadius: 8, objectFit: 'cover', border: `1px solid ${C.border}` }}
-          onError={(e) => { e.currentTarget.style.display = 'none' }}
+        <IconWithFallback
+          urls={itemPortraitUrls(item.name, item.iconUrl, item.iconSlug)}
+          alt={item.name}
+          size={48}
+          style={{ borderRadius: 8, border: `1px solid ${C.border}` }}
         />
         <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'white' }}>{item.name}</h2>
         <span style={{ fontSize: '11px', color: '#6b9aa8', textTransform: 'uppercase' }}>{item.category}</span>

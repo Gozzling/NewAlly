@@ -8,6 +8,7 @@ import {
   isIpcGameStateMessage,
   isIpcGepStatusMessage,
   isIpcPersonalMatchMessage,
+  isIpcGameDataMessage,
 } from "@/engine/events";
 import { persistCachedCoachSummary } from "@/hooks/useCoachMatchHistory";
 import type { PersonalMatchRecord } from "@/services/indexedDbService";
@@ -45,6 +46,11 @@ export function subscribeToStateSnapshots(): () => void {
 
     if (isIpcPersonalMatchMessage(payload)) {
       useAppStore.getState().addPersonalMatch(payload.match as PersonalMatchRecord);
+      return;
+    }
+
+    if (isIpcGameDataMessage(payload)) {
+      useAppStore.getState().setGameData(payload.data as any, payload.source);
       return;
     }
 

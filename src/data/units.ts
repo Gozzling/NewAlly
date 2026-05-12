@@ -5,6 +5,7 @@ export interface Unit {
   ability:{name:string;description:string;damage:string}
   stats:{hp:number;ad:number;ap:number;armor:number;mr:number;atkSpeed:number;range:number}
   bestItems:string[];bestComps:string[];tier:'S'|'A'|'B'|'C'|'D'
+  iconUrl?: string;
 }
 
 export const UNITS:Unit[]=[

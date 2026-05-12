@@ -7,7 +7,8 @@ import type { Unit } from "../data/units";
 import type { Synergy } from "../data/synergies";
 import type { Augment } from "../data/augments";
 import type { ItemGuideEntry } from "../data/itemGuideCatalog";
-import type { TFTSetData } from "../services/cdnDataService";
+import { getSetData, type TFTSetData } from "../services/cdnDataService";
+import { invalidateSearchCorpus } from "../utils/searchSuggestions";
 import { CURRENT_TFT_SET_NUMBER } from "../meta/tftCurrentSet";
 import type { PersonalMatchRecord } from "../services/indexedDbService";
 
@@ -155,6 +156,7 @@ export interface AppState {
   setCoachMatchHistory: (summary: PlayerMatchHistorySummary | null) => void;
   setGameData: (data: TFTSetData, source: "cdn" | "bundled") => void;
   setGameDataLoading: (loading: boolean) => void;
+  loadGameData: () => Promise<void>;
 }
 
 export const EMPTY_STATE: TftGameState = {
@@ -455,7 +457,8 @@ export const useAppStore = create<AppState>(
     setCoachMatchHistory: (coachMatchHistory: PlayerMatchHistorySummary | null) =>
       set(() => ({ coachMatchHistory })),
 
-    setGameData: (data: TFTSetData, source: "cdn" | "bundled") =>
+    setGameData: (data: TFTSetData, source: "cdn" | "bundled") => {
+      invalidateSearchCorpus();
       set(() => ({
         gameData: {
           setNumber: data.setNumber,
@@ -467,11 +470,24 @@ export const useAppStore = create<AppState>(
           lastUpdated: Date.now(),
           source,
         },
-      })),
+      }));
+    },
 
     setGameDataLoading: (loading: boolean) =>
       set((s: AppState) => ({
         gameData: { ...s.gameData, isLoading: loading },
       })),
+
+    loadGameData: async () => {
+      const { setGameDataLoading, setGameData } = useAppStore.getState();
+      setGameDataLoading(true);
+      try {
+        const { data, source } = await getSetData();
+        setGameData(data, source);
+      } catch (e) {
+        console.error("Failed to load game data", e);
+        setGameDataLoading(false);
+      }
+    },
   })
 );

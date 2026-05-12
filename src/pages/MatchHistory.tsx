@@ -17,8 +17,8 @@ import {
   Area,
 } from 'recharts'
 import type { Match } from '@/types/riot'
-import { unitIconUrl } from '@/utils/unitDisplay'
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
+import { UnitPortrait } from '@/components/UnitPortrait'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { EXAMPLE_SUMMONERS } from '@/data/exampleSummoners'
 import { StatAbbr } from '@/components/StatAbbr'
@@ -508,18 +508,11 @@ function MatchRow({ match, index }: { match: MatchRowData; index: number }) {
           <div style={{display:'flex', gap:'3px', flexWrap:'wrap', marginTop:'6px'}}>
             {match.units.slice(0, 8).map(name => (
               <div key={name} style={{position:'relative'}}>
-                <img
-                  src={unitIconUrl(name)}
-                  alt={name}
-                  title={name}
-                  style={{
-                    width:'32px', height:'32px',
-                    borderRadius:'6px',
-                    objectFit:'cover',
-                    border:'1px solid #2a2a2a',
-                    display:'block'
-                  }}
-                  onError={(e) => { e.currentTarget.style.display='none' }}
+                <UnitPortrait
+                  name={name}
+                  size={32}
+                  radius={6}
+                  className="border border-ally-border"
                 />
               </div>
             ))}

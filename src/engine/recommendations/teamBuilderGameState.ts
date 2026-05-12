@@ -1,6 +1,5 @@
 import type { Unit } from "@/data/units";
-import { ITEM_RECIPES } from "@/data/itemRecipes";
-import { META_COMPS } from "@/data/metaComps";
+import type { ItemRecipes, MetaComp } from "@/types/tft";
 import { calculateBestCompMatch, calculateItemCrafting } from "@/shared/gameEngine";
 import { EMPTY_STATE } from "@/store/useAppStore";
 import type { BoardState, BoardUnit, TftGameState } from "@/types/tft";
@@ -9,7 +8,12 @@ import { unitMatchKey } from "@/utils/unitDisplay";
 /**
  * Maps Team Builder hex board → minimal {@link TftGameState} for `toNormalizedSignals` / recommendation engine.
  */
-export function buildGameStateFromBoard(pBoard: (string | null)[], units: readonly Unit[]): TftGameState {
+export function buildGameStateFromBoard(
+  pBoard: (string | null)[],
+  units: readonly Unit[],
+  metaComps: MetaComp[] = [],
+  itemRecipes: ItemRecipes = {},
+): TftGameState {
   const allowed = new Set(units.map((u) => unitMatchKey(u.name)));
 
   const boardUnits: BoardUnit[] = [];
@@ -37,13 +41,13 @@ export function buildGameStateFromBoard(pBoard: (string | null)[], units: readon
     grid[`${x},${y}`] = u;
   }
 
-  const activeCompTracker = calculateBestCompMatch(boardUnits, META_COMPS);
+  const activeCompTracker = calculateBestCompMatch(boardUnits, metaComps);
   const itemTracker = calculateItemCrafting(
     activeCompTracker.bestMatchName,
     boardUnits,
     [],
-    META_COMPS,
-    ITEM_RECIPES,
+    metaComps,
+    itemRecipes,
   );
 
   return {

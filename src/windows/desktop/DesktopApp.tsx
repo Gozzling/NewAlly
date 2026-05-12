@@ -26,17 +26,14 @@ import { SynergyGuide } from '@/pages/SynergyGuide';
 import { ItemsGuide } from '@/pages/ItemsGuide';
 import { AugmentGuide } from '@/pages/AugmentGuide';
 import { Settings } from '@/pages/Settings';
+import { DataErrorBoundary } from '@/components/DataErrorBoundary';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { ToastHost } from '@/components/ToastHost';
 import { AllySpinner } from '@/components/AllyLoading';
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions';
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder';
-import { UNITS } from '@/data/units';
-import { SYNERGIES } from '@/data/synergies';
-import { ITEM_GUIDE_ENTRIES } from '@/data/itemGuideCatalog';
-import { AUGMENTS } from '@/data/augments';
+import { BUNDLED_SET_DATA, getSetData } from '@/services/cdnDataService';
 import { CURRENT_TFT_SET_NUMBER } from '@/meta/tftCurrentSet';
-import { getSetData } from '@/services/cdnDataService';
 import { invalidateSearchCorpus } from '@/utils/searchSuggestions';
 import { ITEM_RECIPES } from '@/data/itemRecipes';
 import { EXAMPLE_SUMMONERS } from '@/data/exampleSummoners';
@@ -231,16 +228,7 @@ function parseSpectatorGameLengthSeconds(active: Record<string, unknown>): numbe
   return 0
 }
 
-const INGAME_MOCK_PLAYERS = [
-  { name: 'Gozling', tagline: 'Goz', rank: 'Platinum II', lp: 93, recentPlacements: [2, 4, 1], avgPlace: 3.8, predictedComp: 'N.O.V.A. Sniper', profileIconId: 4568 },
-  { name: 'DoubleUp61', tagline: 'DU', rank: 'Diamond I', lp: 45, recentPlacements: [1, 3, 2], avgPlace: 2.1, predictedComp: 'Arcanist Academy', profileIconId: 3456 },
-  { name: 'TFTMaster', tagline: 'TFT', rank: 'Master IV', lp: 12, recentPlacements: [1, 1, 2], avgPlace: 1.3, predictedComp: 'Fated Academy', profileIconId: 2345 },
-  { name: 'SynergyKing', tagline: 'SK', rank: 'Emerald I', lp: 78, recentPlacements: [3, 2, 4], avgPlace: 3.2, predictedComp: 'Storyweaver', profileIconId: 5678 },
-  { name: 'CompBuilder', tagline: 'CB', rank: 'Platinum I', lp: 56, recentPlacements: [4, 3, 2], avgPlace: 3.5, predictedComp: 'Behemoth', profileIconId: 6789 },
-  { name: 'RankChaser', tagline: 'RC', rank: 'Diamond III', lp: 34, recentPlacements: [2, 1, 3], avgPlace: 2.4, predictedComp: 'Umbral', profileIconId: 7890 },
-  { name: 'MetaSlave', tagline: 'MS', rank: 'Emerald II', lp: 67, recentPlacements: [3, 4, 2], avgPlace: 3.1, predictedComp: 'Inkshadow', profileIconId: 8901 },
-  { name: 'LuckySeven', tagline: 'LS', rank: 'Platinum III', lp: 89, recentPlacements: [4, 2, 3], avgPlace: 3.6, predictedComp: 'Mythic', profileIconId: 9012 },
-] as const
+const INGAME_MOCK_PLAYERS: any[] = []
 
 type LiveLobbyPlayer = {
   puuid: string
@@ -584,49 +572,56 @@ function InGamePage() {
         </>
       ) : showDemoGrid ? (
         <div className="grid grid-cols-2 gap-3">
-          {INGAME_MOCK_PLAYERS.map((player, i) => (
-            <div
-              key={i}
-              className="bg-ally-card border border-ally-border rounded-lg p-3 flex gap-3 items-center hover:border-ally-accent/30 transition-colors shadow-card group"
-            >
-              <div className="w-8 h-8 rounded-md bg-ally-bg overflow-hidden shrink-0 border border-ally-border group-hover:border-ally-accent/50 transition-colors">
-                <img
-                  src={`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${player.profileIconId}.png`}
-                  alt={player.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none'
-                  }}
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-body font-bold text-ally-text mb-0.5 font-display uppercase tracking-wide truncate">{player.name}</div>
-                <div className="text-caption text-ally-muted mb-1.5 flex items-center gap-1 font-medium">
-                  {player.rank}
-                  {player.lp > 0 ? <span className="opacity-50">·</span> : null}
-                  {player.lp > 0 ? <span className="text-ally-text-dim font-numbers">{player.lp} LP</span> : ''}
-                </div>
-                <div className="flex gap-1 mb-1.5 flex-wrap">
-                  {player.recentPlacements.map((place, j) => (
-                    <div
-                      key={j}
-                      style={{ background: getPlacementColor(place) }}
-                      className="w-6 h-6 rounded flex items-center justify-center text-caption font-bold text-white font-numbers shadow-sm"
-                    >
-                      {place}
-                    </div>
-                  ))}
-                </div>
-                <div className="flex justify-between items-center gap-2">
-                  <div className="text-caption text-ally-muted font-display uppercase tracking-tight">
-                    Avg:{' '}
-                    <span className="text-ally-text font-numbers font-bold">{player.avgPlace > 0 ? player.avgPlace.toFixed(1) : '-'}</span>
-                  </div>
-                  <div className="text-[10px] text-ally-accent font-bold font-display uppercase truncate max-w-[80px]">{player.predictedComp}</div>
-                </div>
-              </div>
+          {INGAME_MOCK_PLAYERS.length === 0 ? (
+            <div className="col-span-2 py-20 text-center text-ally-muted">
+              <p>No active lobby detected.</p>
+              <p className="text-xs mt-2 opacity-50 text-balance">Once you enter a TFT game, your opponents will appear here automatically.</p>
             </div>
-          ))}
+          ) : (
+            INGAME_MOCK_PLAYERS.map((player, i) => (
+              <div
+                key={i}
+                className="bg-ally-card border border-ally-border rounded-lg p-3 flex gap-3 items-center hover:border-ally-accent/30 transition-colors shadow-card group"
+              >
+                <div className="w-8 h-8 rounded-md bg-ally-bg overflow-hidden shrink-0 border border-ally-border group-hover:border-ally-accent/50 transition-colors">
+                  <img
+                    src={`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${player.profileIconId}.png`}
+                    alt={player.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none'
+                    }}
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-body font-bold text-ally-text mb-0.5 font-display uppercase tracking-wide truncate">{player.name}</div>
+                  <div className="text-caption text-ally-muted mb-1.5 flex items-center gap-1 font-medium">
+                    {player.rank}
+                    {player.lp > 0 ? <span className="opacity-50">·</span> : null}
+                    {player.lp > 0 ? <span className="text-ally-text-dim font-numbers">{player.lp} LP</span> : ''}
+                  </div>
+                  <div className="flex gap-1 mb-1.5 flex-wrap">
+                    {player.recentPlacements.map((place: number, j: number) => (
+                      <div
+                        key={j}
+                        style={{ background: getPlacementColor(place) }}
+                        className="w-6 h-6 rounded flex items-center justify-center text-caption font-bold text-white font-numbers shadow-sm"
+                      >
+                        {place}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-between items-center gap-2">
+                    <div className="text-caption text-ally-muted font-display uppercase tracking-tight">
+                      Avg:{' '}
+                      <span className="text-ally-text font-numbers font-bold">{player.avgPlace > 0 ? player.avgPlace.toFixed(1) : '-'}</span>
+                    </div>
+                    <div className="text-[10px] text-ally-accent font-bold font-display uppercase truncate max-w-[80px]">{player.predictedComp}</div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       ) : showLiveGrid ? (
         <div className="grid grid-cols-2 gap-3">
@@ -662,7 +657,7 @@ function InGamePage() {
                     </div>
                     <div className="flex gap-1 mb-1.5 flex-wrap">
                       {player.recentPlacements.length > 0 ? (
-                        player.recentPlacements.map((place, j) => (
+                        player.recentPlacements.map((place: number, j: number) => (
                           <div
                             key={j}
                             style={{ background: getPlacementColor(place) }}
@@ -784,14 +779,14 @@ export function DesktopApp() {
     const augList = gameData.augments
     const rounds = Math.max(
       items.length,
-      champs.length > 0 ? champs.length : UNITS.length,
-      augList.length > 0 ? augList.length : AUGMENTS.length,
+      champs.length > 0 ? champs.length : BUNDLED_SET_DATA.champions.length,
+      augList.length > 0 ? augList.length : BUNDLED_SET_DATA.augments.length,
       summoners.length,
     )
     for (let i = 0; i < rounds; i++) {
       out.push(items[i % items.length])
-      const roster = champs.length > 0 ? champs : UNITS
-      const augs = augList.length > 0 ? augList : AUGMENTS
+      const roster = champs.length > 0 ? champs : BUNDLED_SET_DATA.champions
+      const augs = augList.length > 0 ? augList : BUNDLED_SET_DATA.augments
       out.push(roster[i % roster.length].name)
       out.push(augs[i % augs.length].name)
       out.push(summoners[i % summoners.length])
@@ -847,7 +842,7 @@ export function DesktopApp() {
     switch (s.kind) {
       case 'unit': {
         setActivePage('units')
-        const roster = gameData.champions.length > 0 ? gameData.champions : UNITS
+        const roster = gameData.champions.length > 0 ? gameData.champions : BUNDLED_SET_DATA.champions
         const u = roster.find((x) => x.name === s.label)
         setSelectedUnitId(u ? u.name : s.label)
         setUnitQuery(s.label)
@@ -886,19 +881,19 @@ export function DesktopApp() {
       const { setGameData, setGameDataLoading } = useAppStore.getState();
       setGameDataLoading(true);
       try {
-        const data = await getSetData();
+        const { data, source } = await getSetData();
         if (cancelled) return;
-        setGameData(data, 'cdn');
+        setGameData(data, source);
       } catch (err) {
         if (cancelled) return;
         console.warn('[APP] CDN failed, using bundled data:', err);
         setGameData(
           {
             setNumber: CURRENT_TFT_SET_NUMBER,
-            champions: UNITS,
-            traits: SYNERGIES,
-            items: ITEM_GUIDE_ENTRIES,
-            augments: AUGMENTS,
+            champions: BUNDLED_SET_DATA.champions,
+            traits: BUNDLED_SET_DATA.traits,
+            items: BUNDLED_SET_DATA.items,
+            augments: BUNDLED_SET_DATA.augments,
           },
           'bundled',
         );
@@ -1017,6 +1012,7 @@ export function DesktopApp() {
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
+      <DataErrorBoundary>
       <div className="w-full h-full flex flex-col bg-[#0d0d0d] text-white font-sans smooth-scroll" style={{ '--color-ally-accent': accentColor } as React.CSSProperties}>
       {/* Top Bar */}
       <div
@@ -1337,6 +1333,7 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
       </div>
       </div>
       <ToastHost />
+      </DataErrorBoundary>
     </ThemeProvider>
   );
 }

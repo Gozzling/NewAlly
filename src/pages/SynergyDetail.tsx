@@ -1,6 +1,6 @@
 import { ArrowLeft } from 'lucide-react'
-import { SYNERGIES } from '../data/synergies'
-import { unitIconUrl } from '@/utils/unitDisplay'
+import { useAppStore } from '@/store/useAppStore'
+import { UnitPortrait } from '@/components/UnitPortrait'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -26,7 +26,8 @@ interface SynergyDetailProps {
 }
 
 export function SynergyDetail({ synergyId, onBack }: SynergyDetailProps) {
-  const synergy = SYNERGIES.find((s) => s.id === synergyId)
+  const traits = useAppStore(s => s.gameData.traits)
+  const synergy = traits.find((s) => s.id === synergyId)
   if (!synergy) return null
 
   const typeColors = TYPE_COLORS[synergy.type] ?? TYPE_COLORS.hybrid
@@ -142,12 +143,7 @@ export function SynergyDetail({ synergyId, onBack }: SynergyDetailProps) {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
               {synergy.bestUnits.map((u) => (
                 <div key={u} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-                  <img
-                    src={unitIconUrl(u)}
-                    alt={u}
-                    style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover' }}
-                    onError={(e) => { e.currentTarget.style.display = 'none' }}
-                  />
+                  <UnitPortrait name={u} size={48} radius={8} />
                   <div style={{ fontSize: '11px', color: C.muted, maxWidth: '60px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u}</div>
                 </div>
               ))}

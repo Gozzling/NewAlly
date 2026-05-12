@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect, Fragment } from 'react'
 import type { Unit } from '../data/units'
 import { useAppStore } from '@/store/useAppStore'
-import { unitIconUrl } from '@/utils/cdnIcons'
+import { UnitPortrait } from '@/components/UnitPortrait'
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { ReferenceDetailModal } from '@/components/ReferenceDetailModal'
@@ -62,7 +62,7 @@ export function UnitGuide({ query, setQuery, costFilter, setCostFilter, tierFilt
   }, [initialUnit, champions])
 
   const { placeholderAnimated: unitsSearchPlaceholder } = useTypewriterPlaceholder(
-    UNIT_GUIDE_PLACEHOLDER_WORDS,
+    champions.length > 0 ? champions.slice(0, 10).map(u => u.name) : UNIT_GUIDE_PLACEHOLDER_WORDS,
     query.length > 0,
   )
 
@@ -349,11 +349,11 @@ function UnitCard({
           background: '#111827',
         }}
       >
-        <img
-          src={unitIconUrl(unit.name)}
-          alt={unit.name}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
-          onError={(e) => { e.currentTarget.style.display = 'none' }}
+        <UnitPortrait
+          name={unit.name}
+          size="100%"
+          radius={0}
+          style={{ height: '100%', objectPosition: 'top' }}
         />
       </div>
 
@@ -436,24 +436,12 @@ function UnitDetail({ unit, onBack, embedded = false }: { unit: Unit; onBack: ()
 
       {/* Hero Section */}
       <div className="flex gap-6 mb-8" style={{ animation: 'statCardEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.1s both' }}>
-        <div
-          style={{
-            width: '120px',
-            height: '120px',
-            borderRadius: '10px',
-            overflow: 'hidden',
-            flexShrink: 0,
-            background: '#1a1a1a',
-            border: '1px solid #2a2a2a',
-          }}
-        >
-          <img
-            src={unitIconUrl(unit.name)}
-            alt={unit.name}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            onError={(e) => { e.currentTarget.style.display = 'none' }}
-          />
-        </div>
+        <UnitPortrait
+          name={unit.name}
+          size={120}
+          radius={10}
+          className="shrink-0 border border-ally-border"
+        />
         <div style={{ flex: 1 }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'white', marginBottom: '8px' }}>{unit.name}</h2>
           <div className="flex items-center gap-3 mb-2">

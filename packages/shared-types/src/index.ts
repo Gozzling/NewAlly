@@ -5,6 +5,7 @@ export type {
   IpcGameStateMessage,
   IpcGepStatusMessage,
   IpcPersonalMatchMessage,
+  IpcGameDataMessage,
   IpcTftPayload,
 } from "./ipc";
 export { TFT_LIVE_CHANNEL } from "./ipc";

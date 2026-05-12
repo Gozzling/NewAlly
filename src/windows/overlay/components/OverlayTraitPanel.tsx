@@ -1,21 +1,23 @@
 import { useMemo } from 'react'
 import { useAppStore } from '@/store/useAppStore'
-import { UNITS } from '@/data/units'
-import { SYNERGIES } from '@/data/synergies'
+import { BUNDLED_SET_DATA } from '@/services/cdnDataService'
 import { Sparkles } from 'lucide-react'
 
 export function OverlayTraitPanel() {
   const board = useAppStore((s: any) => s.gameState?.board?.units || [])
+  const gameData = useAppStore(s => s.gameData)
+  const roster = gameData.champions.length > 0 ? gameData.champions : BUNDLED_SET_DATA.champions
+  const traitRoster = gameData.traits.length > 0 ? gameData.traits : BUNDLED_SET_DATA.traits
 
   const traits = useMemo(() => {
     const counts: Record<string, number> = {}
     board.forEach((u: any) => {
-      const unit = UNITS.find(x => x.name === u.name)
+      const unit = roster.find(x => x.name === u.name)
       unit?.traits.forEach(t => { counts[t] = (counts[t] || 0) + 1 })
     })
     return Object.entries(counts)
       .map(([name, count]) => {
-        const syn = SYNERGIES.find(s => s.name === name)
+        const syn = traitRoster.find(s => s.name === name)
         const active = syn?.thresholds.filter(t => count >= t.count).pop()
         const next = syn?.thresholds.find(t => count < t.count)
         return { name, count, active, next, syn }
