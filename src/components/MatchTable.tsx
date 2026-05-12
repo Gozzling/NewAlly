@@ -22,7 +22,7 @@ export function MatchTable({ matches }: MatchTableProps) {
 
   return (
     <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl overflow-hidden">
-      <div className="grid grid-cols-[60px_1fr_1fr_100px] gap-2 px-4 py-2.5 text-[10px] uppercase tracking-widest text-[#a1a1a1] border-b border-[#2a2a2a]">
+      <div className="grid grid-cols-[60px_1fr_1fr_100px] gap-2 px-4 py-2.5 text-caption uppercase tracking-widest text-ally-muted font-display font-bold border-b border-[#2a2a2a]">
         <span>#</span>
         <span>Comp</span>
         <span>Augments</span>
@@ -32,7 +32,8 @@ export function MatchTable({ matches }: MatchTableProps) {
         <div key={m.matchId}>
           <button
             onClick={() => setExpanded(expanded === m.matchId ? null : m.matchId)}
-            className="w-full grid grid-cols-[60px_1fr_1fr_100px] gap-2 px-4 py-2.5 text-left hover:bg-[#252525] transition-colors items-center"
+            aria-expanded={expanded === m.matchId}
+            className="w-full grid grid-cols-[60px_1fr_1fr_100px] gap-2 px-4 py-2.5 text-left hover:bg-ally-hover transition-colors items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ally-accent focus-visible:ring-inset"
           >
             <span className={`font-bold ${placementColor(m.placement)} ${placementBg(m.placement)} rounded px-1.5 py-0.5 text-center text-xs w-8`}>
               {m.placement}
@@ -46,9 +47,9 @@ export function MatchTable({ matches }: MatchTableProps) {
             </span>
           </button>
           {expanded === m.matchId && (
-            <div className="px-4 pb-3 pt-0 border-t border-[#2a2a2a] bg-[#181818]">
+            <div className="px-4 pb-3 pt-0 border-t border-[#2a2a2a] bg-ally-bg animate-ally-dropdown-in">
               <div className="py-2">
-                <div className="text-[10px] uppercase tracking-widest text-[#a1a1a1] mb-1">Units</div>
+                <div className="text-caption uppercase tracking-widest text-ally-muted mb-1 font-display font-bold">Units</div>
                 <div className="flex flex-wrap gap-1">
                   {m.units.map((u) => (
                     <span key={u} className="px-1.5 py-0.5 bg-[#1f1f1f] border border-[#2a2a2a] rounded text-[11px] text-neutral-300">
@@ -58,7 +59,7 @@ export function MatchTable({ matches }: MatchTableProps) {
                 </div>
               </div>
               <div className="py-1">
-                <div className="text-[10px] uppercase tracking-widest text-[#a1a1a1] mb-1">All Augments</div>
+                <div className="text-caption uppercase tracking-widest text-ally-muted mb-1 font-display font-bold">All Augments</div>
                 <div className="flex flex-wrap gap-1">
                   {m.augments.map((a) => (
                     <span key={a} className="px-1.5 py-0.5 bg-[#1f1f1f] border border-[#2a2a2a] rounded text-[11px] text-neutral-300">
