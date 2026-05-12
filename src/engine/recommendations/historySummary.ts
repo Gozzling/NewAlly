@@ -4,8 +4,8 @@ import type {
   CompPreferenceEntry,
 } from "@ally/shared-types";
 import type { Match } from "@/types/riot";
-import { SYNERGIES } from "@/data/synergies";
-import { UNITS } from "@/data/units";
+import { SYNERGIES as BUNDLED_SYNERGIES } from "@/data/synergies";
+import { UNITS as BUNDLED_UNITS } from "@/data/units";
 import type { PersonalMatchRecord } from "@/services/indexedDbService";
 import { unitMatchKey } from "@/utils/unitDisplay";
 
@@ -34,15 +34,18 @@ interface HistoryRow {
   items?: string[];
 }
 
-function canonicalUnitName(raw: string): string {
-  const u = UNITS.find((x) => unitMatchKey(x.name) === unitMatchKey(raw));
+function canonicalUnitName(raw: string, champions: typeof BUNDLED_UNITS): string {
+  const u = champions.find((x) => unitMatchKey(x.name) === unitMatchKey(raw));
   return u?.name ?? raw;
 }
 
-function traitCountsFromUnitNames(unitNames: string[]): Record<string, number> {
+function traitCountsFromUnitNames(
+  unitNames: string[],
+  champions: typeof BUNDLED_UNITS,
+): Record<string, number> {
   const c: Record<string, number> = {};
   for (const raw of unitNames) {
-    const u = UNITS.find((x) => unitMatchKey(x.name) === unitMatchKey(raw));
+    const u = champions.find((x) => unitMatchKey(x.name) === unitMatchKey(raw));
     if (!u) continue;
     for (const t of u.traits) {
       c[t] = (c[t] ?? 0) + 1;
@@ -76,7 +79,11 @@ function mapToPerformance(m: Map<string, number[]>): Record<string, HistoryPerfo
   return out;
 }
 
-function buildTraitThresholdHistory(slice: HistoryRow[]): PlayerMatchHistorySummary["traitThresholdHistory"] {
+function buildTraitThresholdHistory(
+  slice: HistoryRow[],
+  champions: typeof BUNDLED_UNITS,
+  traitRoster: typeof BUNDLED_SYNERGIES,
+): PlayerMatchHistorySummary["traitThresholdHistory"] {
   type Acc = { games: number; top4: number; placementSum: number; placementN: number };
   const buckets = new Map<string, Acc>();
 
@@ -85,11 +92,11 @@ function buildTraitThresholdHistory(slice: HistoryRow[]): PlayerMatchHistorySumm
     if (units.length === 0) continue;
     const p = m.placement;
     if (p < 1) continue;
-    const counts = traitCountsFromUnitNames(units);
+    const counts = traitCountsFromUnitNames(units, champions);
     const isTop4 = p <= 4;
 
     for (const [traitName, cnt] of Object.entries(counts)) {
-      const syn = SYNERGIES.find((s) => s.name === traitName);
+      const syn = traitRoster.find((s) => s.name === traitName);
       if (!syn) continue;
       for (const th of syn.thresholds) {
         if (cnt >= th.count) {
@@ -119,11 +126,17 @@ function buildTraitThresholdHistory(slice: HistoryRow[]): PlayerMatchHistorySumm
   return out;
 }
 
-function aggregateHistoryRows(sortedSlice: HistoryRow[]): PlayerMatchHistorySummary {
+function aggregateHistoryRows(
+  sortedSlice: HistoryRow[],
+  contextData?: { champions?: typeof BUNDLED_UNITS; traits?: typeof BUNDLED_SYNERGIES },
+): PlayerMatchHistorySummary {
   const n = sortedSlice.length;
   if (n === 0) {
     return emptyPlayerMatchHistorySummary();
   }
+
+  const champions = contextData?.champions ?? BUNDLED_UNITS;
+  const traitRoster = contextData?.traits ?? BUNDLED_SYNERGIES;
 
   const placements = sortedSlice.map((m) => m.placement).filter((p) => p > 0);
   const avgPlacement = placements.length > 0 ? placements.reduce((a, b) => a + b, 0) / placements.length : null;
@@ -144,7 +157,7 @@ function aggregateHistoryRows(sortedSlice: HistoryRow[]): PlayerMatchHistorySumm
       pushPlacement(compPlacements, c, m.placement);
     }
 
-    const traitCounts = traitCountsFromUnitNames(m.units);
+    const traitCounts = traitCountsFromUnitNames(m.units, champions);
     for (const traitName of Object.keys(traitCounts)) {
       if (traitCounts[traitName]! > 0) {
         pushPlacement(traitPlacements, traitName, m.placement);
@@ -153,7 +166,7 @@ function aggregateHistoryRows(sortedSlice: HistoryRow[]): PlayerMatchHistorySumm
 
     const seenUnits = new Set<string>();
     for (const raw of m.units) {
-      const name = canonicalUnitName(raw);
+      const name = canonicalUnitName(raw, champions);
       if (seenUnits.has(name)) continue;
       seenUnits.add(name);
       pushPlacement(unitPlacements, name, m.placement);
@@ -197,7 +210,7 @@ function aggregateHistoryRows(sortedSlice: HistoryRow[]): PlayerMatchHistorySumm
     top4Rate,
     favoriteComp,
     compFrequency,
-    traitThresholdHistory: buildTraitThresholdHistory(sortedSlice),
+    traitThresholdHistory: buildTraitThresholdHistory(sortedSlice, champions, traitRoster),
     recentPlacements: placements.slice(0, 20),
     traitPerformance: mapToPerformance(traitPlacements),
     unitPerformance: mapToPerformance(unitPlacements),
@@ -240,9 +253,10 @@ function sortRowsFromRiotMatches(matches: Match[], windowSize: number): HistoryR
 export function summarizePersonalMatches(
   matches: PersonalMatchRecord[],
   windowSize = 20,
+  contextData?: { champions?: typeof BUNDLED_UNITS; traits?: typeof BUNDLED_SYNERGIES },
 ): PlayerMatchHistorySummary {
   const slice = sortRowsFromPersonal(matches, windowSize);
-  return aggregateHistoryRows(slice);
+  return aggregateHistoryRows(slice, contextData);
 }
 
 /** Build summary from Riot-style match rows (API / cache). */

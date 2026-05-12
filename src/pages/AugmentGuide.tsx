@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState, Fragment } from 'react'
-import { augmentIconUrl as localBundledAugmentIconUrl } from '@/utils/augmentDisplay'
 import { useAppStore } from '@/store/useAppStore'
 import type { Augment } from '@/data/augments'
+import { augmentPortraitUrls } from '@/utils/iconResolver'
+import { IconWithFallback } from '@/components/IconWithFallback'
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { ReferenceDetailModal } from '@/components/ReferenceDetailModal'
@@ -57,7 +58,7 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
   }, [initialAugment, augments])
 
   const { placeholderAnimated: augmentsSearchPlaceholder } = useTypewriterPlaceholder(
-    AUGMENT_GUIDE_PLACEHOLDER_WORDS,
+    augments.length > 0 ? augments.slice(0, 10).map(a => a.name) : AUGMENT_GUIDE_PLACEHOLDER_WORDS,
     query.length > 0,
   )
 
@@ -293,13 +294,11 @@ function AugmentCard({ augment, index, onClick }: { augment: Augment; index: num
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, paddingLeft: 8 }}>
-        <img
-          src={augment.iconUrl ?? localBundledAugmentIconUrl(augment.name)}
-          alt=""
-          width={36}
-          height={36}
-          style={{ borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
-          onError={(e) => { e.currentTarget.style.display = 'none' }}
+        <IconWithFallback
+          urls={augmentPortraitUrls(augment.name, augment.iconUrl)}
+          alt={augment.name}
+          size={36}
+          style={{ borderRadius: 6, flexShrink: 0 }}
         />
         <div style={{ fontSize: '13px', fontWeight: 600, color: 'white' }}>{augment.name}</div>
       </div>
@@ -389,13 +388,11 @@ function AugmentDetail({ augment, onBack, embedded = false }: { augment: Augment
             borderRadius: '2px',
           }}
         />
-        <img
-          src={augment.iconUrl ?? localBundledAugmentIconUrl(augment.name)}
-          alt=""
-          width={44}
-          height={44}
-          style={{ borderRadius: 8, objectFit: 'cover', border: '1px solid #2a2a2a' }}
-          onError={(e) => { e.currentTarget.style.display = 'none' }}
+        <IconWithFallback
+          urls={augmentPortraitUrls(augment.name, augment.iconUrl)}
+          alt={augment.name}
+          size={44}
+          style={{ borderRadius: 8, border: '1px solid #2a2a2a' }}
         />
         <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'white' }}>{augment.name}</h2>
         <div

@@ -114,10 +114,17 @@ export function OverlayCoachTips() {
     [personalMatches.length, personalSummary, coachFromStore, region, puuid, cacheEpoch],
   );
 
+  const gameData = useAppStore(s => s.gameData);
   const recs = useMemo(
     () =>
-      recommendationsFromGameState(debouncedGameState, matchHistory, STATIC_META_VERSION).slice(0, 3),
-    [debouncedGameState, matchHistory],
+      recommendationsFromGameState(
+        debouncedGameState,
+        matchHistory,
+        STATIC_META_VERSION,
+        Date.now(),
+        { champions: gameData.champions, traits: gameData.traits }
+      ).slice(0, 3),
+    [debouncedGameState, matchHistory, gameData.champions, gameData.traits],
   );
 
   if (recs.length === 0) return null;

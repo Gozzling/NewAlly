@@ -23,6 +23,12 @@ Overwolf Native app for Teamfight Tactics. 3 windows: background (controller), o
 | `ally-border`       | #2a2a2a   | Borders, dividers            |
 | `ally-hover`        | #252525   | Hover states                 |
 
+## Game Data & Architecture
+- **Single Source of Truth**: All game data (units, traits, items, augments) is managed by `src/store/useAppStore.ts` in the `gameData` state.
+- **Loading Flow**: Data is loaded at startup in `src/services/backgroundController.ts` via `loadGameData()`. The priority is CDN (Community Dragon) → IndexedDB Cache → Bundled Fallback (`src/services/cdnDataService.ts`).
+- **Icon Resolution**: Use `UnitPortrait` component or `resolveIconUrl` helpers from `src/utils/iconResolver.ts`. This ensures correct fallbacks from CDN to local assets.
+- **Pages**: UI pages should NEVER import from `src/data/*.ts`. They must consume data from the store hooks.
+
 ## Current TFT set + coach history
 - **Set number & static meta version**: `src/meta/tftCurrentSet.ts` (`CURRENT_TFT_SET_NUMBER`, `STATIC_META_VERSION`). Prefer importing from there instead of hard-coding set IDs in UI or the recommendation engine.
 - **Coach cache (desktop + overlay)**: TTL ~1h, key prefix `tft-ally::coach-mh:` in `localStorage` (see `useCoachMatchHistory.ts`). Overlay and desktop are different renderers; the overlay also reads this cache and listens for `storage` because Zustand is not shared across windows.

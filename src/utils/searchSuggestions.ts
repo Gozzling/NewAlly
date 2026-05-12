@@ -1,14 +1,11 @@
 import { useAppStore } from '@/store/useAppStore'
-import { UNITS } from '@/data/units'
-import { SYNERGIES } from '@/data/synergies'
-import { AUGMENTS } from '@/data/augments'
+import { BUNDLED_SET_DATA } from '@/services/cdnDataService'
 import {
   ITEM_RECIPES,
   EMBLEM_RECIPES,
   ALL_COMPONENTS,
   PSIONIC_ITEMS,
 } from '@/data/items'
-import { ITEM_GUIDE_ENTRIES } from '@/data/itemGuideCatalog'
 import { EXAMPLE_SUMMONERS } from '@/data/exampleSummoners'
 import type { RiotRegion } from '@/types/riot'
 
@@ -52,10 +49,10 @@ export function invalidateSearchCorpus(): void {
 
 function buildCorpus(): SearchSuggestion[] {
   const { gameData } = useAppStore.getState()
-  const champions = gameData.champions.length > 0 ? gameData.champions : UNITS
-  const traits = gameData.traits.length > 0 ? gameData.traits : SYNERGIES
-  const augments = gameData.augments.length > 0 ? gameData.augments : AUGMENTS
-  const guideItems = gameData.items.length > 0 ? gameData.items : ITEM_GUIDE_ENTRIES
+  const champions = gameData.champions.length > 0 ? gameData.champions : BUNDLED_SET_DATA.champions
+  const traits = gameData.traits.length > 0 ? gameData.traits : BUNDLED_SET_DATA.traits
+  const augments = gameData.augments.length > 0 ? gameData.augments : BUNDLED_SET_DATA.augments
+  const guideItems = gameData.items.length > 0 ? gameData.items : BUNDLED_SET_DATA.items
 
   const out: SearchSuggestion[] = []
   const seen = new Set<string>()

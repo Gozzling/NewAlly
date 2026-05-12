@@ -1,7 +1,8 @@
 import { ArrowLeft, Box } from 'lucide-react'
-import { unitIconUrl } from '@/utils/unitDisplay'
-import { itemIconUrl } from '@/utils/itemDisplay'
-import { findGuideItem } from '@/data/itemGuideCatalog'
+import { useAppStore } from '@/store/useAppStore'
+import { UnitPortrait } from '@/components/UnitPortrait'
+import { itemPortraitUrls } from '@/utils/iconResolver'
+import { IconWithFallback } from '@/components/IconWithFallback'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -58,7 +59,8 @@ interface ItemDetailProps {
 }
 
 export function ItemDetail({ itemName, onBack, embedded = false }: ItemDetailProps) {
-  const item = findGuideItem(itemName)
+  const items = useAppStore(s => s.gameData.items)
+  const item = items.find(i => i.name === itemName)
   if (!item) return null
 
   const tierColors = TIER_COLORS[item.tier] ?? TIER_COLORS.C
@@ -102,13 +104,11 @@ export function ItemDetail({ itemName, onBack, embedded = false }: ItemDetailPro
             <span style={{ fontSize: '13px', fontWeight: 600 }}>Back</span>
           </button>
         ) : null}
-        <img
-          src={itemIconUrl(item.name, item.iconSlug)}
-          alt=""
-          width={44}
-          height={44}
-          style={{ borderRadius: 8, objectFit: 'cover', border: `1px solid ${C.border}` }}
-          onError={(e) => { e.currentTarget.style.display = 'none' }}
+        <IconWithFallback
+          urls={itemPortraitUrls(item.name, item.iconUrl, item.iconSlug)}
+          alt={item.name}
+          size={44}
+          style={{ borderRadius: 8, border: `1px solid ${C.border}` }}
         />
         <h1 style={{ fontSize: '24px', fontWeight: 700, color: C.text }}>{item.name}</h1>
         <span style={{ fontSize: '11px', color: '#6b9aa8', textTransform: 'uppercase' }}>{item.category}</span>
@@ -223,12 +223,7 @@ export function ItemDetail({ itemName, onBack, embedded = false }: ItemDetailPro
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {item.bestOn.map((unit) => (
                   <div key={unit} style={{ position: 'relative' }} title={unit}>
-                    <img
-                      src={unitIconUrl(unit)}
-                      alt={unit}
-                      style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover' }}
-                      onError={(e) => { e.currentTarget.style.display = 'none' }}
-                    />
+                    <UnitPortrait name={unit} size={48} radius={8} />
                   </div>
                 ))}
               </div>

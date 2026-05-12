@@ -3,6 +3,8 @@ import type {
   PlayerMatchHistorySummary,
   RecommendationEngineInput,
 } from "@ally/shared-types";
+import type { Unit } from "@/data/units";
+import type { Synergy } from "@/data/synergies";
 import type { PersonalMatchRecord } from "@/services/indexedDbService";
 import type { TftGameState } from "@/types/tft";
 import { economyRecommendations } from "./strategies/economy";
@@ -28,9 +30,10 @@ export function sortRecommendations(recs: AllyRecommendation[]): AllyRecommendat
 export function runRecommendationEngine(
   input: RecommendationEngineInput,
   nowMs = Date.now(),
+  contextData?: { champions?: Unit[]; traits?: Synergy[] },
 ): AllyRecommendation[] {
   const combined = [
-    ...shopRecommendations(input, nowMs),
+    ...shopRecommendations(input, nowMs, contextData),
     ...itemRecommendations(input, nowMs),
     ...economyRecommendations(input, nowMs),
   ];
@@ -58,9 +61,14 @@ export function recommendationsFromGameState(
   matchesOrSummary: PersonalMatchRecord[] | PlayerMatchHistorySummary,
   staticMetaVersion: string,
   nowMs = Date.now(),
+  contextData?: { champions?: Unit[]; traits?: Synergy[] },
 ): AllyRecommendation[] {
   const summary: PlayerMatchHistorySummary = Array.isArray(matchesOrSummary)
-    ? summarizePersonalMatches(matchesOrSummary, 40)
+    ? summarizePersonalMatches(matchesOrSummary, 40, contextData)
     : matchesOrSummary;
-  return runRecommendationEngine(buildRecommendationInput(gs, summary, staticMetaVersion), nowMs);
+  return runRecommendationEngine(
+    buildRecommendationInput(gs, summary, staticMetaVersion),
+    nowMs,
+    contextData,
+  );
 }

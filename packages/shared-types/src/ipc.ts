@@ -35,6 +35,12 @@ export type IpcCoachMatchHistoryMessage = {
   summary: unknown;
 };
 
+export type IpcGameDataMessage = {
+  kind: "game_data";
+  data: unknown; // TFTSetData
+  source: "cdn" | "bundled";
+};
+
 /** Slim personal match row for coach / analytics (no `raw` blob). Synced to desktop & overlay after GEP match end. */
 export type IpcPersonalMatchMessage = {
   kind: "personal_match";
@@ -64,4 +70,5 @@ export type IpcTftPayload =
   | IpcBackgroundErrorMessage
   | IpcCaptureStatusMessage
   | IpcPersonalMatchMessage
-  | IpcCoachMatchHistoryMessage;
+  | IpcCoachMatchHistoryMessage
+  | IpcGameDataMessage;

@@ -6,8 +6,8 @@ import type {
   RiskLevel,
   UrgencyLevel,
 } from "@ally/shared-types";
-import { SYNERGIES } from "@/data/synergies";
-import { UNITS } from "@/data/units";
+import { SYNERGIES as BUNDLED_SYNERGIES } from "@/data/synergies";
+import { UNITS as BUNDLED_UNITS } from "@/data/units";
 import { unitMatchKey } from "@/utils/unitDisplay";
 import type { ShopRecommendation } from "@/services/shopAdvisorService";
 import { analyzeShop } from "@/services/shopAdvisorService";
@@ -53,14 +53,17 @@ function traitProgressShopHint(
   boardUnitNames: string[],
   nowMs: number,
   matchHistory: PlayerMatchHistorySummary,
+  contextData?: { champions?: typeof BUNDLED_UNITS; traits?: typeof BUNDLED_SYNERGIES },
 ): AllyRecommendation | null {
+  const champions = contextData?.champions ?? BUNDLED_UNITS;
+  const traitRoster = contextData?.traits ?? BUNDLED_SYNERGIES;
   const n = boardUnitNames.length;
   if (n === 0 || n >= 4) return null;
 
   const boardSet = new Set(boardUnitNames.map((name) => unitMatchKey(name)));
   const traitCounts: Record<string, number> = {};
   for (const name of boardUnitNames) {
-    const u = UNITS.find((x) => unitMatchKey(x.name) === unitMatchKey(name));
+    const u = champions.find((x) => unitMatchKey(x.name) === unitMatchKey(name));
     if (!u) continue;
     for (const t of u.traits) {
       traitCounts[t] = (traitCounts[t] ?? 0) + 1;
@@ -70,7 +73,7 @@ function traitProgressShopHint(
   type Cand = { trait: string; need: number; nextCount: number };
   const cands: Cand[] = [];
   for (const [traitName, count] of Object.entries(traitCounts)) {
-    const syn = SYNERGIES.find((s) => s.name === traitName);
+    const syn = traitRoster.find((s) => s.name === traitName);
     if (!syn) continue;
     const next = syn.thresholds.find((th) => th.count > count);
     if (!next) continue;
@@ -82,7 +85,7 @@ function traitProgressShopHint(
   const top = cands[0];
   const have = traitCounts[top.trait] ?? 0;
 
-  const pool = UNITS.filter(
+  const pool = champions.filter(
     (u) => u.traits.includes(top.trait) && !boardSet.has(unitMatchKey(u.name)),
   );
   const costs = [...new Set(pool.map((u) => u.cost))].sort((a, b) => a - b);
@@ -186,7 +189,9 @@ function mapShop(
   signals: NormalizedGameSignals,
   history: PlayerMatchHistorySummary,
   now: number,
+  contextData?: { champions?: typeof BUNDLED_UNITS },
 ): AllyRecommendation | null {
+  const champions = contextData?.champions ?? BUNDLED_UNITS;
   if (rec.priority === "skip") return null;
   const { confidence, risk, urgency } = shopPriorityToModel(rec, signals);
   const evidence: AllyRecommendation["evidence"] = [
@@ -203,7 +208,7 @@ function mapShop(
     });
   }
   const canon =
-    UNITS.find((u) => unitMatchKey(u.name) === unitMatchKey(rec.name))?.name ?? rec.name;
+    champions.find((u) => unitMatchKey(u.name) === unitMatchKey(rec.name))?.name ?? rec.name;
   const uPerf = history.unitPerformance[canon];
   let historyConfidenceBoost = 0;
   const historyReason: string[] = [];
@@ -245,12 +250,16 @@ function mapShop(
   };
 }
 
-export function shopRecommendations(input: RecommendationEngineInput, nowMs = Date.now()): AllyRecommendation[] {
+export function shopRecommendations(
+  input: RecommendationEngineInput,
+  nowMs = Date.now(),
+  contextData?: { champions?: typeof BUNDLED_UNITS; traits?: typeof BUNDLED_SYNERGIES },
+): AllyRecommendation[] {
   const { signals, matchHistory } = input;
   if (!signals.inGame) return [];
 
   const out: AllyRecommendation[] = [];
-  const traitHint = traitProgressShopHint(signals.boardUnitNames, nowMs, matchHistory);
+  const traitHint = traitProgressShopHint(signals.boardUnitNames, nowMs, matchHistory, contextData);
   if (traitHint) out.push(traitHint);
 
   if (signals.shopUnitNames.length === 0) return out;
@@ -265,7 +274,7 @@ export function shopRecommendations(input: RecommendationEngineInput, nowMs = Da
   );
 
   for (const r of recs.slice(0, 6)) {
-    const m = mapShop(r, signals, matchHistory, nowMs);
+    const m = mapShop(r, signals, matchHistory, nowMs, contextData);
     if (m) out.push(m);
   }
   return out;

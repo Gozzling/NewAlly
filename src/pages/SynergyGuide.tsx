@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState, Fragment } from 'react'
 import type { Synergy } from '@/data/synergies'
 import { useAppStore } from '@/store/useAppStore'
-import { traitIconUrl, unitIconUrl } from '@/utils/cdnIcons'
+
 import { Shield, Swords, Zap, Hexagon } from 'lucide-react'
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
+import { UnitPortrait } from '@/components/UnitPortrait'
+import { traitPortraitUrls } from '@/utils/iconResolver'
+import { IconWithFallback } from '@/components/IconWithFallback'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { ReferenceDetailModal } from '@/components/ReferenceDetailModal'
 
@@ -49,7 +52,7 @@ export function SynergyGuide({ query, setQuery, typeFilter, setTypeFilter, onSyn
   }, [initialTrait, traits])
 
   const { placeholderAnimated: traitsSearchPlaceholder } = useTypewriterPlaceholder(
-    TRAIT_GUIDE_PLACEHOLDER_WORDS,
+    traits.length > 0 ? traits.slice(0, 10).map(t => t.name) : TRAIT_GUIDE_PLACEHOLDER_WORDS,
     query.length > 0,
   )
 
@@ -195,7 +198,7 @@ export function SynergyGuide({ query, setQuery, typeFilter, setTypeFilter, onSyn
 
 function SynergyCard({ synergy, index, onClick }: { synergy: Synergy; index: number; onClick: () => void }) {
   const typeColors = TYPE_COLORS[synergy.type] ?? TYPE_COLORS.hybrid
-  const traitIcon = traitIconUrl(synergy.name)
+  const traitUrls = traitPortraitUrls(synergy.name, synergy.iconUrl)
 
   return (
     <div
@@ -221,18 +224,12 @@ function SynergyCard({ synergy, index, onClick }: { synergy: Synergy; index: num
       {/* Trait Name + Type Badge */}
       <div className="flex items-center justify-between mb-3 gap-2">
         <div className="flex min-w-0 items-center gap-2">
-          {traitIcon ? (
-            <img
-              src={traitIcon}
-              alt=""
-              width={32}
-              height={32}
-              className="h-8 w-8 shrink-0 rounded-md object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = "none"
-              }}
-            />
-          ) : null}
+          <IconWithFallback
+            urls={traitUrls}
+            alt={synergy.name}
+            size={32}
+            className="h-8 w-8 shrink-0 rounded-md object-cover"
+          />
           <div className="min-w-0 truncate" style={{ fontSize: '13px', fontWeight: 600, color: 'white' }}>
             {synergy.name}
           </div>
@@ -294,7 +291,7 @@ function SynergyDetail({
   embedded?: boolean
 }) {
   const typeColors = TYPE_COLORS[synergy.type] ?? TYPE_COLORS.hybrid
-  const traitIcon = traitIconUrl(synergy.name)
+  const traitUrls = traitPortraitUrls(synergy.name, synergy.iconUrl)
 
   return (
     <div className="h-full overflow-y-auto" style={{
@@ -332,18 +329,12 @@ function SynergyDetail({
 
       {/* Trait Name + Type */}
       <div className="flex items-center gap-4 mb-8" style={{ animation: 'statCardEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.1s both' }}>
-        {traitIcon ? (
-          <img
-            src={traitIcon}
-            alt=""
-            width={40}
-            height={40}
-            className="h-10 w-10 shrink-0 rounded-lg object-cover"
-            onError={(e) => {
-              e.currentTarget.style.display = "none"
-            }}
-          />
-        ) : null}
+        <IconWithFallback
+          urls={traitUrls}
+          alt={synergy.name}
+          size={40}
+          className="h-10 w-10 shrink-0 rounded-lg object-cover"
+        />
         <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'white' }}>{synergy.name}</h2>
         <div
           style={{
@@ -412,24 +403,12 @@ function SynergyDetail({
               key={unit}
               style={{ textAlign: 'center', animation: `pillEnter 0.2s cubic-bezier(0.25, 1, 0.5, 1) ${i * 50}ms both` }}
             >
-              <div
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '8px',
-                  marginBottom: '4px',
-                  margin: '0 auto',
-                  background: C.surface,
-                  border: `1px solid ${C.border}`,
-                }}
-              >
-                <img
-                  src={unitIconUrl(unit)}
-                  alt={unit}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  onError={(e) => { e.currentTarget.style.display = 'none' }}
-                />
-              </div>
+              <UnitPortrait
+                name={unit}
+                size={40}
+                radius={8}
+                className="mx-auto mb-1 border border-ally-border"
+              />
               <div style={{ fontSize: '11px', color: '#555' }}>{unit}</div>
             </div>
           ))}

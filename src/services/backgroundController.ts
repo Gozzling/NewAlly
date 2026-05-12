@@ -15,12 +15,14 @@ import {
   createIpcGepStatusMessage,
   createIpcBackgroundErrorMessage,
   createIpcPersonalMatchMessage,
+  createIpcGameDataMessage,
   type IpcPersonalMatchMessage,
   type IpcTftPayload,
 } from "@/engine/events/ipcWire";
 import type { MetaComp, ItemRecipes, TftGameState } from "@/types/tft";
 import { openWindow, hideWindow, getWindowId } from "./overwolfWindowService";
 import { GeppService } from "./geppService";
+import * as cdnDataService from "./cdnDataService";
 import { savePersonalMatch, markPersonalMatchSynced, type PersonalMatchRecord } from "./indexedDbService";
 import { syncPersonalMatchToSupabase } from "./matchHistoryService";
 import { createMatchVisionCapture } from "./backgroundVisionCapture";
@@ -57,6 +59,24 @@ function broadcastPayload(payload: IpcTftPayload): void {
 
 function notify(state: TftGameState): void {
   broadcastPayload(createIpcGameStateMessage(state));
+}
+
+function broadcastGameData(): void {
+  const { gameData } = useAppStore.getState();
+  if (gameData.source) {
+    broadcastPayload(
+      createIpcGameDataMessage(
+        {
+          setNumber: gameData.setNumber,
+          champions: gameData.champions,
+          traits: gameData.traits,
+          items: gameData.items,
+          augments: gameData.augments,
+        },
+        gameData.source,
+      ),
+    );
+  }
 }
 
 const matchVision = createMatchVisionCapture(broadcastPayload);
@@ -327,6 +347,23 @@ function onHotkeyPressed(e: any): void {
 
 export async function initBackgroundController(): Promise<void> {
   console.log("[BG] TFT Companion starting...");
+
+  // Trigger global game data load (CDN -> Cache -> Bundled)
+  void useAppStore.getState().loadGameData().then(() => {
+    const state = useAppStore.getState();
+    const preload = (cdnDataService as any).preloadCommonIcons;
+    if (typeof preload === 'function') {
+      preload(state.gameData.champions);
+    }
+    broadcastGameData();
+    // Re-calculate state after data loads to ensure comp/item matching is accurate
+    const currentBoard = useAppStore.getState().gameState.board.units;
+    if (currentBoard.length > 0) {
+      const activeCompTracker = calculateBestCompMatch(currentBoard, metaComps);
+      setState({ activeCompTracker });
+      recalcItems();
+    }
+  });
 
   let metaBootstrapError: string | null = null;
   try {
