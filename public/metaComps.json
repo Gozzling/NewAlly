@@ -28,6 +28,12 @@
           "Morellonomicon"
         ]
       }
+    ],
+    "pathing": [
+      "Level 4 at 2-1",
+      "Level 6 at 3-2",
+      "Fast 8 at 4-2",
+      "Roll for Fiora/Karma 2*"
     ]
   },
   {
@@ -59,6 +65,12 @@
           "Rapid Firecannon"
         ]
       }
+    ],
+    "pathing": [
+      "Level 4 at 2-1",
+      "Level 6 at 3-2",
+      "Standard Level 7 at 4-1",
+      "Level 8 at 4-5 and roll"
     ]
   },
   {
@@ -90,6 +102,12 @@
           "Morellonomicon"
         ]
       }
+    ],
+    "pathing": [
+      "Lose streak stage 2",
+      "Level 6 at 3-2",
+      "Slowroll for LeBlanc/Aatrox 3*",
+      "Push 8 after hitting"
     ]
   },
   {
@@ -121,6 +139,12 @@
           "Rabadon's Deathcap"
         ]
       }
+    ],
+    "pathing": [
+      "Level 4 at 2-1",
+      "Level 6 at 3-2",
+      "Level 7 at 4-1",
+      "Level 8 at 4-5, find Master Yi 2*"
     ]
   },
   {
@@ -152,6 +176,12 @@
           "Last Whisper"
         ]
       }
+    ],
+    "pathing": [
+      "Level 4 at 2-1",
+      "Level 6 at 3-2",
+      "Level 7 at 4-1",
+      "Level 8 at 4-5, roll for Gwen/Samira"
     ]
   },
   {
@@ -183,6 +213,12 @@
           "Rapid Firecannon"
         ]
       }
+    ],
+    "pathing": [
+      "Level 4 at 2-1",
+      "Level 6 at 3-2",
+      "Slowroll at 6 for Meepsie/Poppy 3*",
+      "Fast 8 for ASol"
     ]
   },
   {
@@ -214,6 +250,12 @@
           "Warmog's Armor"
         ]
       }
+    ],
+    "pathing": [
+      "Level 4 at 2-1",
+      "Level 6 at 3-2",
+      "Slowroll at 6 for Gnar 3*",
+      "Level 8 at 5-1 for Legendaries"
     ]
   },
   {
@@ -245,6 +287,12 @@
           "Guardian Angel"
         ]
       }
+    ],
+    "pathing": [
+      "Level 4 at 2-1",
+      "Level 6 at 3-2",
+      "Level 7 at 4-1",
+      "Level 8 at 4-5 and roll"
     ]
   },
   {
@@ -276,6 +324,12 @@
           "Guardian Angel"
         ]
       }
+    ],
+    "pathing": [
+      "Fast 8 strategy",
+      "Level 4 at 2-1",
+      "Level 6 at 3-2",
+      "Level 8 at 4-2 and roll for ASol"
     ]
   },
   {
@@ -307,6 +361,12 @@
           "Guardian Angel"
         ]
       }
+    ],
+    "pathing": [
+      "Fast 8/9 strategy",
+      "Level 4 at 2-1",
+      "Level 6 at 3-2",
+      "Level 8 at 4-2, Level 9 at 5-2"
     ]
   }
 ]

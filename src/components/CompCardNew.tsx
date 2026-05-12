@@ -143,6 +143,19 @@ export function CompCardNew({ comp, isPinned, onPinToggle, onImport, onOverlayTo
             <div className="text-xs uppercase tracking-widest text-ally-muted mb-1">Placement</div>
             {placementGrid}
           </div>
+          {comp.pathing && comp.pathing.length > 0 && (
+            <div className="mt-3">
+              <div className="text-xs uppercase tracking-widest text-ally-muted mb-1">Pathing</div>
+              <ul className="text-xs text-ally-text space-y-1">
+                {comp.pathing.map((step, i) => (
+                  <li key={i} className="flex items-center gap-2">
+                    <span className="w-1 h-1 rounded-full bg-ally-accent shrink-0" />
+                    {step}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
     </div>

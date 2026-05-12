@@ -83,7 +83,7 @@ export function CompCard({ comp, isPinned, onPinToggle, onImport, onOverlayToggl
         <div className="px-4 pb-4 pt-4 border-t border-ally-border bg-ally-bg/20 animate-ally-dropdown-in">
           <div className="mt-3">
             <div className="text-caption uppercase tracking-widest text-ally-muted mb-3 font-display font-bold">Recommended Board</div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 mb-6">
               {comp.requiredUnits.map((unit) => (
                 <div key={unit} className="flex flex-col items-center gap-1 group/unit">
                   <img src={unitIconUrl(unit)} alt={unit} className="w-12 h-12 rounded-full border-2 border-ally-border group-hover/unit:border-ally-accent transition-all shadow-md" onError={(e)=>{(e.target as HTMLImageElement).src=placeholderImg}} />
@@ -92,6 +92,22 @@ export function CompCard({ comp, isPinned, onPinToggle, onImport, onOverlayToggl
               ))}
             </div>
           </div>
+
+          {comp.pathing && comp.pathing.length > 0 && (
+            <div className="mt-6 mb-6">
+              <div className="text-caption uppercase tracking-widest text-ally-muted mb-3 font-display font-bold">Tactical Pathing</div>
+              <div className="bg-ally-bg/40 border border-ally-border p-3 rounded-lg shadow-inner">
+                <ul className="space-y-1">
+                  {comp.pathing.map((step, i) => (
+                    <li key={i} className="text-body text-ally-text font-display uppercase tracking-wide flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-ally-accent shrink-0" />
+                      {step}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
 
           {comp.carries.length > 0 && (
             <div className="mt-6">

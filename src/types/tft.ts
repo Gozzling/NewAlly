@@ -68,6 +68,7 @@ export interface MetaComp {
   compName: string
   requiredUnits: string[]
   carries: MetaCarry[]
+  pathing?: string[]
 }
 
 export type ItemRecipes = Record<string, [string, string]>
