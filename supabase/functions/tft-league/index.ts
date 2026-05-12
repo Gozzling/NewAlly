@@ -1,4 +1,9 @@
-import { riotPlatformFetch, jsonResponse, errorResponse } from "../_shared/riot.ts";
+import {
+  riotPlatformFetch,
+  jsonResponse,
+  errorResponse,
+  validatePuuid,
+} from "../_shared/riot.ts";
 
 // GET /tft/league/v1/entries/by-summoner/{summonerId}
 Deno.serve(async (req: Request) => {
@@ -19,9 +24,7 @@ Deno.serve(async (req: Request) => {
     const summonerId = String(body.summonerId ?? "").trim();
     const region = String(body.region ?? "euw1").toLowerCase();
 
-    if (!summonerId) {
-      return jsonResponse({ error: "Missing 'summonerId'", code: "BAD_REQUEST" }, 400);
-    }
+    validatePuuid(summonerId);
 
     const data = await riotPlatformFetch(
       region,

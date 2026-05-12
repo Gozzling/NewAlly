@@ -9,8 +9,41 @@ export class RiotError extends Error {
   }
 }
 
+const VALID_REGIONS = new Set([
+  "br1", "eun1", "euw1", "jp1", "kr", "la1", "la2", "na1", "oc1", "tr1", "ru",
+  "ph2", "sg2", "th2", "tw2", "vn2",
+]);
+
+const VALID_CONTINENTS = new Set(["americas", "europe", "asia", "sea"]);
+
+export function validateRegion(region: string): string {
+  const r = region.toLowerCase();
+  if (VALID_REGIONS.has(r) || VALID_CONTINENTS.has(r)) return r;
+  throw new RiotError(`Invalid region: ${region}`, "BAD_REQUEST", 400);
+}
+
+export function validateRiotId(gameName: string, tagLine: string): void {
+  if (!gameName || gameName.length > 16) {
+    throw new RiotError("Invalid gameName length", "BAD_REQUEST", 400);
+  }
+  if (!tagLine || tagLine.length > 5) {
+    throw new RiotError("Invalid tagLine length", "BAD_REQUEST", 400);
+  }
+}
+
+export function validatePuuid(puuid: string): void {
+  // Riot PUUID format: base64-encoded string, typically 78 characters
+  if (!puuid || puuid.length < 63 || puuid.length > 100) {
+    throw new RiotError("Invalid PUUID length", "BAD_REQUEST", 400);
+  }
+  if (!/^[A-Za-z0-9+/=_:-]+$/.test(puuid)) {
+    throw new RiotError("Invalid PUUID format", "BAD_REQUEST", 400);
+  }
+}
+
 function regionToContinent(region: string): string {
-  switch (region.toLowerCase()) {
+  const r = region.toLowerCase();
+  switch (r) {
     case "br1":
     case "la1":
     case "la2":
@@ -29,6 +62,11 @@ function regionToContinent(region: string): string {
       return "asia";
     case "sea":
     case "oc1":
+    case "ph2":
+    case "sg2":
+    case "th2":
+    case "tw2":
+    case "vn2":
       return "sea";
     default:
       return "europe";
@@ -62,6 +100,8 @@ export async function riotAccountFetch(
   gameName: string,
   tagLine: string,
 ): Promise<{ puuid: string; gameName: string; tagLine: string }> {
+  validateRegion(region);
+  validateRiotId(gameName, tagLine);
   await waitForRateLimit();
   const continent = regionToContinent(region);
   const url = `https://${continent}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`;
@@ -76,6 +116,7 @@ export async function riotPlatformFetch<T>(
   region: string,
   endpoint: string,
 ): Promise<T> {
+  validateRegion(region);
   await waitForRateLimit();
   const apiKey = getApiKey();
   const url = `https://${region}.api.riotgames.com${endpoint}`;
@@ -97,6 +138,7 @@ export async function riotPlatformFetchOrNull<T>(
   region: string,
   endpoint: string,
 ): Promise<T | null> {
+  validateRegion(region);
   await waitForRateLimit();
   const apiKey = getApiKey();
   const url = `https://${region}.api.riotgames.com${endpoint}`;
@@ -137,6 +179,7 @@ export async function riotRegionalFetch<T>(
   region: string,
   endpoint: string,
 ): Promise<T> {
+  validateRegion(region);
   await waitForRateLimit();
   const apiKey = getApiKey();
   const continent = regionToContinent(region);

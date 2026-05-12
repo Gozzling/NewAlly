@@ -1,4 +1,9 @@
-import { riotRegionalFetch, jsonResponse, errorResponse } from "../_shared/riot.ts";
+import {
+  riotRegionalFetch,
+  jsonResponse,
+  errorResponse,
+  validatePuuid,
+} from "../_shared/riot.ts";
 
 // GET /tft/match/v1/matches/by-puuid/{puuid}/ids
 Deno.serve(async (req: Request) => {
@@ -19,9 +24,7 @@ Deno.serve(async (req: Request) => {
     const region = String(body.region ?? "euw1").toLowerCase();
     const count = Math.min(Math.max(Number(body.count ?? 20), 1), 50);
 
-    if (!puuid) {
-      return jsonResponse({ error: "Missing 'puuid'", code: "BAD_REQUEST" }, 400);
-    }
+    validatePuuid(puuid);
 
     const data = await riotRegionalFetch<string[]>(
       region,

@@ -1,4 +1,10 @@
-import { riotPlatformFetch, riotAccountFetch, jsonResponse, errorResponse } from "../_shared/riot.ts";
+import {
+  riotPlatformFetch,
+  riotAccountFetch,
+  jsonResponse,
+  errorResponse,
+  validateRiotId,
+} from "../_shared/riot.ts";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -29,12 +35,7 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    if (!gameName) {
-      return jsonResponse({ error: "Missing 'gameName'", code: "BAD_REQUEST" }, 400);
-    }
-    if (!tagLine) {
-      return jsonResponse({ error: "Missing 'tagLine'", code: "BAD_REQUEST" }, 400);
-    }
+    validateRiotId(gameName, tagLine);
 
     const account = await riotAccountFetch(region, gameName, tagLine);
     const summoner = await riotPlatformFetch<{
