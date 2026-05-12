@@ -17,6 +17,7 @@ import {
   readGlobalSearchHistory,
 } from '@/utils/searchHistoryStorage';
 import { SupabaseError } from '@/services/supabaseService';
+import { HomeDashboard } from '@/pages/HomeDashboard';
 import { TeamBuilder } from '@/pages/TeamBuilder';
 import { CompCard } from '@/components/CompCard';
 import { MatchHistory } from '@/pages/MatchHistory';
@@ -51,6 +52,16 @@ function getCurrentWindowId(): Promise<string> {
 }
 
 const NAV_TABS = [
+  {
+    id: 'home',
+    label: 'Home',
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    ),
+  },
   {
     id: 'in-game',
     label: 'In Game',
@@ -169,16 +180,7 @@ function QuickTips() {
 
   return (
     <div
-      style={{
-        opacity: fadeState === 'in' ? 1 : 0,
-        transition: 'opacity 0.3s ease',
-        fontSize: '10px',
-        color: '#888',
-        lineHeight: 1.4,
-        minHeight: '42px',
-        display: 'flex',
-        alignItems: 'center',
-      }}
+      className={`text-caption text-ally-muted leading-tight min-h-[42px] flex items-center transition-opacity duration-300 ${fadeState === 'in' ? 'opacity-100' : 'opacity-0'}`}
     >
       {TIPS[currentTip]}
     </div>
@@ -205,6 +207,12 @@ function riotLookupFromParticipant(p: Record<string, unknown>): string | null {
   }
   if (typeof p.riotId === 'string' && p.riotId.includes('#')) return p.riotId
   return null
+}
+
+const getPlacementColor = (place: number) => {
+  if (place === 1) return '#fbbf24'
+  if (place <= 4) return '#4ade80'
+  return '#ef4444'
 }
 
 function parseSpectatorGameLengthSeconds(active: Record<string, unknown>): number {
@@ -434,11 +442,6 @@ function InGamePage() {
     }
   }
 
-  const getPlacementColor = (place: number) => {
-    if (place === 1) return '#fbbf24'
-    if (place <= 4) return '#4ade80'
-    return '#ef4444'
-  }
 
   const formatGameLength = (seconds: number) => {
     const m = Math.floor(seconds / 60)
@@ -470,77 +473,34 @@ function InGamePage() {
   const showNotInGame = hasSearched && !isLoading && !activeGame && !error
 
   return (
-    <div style={{ padding: '16px' }}>
+    <div className="p-4">
       {showDemoGrid && (
-        <div
-          style={{
-            background: '#1a1a0a',
-            border: '1px solid #f0b42930',
-            borderRadius: '6px',
-            padding: '8px 12px',
-            fontSize: '11px',
-            color: '#f0b429',
-            marginBottom: '12px',
-          }}
-        >
+        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-2 px-3 text-caption text-yellow-500 mb-3 font-display uppercase tracking-wider">
           Live game detection requires Overwolf. Showing demo data.
         </div>
       )}
 
       {activeGame && !isLoading && (
-        <div
-          style={{
-            background: '#0f0f1c',
-            border: '1px solid #1a1a2e',
-            borderRadius: '8px',
-            padding: '12px 16px',
-            marginBottom: '16px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            borderLeft: '3px solid #35c3e7',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: 700,
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                color: '#35c3e7',
-                border: '1px solid #35c3e7',
-                borderRadius: '6px',
-                padding: '4px 10px',
-              }}
-            >
+        <div className="bg-ally-card border border-ally-border rounded-lg p-3 px-4 mb-4 flex justify-between items-center border-l-4 border-l-ally-accent shadow-card">
+          <div className="flex items-center gap-2">
+            <span className="text-caption font-bold tracking-widest uppercase text-ally-accent border border-ally-accent rounded-md px-2 py-1 font-display">
               {getGameMode(Number.isFinite(queueId) ? queueId : 0)}
             </span>
           </div>
-          <div style={{ fontSize: '14px', fontWeight: 700, color: '#35c3e7' }}>
+          <div className="text-body font-bold text-ally-accent font-numbers">
             Live: {formatGameLength(liveTimerSeconds)}
           </div>
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+      <div className="flex gap-2 mb-4">
         <SearchInputWithSuggestions
           value={searchInput}
           onChange={setSearchInput}
           placeholder={ingameSearchPlaceholder || 'Summoner name…'}
           kinds={['summoner']}
           wrapperClassName="flex-1"
-          inputStyle={{
-            width: '100%',
-            background: '#1a1a1a',
-            border: '1px solid #1a1a1a',
-            borderRadius: '6px',
-            padding: '8px 12px',
-            fontSize: '13px',
-            color: 'white',
-            outline: 'none',
-            boxSizing: 'border-box',
-          }}
+          inputClassName="w-full bg-ally-bg border border-ally-border rounded-lg px-3 py-2 text-body text-ally-text outline-none focus:border-ally-accent transition-colors"
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault()
@@ -551,15 +511,7 @@ function InGamePage() {
         <select
           value={selectedRegion}
           onChange={(e) => onRegionChange(e.target.value)}
-          style={{
-            background: '#1a1a1a',
-            border: '1px solid #1a1a1a',
-            borderRadius: '6px',
-            padding: '8px 12px',
-            fontSize: '13px',
-            color: 'white',
-            outline: 'none',
-          }}
+          className="bg-ally-bg border border-ally-border rounded-lg px-3 py-2 text-body text-ally-text outline-none focus:border-ally-accent transition-colors"
         >
           <option value="na1">NA</option>
           <option value="euw1">EUW</option>
@@ -570,17 +522,7 @@ function InGamePage() {
           type="button"
           onClick={() => void handleSearch()}
           disabled={isLoading}
-          style={{
-            background: '#35c3e7',
-            border: 'none',
-            borderRadius: '6px',
-            padding: '8px 16px',
-            fontSize: '13px',
-            color: 'white',
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            fontWeight: 600,
-            opacity: isLoading ? 0.75 : 1,
-          }}
+          className="bg-ally-accent hover:bg-ally-accentDark disabled:opacity-50 disabled:cursor-not-allowed border-none rounded-lg px-4 py-2 text-body text-ally-bg font-bold font-display uppercase tracking-wider transition-all"
         >
           Search
         </button>
@@ -589,35 +531,14 @@ function InGamePage() {
       {error && !isLoading && (
         <div
           role="alert"
-          style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '10px',
-            background: '#3f1a1a',
-            border: '1px solid #ef444440',
-            borderRadius: '6px',
-            padding: '8px 12px',
-            fontSize: '12px',
-            color: '#fca5a5',
-            marginBottom: '12px',
-          }}
+          className="flex items-start gap-2 bg-ally-error/10 border border-ally-error/20 rounded-lg p-2 px-3 text-caption text-ally-error mb-3"
         >
-          <div style={{ flex: 1, minWidth: 0 }}>{error}</div>
+          <div className="flex-1 min-w-0 font-medium">{error}</div>
           <button
             type="button"
             onClick={() => setError(null)}
             aria-label="Dismiss"
-            style={{
-              flexShrink: 0,
-              background: 'none',
-              border: 'none',
-              color: '#fca5a5',
-              cursor: 'pointer',
-              fontSize: '18px',
-              lineHeight: 1,
-              padding: '0 2px',
-              opacity: 0.85,
-            }}
+            className="shrink-0 bg-none border-none text-ally-error cursor-pointer text-lg leading-none px-0.5 opacity-80 hover:opacity-100"
           >
             ×
           </button>
@@ -626,40 +547,26 @@ function InGamePage() {
 
       {isLoading ? (
         <>
-          <div
-            style={{
-              background: '#1f1f1f',
-              border: '1px solid #1a1a1a',
-              borderRadius: '8px',
-              padding: '10px 12px',
-              marginBottom: '12px',
-            }}
-          >
-            <div className="mb-1 flex items-center gap-2 text-white" style={{ fontSize: '12px', fontWeight: 600 }}>
-              <AllySpinner className="text-ally-accent" />
+          <div className="bg-ally-card border border-ally-border rounded-lg p-3 mb-3 shadow-card">
+            <div className="mb-1 flex items-center gap-2 text-ally-text font-display font-bold uppercase tracking-wider text-caption">
+              <AllySpinner className="text-ally-accent w-4 h-4" />
               <span>
                 {loadingPhase === 'player' && 'Resolving player…'}
                 {loadingPhase === 'lobby' && 'Fetching live lobby…'}
                 {!loadingPhase && 'Loading…'}
               </span>
             </div>
-            <div style={{ fontSize: '11px', color: '#a1a1a1' }}>
+            <div className="text-caption text-ally-muted">
               {loadingPhase === 'player' && 'Looking up account with Riot'}
               {loadingPhase === 'lobby' && 'Spectator API for this region'}
               {!loadingPhase && 'Please wait'}
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+          <div className="grid grid-cols-2 gap-3">
             {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
-                style={{
-                  height: '120px',
-                  borderRadius: '10px',
-                  background: 'linear-gradient(90deg, #111827 25%, #1f2937 50%, #111827 75%)',
-                  backgroundSize: '200% 100%',
-                  animation: 'shimmer 1.5s infinite',
-                }}
+                className="h-[120px] rounded-lg bg-ally-card animate-pulse shadow-card border border-ally-border/50"
               />
             ))}
           </div>
@@ -672,146 +579,109 @@ function InGamePage() {
               <p className="text-xs mt-2 opacity-50 text-balance">Once you enter a TFT game, your opponents will appear here automatically.</p>
             </div>
           ) : INGAME_MOCK_PLAYERS.map((player, i) => (
+>>>>>>> 3639d62 (temp commit for rebase)
+=======
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+          {INGAME_MOCK_PLAYERS.length === 0 ? (
+            <div className="py-20 text-center text-ally-muted">
+              <p>No active lobby detected.</p>
+              <p className="text-xs mt-2 opacity-50 text-balance">Once you enter a TFT game, your opponents will appear here automatically.</p>
+            </div>
+          ) : INGAME_MOCK_PLAYERS.map((player, i) => (
+>>>>>>> 3639d62 (temp commit for rebase)
             <div
               key={i}
-              style={{
-                background: '#0f0f1c',
-                border: '1px solid #1a1a2e',
-                borderRadius: '10px',
-                padding: '12px',
-                display: 'flex',
-                gap: '12px',
-                alignItems: 'center',
-              }}
+              className="bg-ally-card border border-ally-border rounded-lg p-3 flex gap-3 items-center hover:border-ally-accent/30 transition-colors shadow-card group"
             >
-              <div
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '8px',
-                  background: '#1a1a1a',
-                  overflow: 'hidden',
-                  flexShrink: 0,
-                }}
-              >
+              <div className="w-8 h-8 rounded-md bg-ally-bg overflow-hidden shrink-0 border border-ally-border group-hover:border-ally-accent/50 transition-colors">
                 <img
                   src={`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${player.profileIconId}.png`}
                   alt={player.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  className="w-full h-full object-cover"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none'
                   }}
                 />
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: 'white', marginBottom: '2px' }}>{player.name}</div>
-                <div style={{ fontSize: '11px', color: '#a1a1a1', marginBottom: '6px' }}>
+              <div className="flex-1 min-w-0">
+                <div className="text-body font-bold text-ally-text mb-0.5 font-display uppercase tracking-wide truncate">{player.name}</div>
+                <div className="text-caption text-ally-muted mb-1.5 flex items-center gap-1 font-medium">
                   {player.rank}
-                  {player.lp > 0 ? ` · ${player.lp} LP` : ''}
+                  {player.lp > 0 ? <span className="opacity-50">·</span> : null}
+                  {player.lp > 0 ? <span className="text-ally-text-dim font-numbers">{player.lp} LP</span> : ''}
                 </div>
                 <div style={{ display: 'flex', gap: '4px', marginBottom: '6px', flexWrap: 'wrap' }}>
                   {player.recentPlacements.map((place: number, j: number) => (
+>>>>>>> 3639d62 (temp commit for rebase)
+=======
+                <div style={{ display: 'flex', gap: '4px', marginBottom: '6px', flexWrap: 'wrap' }}>
+                  {player.recentPlacements.map((place: number, j: number) => (
+>>>>>>> 3639d62 (temp commit for rebase)
                     <div
                       key={j}
-                      style={{
-                        width: '24px',
-                        height: '24px',
-                        borderRadius: '4px',
-                        background: getPlacementColor(place),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        color: 'white',
-                      }}
+                      style={{ background: getPlacementColor(place) }}
+                      className="w-6 h-6 rounded flex items-center justify-center text-caption font-bold text-white font-numbers shadow-sm"
                     >
                       {place}
                     </div>
                   ))}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ fontSize: '11px', color: '#a1a1a1' }}>
+                <div className="flex justify-between items-center gap-2">
+                  <div className="text-caption text-ally-muted font-display uppercase tracking-tight">
                     Avg:{' '}
-                    <span style={{ color: 'white', fontWeight: 600 }}>{player.avgPlace > 0 ? player.avgPlace.toFixed(1) : '-'}</span>
+                    <span className="text-ally-text font-numbers font-bold">{player.avgPlace > 0 ? player.avgPlace.toFixed(1) : '-'}</span>
                   </div>
-                  <div style={{ fontSize: '11px', color: '#35c3e7', fontWeight: 600 }}>{player.predictedComp}</div>
+                  <div className="text-[10px] text-ally-accent font-bold font-display uppercase truncate max-w-[80px]">{player.predictedComp}</div>
                 </div>
               </div>
             </div>
           ))}
         </div>
       ) : showLiveGrid ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+        <div className="grid grid-cols-2 gap-3">
           {livePlayers.map((player, i) => (
             <div
               key={player.puuid || i}
-              style={{
-                background: '#0f0f1c',
-                border: '1px solid #1a1a2e',
-                borderRadius: '10px',
-                padding: '12px',
-                display: 'flex',
-                gap: '12px',
-                alignItems: 'center',
-              }}
+              className="bg-ally-card border border-ally-border rounded-lg p-3 flex gap-3 items-center hover:border-ally-accent/30 transition-colors shadow-card group"
             >
-              <div
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '8px',
-                  background: '#1a1a1a',
-                  overflow: 'hidden',
-                  flexShrink: 0,
-                }}
-              >
+              <div className="w-8 h-8 rounded-md bg-ally-bg overflow-hidden shrink-0 border border-ally-border group-hover:border-ally-accent/50 transition-colors">
                 <img
                   src={`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${player.profileIconId}.png`}
                   alt={player.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  className="w-full h-full object-cover"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none'
                   }}
                 />
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: 'white', marginBottom: '4px' }}>{player.name}</div>
+              <div className="flex-1 min-w-0">
+                <div className="text-body font-bold text-ally-text mb-0.5 font-display uppercase tracking-wide truncate">{player.name}</div>
                 {player.statsStatus === 'pending' && (
-                  <div style={{ fontSize: '11px', color: '#a1a1a1', marginBottom: '6px' }}>Loading stats...</div>
+                  <div className="text-caption text-ally-muted mb-1.5 animate-pulse italic">Loading stats...</div>
                 )}
                 {player.statsStatus === 'error' && (
-                  <div style={{ fontSize: '10px', color: '#fca5a5', marginBottom: '6px' }}>{player.statsError ?? 'Failed to load'}</div>
+                  <div className="text-[10px] text-ally-error mb-1.5">{player.statsError ?? 'Failed to load'}</div>
                 )}
                 {player.statsStatus === 'done' && (
                   <>
-                    <div style={{ fontSize: '11px', color: '#a1a1a1', marginBottom: '6px' }}>
+                    <div className="text-caption text-ally-muted mb-1.5 font-medium">
                       {player.tier && player.rank ? `${player.tier} ${player.rank}` : 'Unranked'}
-                      {player.lp != null && player.lp > 0 ? ` · ${player.lp} LP` : ''}
+                      {player.lp != null && player.lp > 0 ? <span className="opacity-50">·</span> : null}
+                      {player.lp != null && player.lp > 0 ? <span className="text-ally-text-dim font-numbers">{player.lp} LP</span> : ''}
                     </div>
-                    <div style={{ display: 'flex', gap: '4px', marginBottom: '6px', flexWrap: 'wrap' }}>
+                    <div className="flex gap-1 mb-1.5 flex-wrap">
                       {player.recentPlacements.length > 0 ? (
                         player.recentPlacements.map((place: number, j: number) => (
                           <div
                             key={j}
-                            style={{
-                              width: '24px',
-                              height: '24px',
-                              borderRadius: '4px',
-                              background: getPlacementColor(place),
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '11px',
-                              fontWeight: 700,
-                              color: 'white',
-                            }}
+                            style={{ background: getPlacementColor(place) }}
+                            className="w-6 h-6 rounded flex items-center justify-center text-caption font-bold text-white font-numbers shadow-sm"
                           >
                             {place}
                           </div>
                         ))
                       ) : (
-                        <span style={{ fontSize: '10px', color: '#555' }}>No recent matches</span>
+                        <span className="text-[10px] text-ally-muted/50 italic font-display uppercase">No recent matches</span>
                       )}
                     </div>
                   </>
@@ -820,20 +690,9 @@ function InGamePage() {
                   type="button"
                   disabled={player.statsStatus === 'loading'}
                   onClick={() => void handleLoadStats(i)}
-                  style={{
-                    marginTop: '4px',
-                    fontSize: '10px',
-                    fontWeight: 600,
-                    padding: '4px 10px',
-                    borderRadius: '6px',
-                    border: '1px solid #35c3e7',
-                    background: 'transparent',
-                    color: '#35c3e7',
-                    cursor: player.statsStatus === 'loading' ? 'not-allowed' : 'pointer',
-                    opacity: player.statsStatus === 'loading' ? 0.5 : 1,
-                  }}
+                  className="mt-1 text-[10px] font-bold font-display uppercase tracking-wider px-2.5 py-1 rounded-md border border-ally-accent bg-transparent text-ally-accent hover:bg-ally-accent hover:text-ally-bg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
-                  {player.statsStatus === 'loading' ? 'Loading…' : player.statsStatus === 'done' ? 'Refresh stats' : 'Load stats'}
+                  {player.statsStatus === 'loading' ? 'Loading…' : player.statsStatus === 'done' ? 'Refresh' : 'Load Stats'}
                 </button>
               </div>
             </div>
@@ -888,7 +747,7 @@ export function DesktopApp() {
   const settingsRegion = useAppStore((s: any) => s.settings.region as string | undefined);
   const setStoreSettings = useAppStore((s: any) => s.setSettings);
   const lastRawRef = useRef<string>('');
-  const [activePage, setActivePage] = useState<string>('in-game');
+  const [activePage, setActivePage] = useState<string>('home');
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [selectedTraitId, setSelectedTraitId] = useState<string | null>(null);
@@ -1328,7 +1187,9 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
             ? ''
             : 'px-8 py-6'
         }`}>
-          {activePage === 'in-game' ? (
+          {activePage === 'home' ? (
+            <HomeDashboard onNavigate={setActivePage} />
+          ) : activePage === 'in-game' ? (
             <InGamePage />
           ) : activePage === 'comps' ? (
             <div className="flex flex-col gap-2">
@@ -1413,86 +1274,74 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
         </div>
 
         {/* Right Sidebar (fixed) - always visible */}
-        <div className="w-45 bg-[#0d0d0d] flex-shrink-0 px-3 py-3 flex flex-col gap-4 items-center overflow-y-auto" style={{ boxShadow: 'inset 1px 0 2px rgba(0,0,0,0.3)', borderLeft: '1px solid #1a1a1a', width: '180px' }}>
+        <div className="w-[180px] bg-ally-bg flex-shrink-0 px-3 py-4 flex flex-col gap-6 items-center overflow-y-auto border-l border-ally-border shadow-inner">
           {/* Player Card Section */}
-          <div style={{ width: '100%' }}>
-            <div style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a1a1a1', marginBottom: '8px' }}>
-              Player
+          <div className="w-full">
+            <div className="text-[9px] font-display font-bold uppercase tracking-widest text-ally-muted mb-2">
+              Summoner
             </div>
-            <div style={{
-              background: '#1f1f1f',
-              border: '1px solid #1a1a1a',
-              borderRadius: '8px',
-              padding: '10px',
-            }}>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: '#35c3e7', marginBottom: '4px' }}>
+            <div className="bg-ally-card border border-ally-border rounded-lg p-3 shadow-card">
+              <div className="text-body font-bold text-ally-accent mb-0.5 font-display uppercase tracking-wide truncate">
                 {state.gameName || 'Unknown'}
               </div>
-              <div style={{ fontSize: '10px', color: '#a1a1a1', marginBottom: '8px' }}>
+              <div className="text-caption text-ally-muted mb-3 font-medium">
                 {state.region?.toUpperCase() || 'NA'}
               </div>
-              <div style={{ display: 'flex', gap: '2px', marginBottom: '8px' }}>
+              <div className="flex flex-wrap gap-1 mb-3">
                 {[1,2,3,4,5,6,7,8,1,2].map((place, i) => (
                   <div
                     key={i}
-                    style={{
-                      width: '16px',
-                      height: '16px',
-                      borderRadius: '3px',
-                      background: place === 1 ? '#fbbf24' : place <= 4 ? '#4ade80' : '#ef4444',
-                      border: place === 1 ? '2px solid #fbbf24' : 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '9px',
-                      fontWeight: 700,
-                      color: 'white',
-                    }}
+                    style={{ background: getPlacementColor(place) }}
+                    className={`w-4 h-4 rounded-sm flex items-center justify-center text-[9px] font-bold text-white font-numbers ${place === 1 ? 'ring-1 ring-yellow-400' : ''}`}
                   >
                     {place}
                   </div>
                 ))}
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: '9px', color: '#a1a1a1' }}>Avg</div>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: 'white' }}>3.2</div>
+              <div className="flex justify-between items-center pt-2 border-t border-ally-border/50">
+                <div className="text-caption text-ally-muted font-display uppercase font-semibold">Avg Place</div>
+                <div className="text-heading font-bold text-ally-text font-numbers">3.2</div>
               </div>
             </div>
           </div>
 
           {/* Divider */}
-          <div style={{ width: '100%', height: '1px', background: '#1a1a1a' }} />
+          <div className="w-full h-px bg-ally-border" />
 
           {/* Server Status */}
-          <div style={{marginBottom:'16px'}}>
-            <div style={{fontSize:'9px',color:'#a1a1a1',textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:'8px'}}>Server Status</div>
-            <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
-              <div style={{
-                width:'8px',
-                height:'8px',
-                borderRadius:'50%',
-                background: serverStatus==='online'?'#22c55e': serverStatus==='issues'?'#f0b429': serverStatus==='error'?'#f97316':'#ef4444',
-                boxShadow: serverStatus==='online'?'0 0 6px #22c55e80':serverStatus==='issues'?'0 0 6px #f0b42980': serverStatus==='error'?'0 0 6px #f9731680':'0 0 6px #ef444480',
-              }} />
-              <span style={{
-                fontSize:'12px',
-                color: serverStatus==='online'?'#22c55e':serverStatus==='issues'?'#f0b429': serverStatus==='error'?'#f97316':'#ef4444',
-                fontWeight:500,
-              }}>
-                {serverStatus==='online'?'All Systems Online':serverStatus==='issues'?'Some Issues':serverStatus==='error'?'Could not load platform status':'Status Unknown'}
+          <div className="w-full">
+            <div className="text-[9px] font-display font-bold uppercase tracking-widest text-ally-muted mb-2">Platform Status</div>
+            <div className="flex items-center gap-2 bg-ally-card/50 border border-ally-border p-2 rounded-md">
+              <div className={`w-2 h-2 rounded-full shadow-[0_0_8px] ${
+                serverStatus === 'online' ? 'bg-ally-success shadow-ally-success/50' :
+                serverStatus === 'issues' ? 'bg-ally-warning shadow-ally-warning/50' :
+                serverStatus === 'error' ? 'bg-orange-500 shadow-orange-500/50' :
+                'bg-ally-error shadow-ally-error/50'
+              }`} />
+              <span className={`text-[11px] font-display font-bold uppercase tracking-tight ${
+                serverStatus === 'online' ? 'text-ally-success' :
+                serverStatus === 'issues' ? 'text-ally-warning' :
+                serverStatus === 'error' ? 'text-orange-500' :
+                'text-ally-error'
+              }`}>
+                {serverStatus === 'online' ? 'Operational' :
+                 serverStatus === 'issues' ? 'Interrupted' :
+                 serverStatus === 'error' ? 'Unknown' : 'Offline'}
               </span>
             </div>
           </div>
 
           {/* Divider */}
-          <div style={{ width: '100%', height: '1px', background: '#1a1a1a' }} />
+          <div className="w-full h-px bg-ally-border" />
 
           {/* Quick Tips Section */}
-          <div style={{ width: '100%' }}>
-            <div style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a1a1a1', marginBottom: '8px' }}>
-              Tips
+          <div className="w-full">
+            <div className="text-[9px] font-display font-bold uppercase tracking-widest text-ally-muted mb-2">
+              Tactical Tips
             </div>
-            <QuickTips />
+            <div className="bg-ally-card/30 border border-ally-border/50 rounded-lg p-2">
+              <QuickTips />
+            </div>
           </div>
         </div>
       </div>

@@ -24,24 +24,27 @@ export function OverlayItemPanel() {
   }, [benchItems])
 
   return (
-    <div className="bg-[#1f1f1f]/90 border border-[#2a2a2a] rounded-lg p-2 space-y-1.5">
-      <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 uppercase tracking-wider">
-        <Box className="w-3 h-3" /> Items
+    <div className="bg-ally-card/90 border border-ally-border rounded-lg p-2 space-y-1.5 shadow-card">
+      <div className="flex items-center gap-1.5 text-caption text-ally-muted uppercase tracking-wider font-display font-semibold">
+        <Box className="w-3 h-3 text-ally-accent" /> Items
       </div>
       {benchItems.length === 0 ? (
-        <div className="text-[9px] text-neutral-600">No items on bench</div>
+        <div className="text-[9px] text-ally-muted/60 font-display uppercase italic">No items on bench</div>
       ) : (
         <div className="flex flex-wrap gap-1">
           {benchItems.map((it: string, i: number) => (
-            <span key={i} className="text-[9px] px-1 py-0.5 bg-[#2a2a2a] rounded text-neutral-300">{it}</span>
+            <span key={i} className="text-[9px] px-1 py-0.5 bg-ally-bg border border-ally-border rounded text-ally-text-dim font-medium uppercase tracking-tight">{it}</span>
           ))}
         </div>
       )}
       {craftable.length > 0 && (
-        <div className="pt-1 border-t border-[#2a2a2a]">
-          <div className="flex items-center gap-1 text-[9px] text-[#35c3e7] mb-1"><Wrench className="w-2.5 h-2.5" /> Can Craft</div>
+        <div className="pt-1.5 border-t border-ally-border">
+          <div className="flex items-center gap-1 text-[9px] text-ally-accent font-display uppercase font-bold mb-1"><Wrench className="w-2.5 h-2.5" /> Can Craft</div>
           {craftable.map((c, i) => (
-            <div key={i} className="text-[9px] text-white">{c.name}</div>
+            <div key={i} className="text-[9px] text-ally-text font-display uppercase tracking-wide flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-ally-accent" />
+              {c.name}
+            </div>
           ))}
         </div>
       )}

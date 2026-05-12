@@ -4,10 +4,10 @@ export function AllySpinner({ className = '', label }: { className?: string; lab
   return (
     <span className={`inline-flex items-center gap-2 ${className}`} role="status" aria-label={label ?? 'Loading'}>
       <span
-        className="inline-block size-4 shrink-0 rounded-full border-2 border-ally-border border-t-ally-accent animate-spin"
+        className="inline-block size-4 shrink-0 rounded-full border-2 border-ally-border border-t-ally-accent animate-spin shadow-[0_0_8px_rgba(0,212,255,0.4)]"
         aria-hidden
       />
-      {label ? <span className="font-sans text-xs text-ally-muted">{label}</span> : null}
+      {label ? <span className="font-display text-caption uppercase tracking-wider text-ally-muted font-bold">{label}</span> : null}
     </span>
   )
 }

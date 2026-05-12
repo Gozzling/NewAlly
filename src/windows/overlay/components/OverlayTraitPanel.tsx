@@ -28,18 +28,18 @@ export function OverlayTraitPanel() {
   if (traits.length === 0) return null
 
   return (
-    <div className="bg-[#1f1f1f]/90 border border-[#2a2a2a] rounded-lg p-2 space-y-1">
-      <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 uppercase tracking-wider">
-        <Sparkles className="w-3 h-3" /> Active Traits
+    <div className="bg-ally-card/90 border border-ally-border rounded-lg p-2 space-y-1 shadow-card">
+      <div className="flex items-center gap-1.5 text-caption text-ally-muted uppercase tracking-wider font-display font-semibold">
+        <Sparkles className="w-3 h-3 text-ally-accent" /> Active Traits
       </div>
       {traits.map(t => (
-        <div key={t.name} className="flex items-center justify-between text-[10px]">
-          <span className={t.active ? 'text-white font-medium' : 'text-neutral-500'}>{t.name}</span>
+        <div key={t.name} className="flex items-center justify-between text-caption font-display">
+          <span className={`uppercase tracking-wide ${t.active ? 'text-ally-text font-bold' : 'text-ally-muted'}`}>{t.name}</span>
           <div className="flex items-center gap-1">
             {Array.from({ length: Math.max(t.count, t.next?.count || 0) }).map((_, i) => (
-              <div key={i} className={`w-1.5 h-1.5 rounded-full ${i < t.count ? (t.active ? 'bg-[#35c3e7]' : 'bg-neutral-500') : 'bg-[#2a2a2a]'}`} />
+              <div key={i} className={`w-1.5 h-1.5 rounded-full ${i < t.count ? (t.active ? 'bg-ally-accent shadow-[0_0_4px_rgba(0,212,255,0.6)]' : 'bg-ally-muted') : 'bg-ally-border'}`} />
             ))}
-            <span className={`ml-1 ${t.active ? 'text-[#35c3e7]' : 'text-neutral-500'}`}>{t.count}{t.next ? `/${t.next.count}` : ''}</span>
+            <span className={`ml-1 font-numbers ${t.active ? 'text-ally-accent font-bold' : 'text-ally-muted'}`}>{t.count}{t.next ? `/${t.next.count}` : ''}</span>
           </div>
         </div>
       ))}
