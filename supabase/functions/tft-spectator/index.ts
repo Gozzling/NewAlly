@@ -1,4 +1,9 @@
-import { riotPlatformFetchOrNull, jsonResponse, errorResponse } from "../_shared/riot.ts";
+import {
+  riotPlatformFetchOrNull,
+  jsonResponse,
+  errorResponse,
+  validatePuuid,
+} from "../_shared/riot.ts";
 
 // Platform: /lol/spectator/v5/active-games/by-summoner/{encryptedSummonerId} (Riot uses PUUID here)
 // POST JSON body: { puuid, region } — same as supabase.functions.invoke from the app.
@@ -33,9 +38,7 @@ Deno.serve(async (req: Request) => {
       region = String(body.region ?? "euw1").toLowerCase();
     }
 
-    if (!puuid) {
-      return jsonResponse({ error: "Missing 'puuid' (body or ?puuid=)", code: "BAD_REQUEST" }, 400);
-    }
+    validatePuuid(puuid);
 
     console.log(`[tft-spectator] region=${region} puuid=${puuid.slice(0, 8)}…`);
 
