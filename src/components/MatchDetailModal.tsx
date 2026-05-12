@@ -27,7 +27,7 @@ export function MatchDetailModal({ match, onClose }: MatchDetailModalProps) {
               </div>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-[#252525] rounded-lg text-[#a1a1a1] transition-colors">
+          <button onClick={onClose} aria-label="Close" className="p-1.5 hover:bg-[#252525] rounded-lg text-[#a1a1a1] transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -37,24 +37,24 @@ export function MatchDetailModal({ match, onClose }: MatchDetailModalProps) {
           <div className="grid grid-cols-3 gap-3">
             <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg p-3 text-center">
               <Users className="w-4 h-4 text-[#35c3e7] mx-auto mb-1" />
-              <div className="text-lg font-bold text-white">{match.level}</div>
-              <div className="text-[10px] text-[#a1a1a1] uppercase tracking-wider">Level</div>
+              <div className="text-lg font-bold text-white font-numbers">{match.level}</div>
+              <div className="text-caption text-ally-muted uppercase tracking-wider font-display font-bold">Level</div>
             </div>
             <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg p-3 text-center">
               <Swords className="w-4 h-4 text-[#35c3e7] mx-auto mb-1" />
-              <div className="text-lg font-bold text-white">{match.units.length}</div>
-              <div className="text-[10px] text-[#a1a1a1] uppercase tracking-wider">Units</div>
+              <div className="text-lg font-bold text-white font-numbers">{match.units.length}</div>
+              <div className="text-caption text-ally-muted uppercase tracking-wider font-display font-bold">Units</div>
             </div>
             <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg p-3 text-center">
               <Clock className="w-4 h-4 text-[#35c3e7] mx-auto mb-1" />
-              <div className="text-lg font-bold text-white">{Math.round(match.gameLength / 60)}m</div>
-              <div className="text-[10px] text-[#a1a1a1] uppercase tracking-wider">Duration</div>
+              <div className="text-lg font-bold text-white font-numbers">{Math.round(match.gameLength / 60)}m</div>
+              <div className="text-caption text-ally-muted uppercase tracking-wider font-display font-bold">Duration</div>
             </div>
           </div>
 
           {/* Units */}
           <div>
-            <div className="text-[10px] uppercase tracking-wider text-[#a1a1a1] mb-2 flex items-center gap-1.5">
+            <div className="text-caption text-ally-muted uppercase tracking-wider font-display font-bold mb-2 flex items-center gap-1.5">
               <Shield className="w-3.5 h-3.5" /> Units
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -69,7 +69,7 @@ export function MatchDetailModal({ match, onClose }: MatchDetailModalProps) {
           {/* Traits */}
           {match.traits.length > 0 && (
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-[#a1a1a1] mb-2">Active Traits</div>
+              <div className="text-caption text-ally-muted uppercase tracking-wider font-display font-bold mb-2">Active Traits</div>
               <div className="flex flex-wrap gap-1.5">
                 {match.traits.map((t) => (
                   <span key={t} className="px-2 py-1 bg-[#35c3e7]/10 border border-[#35c3e7]/20 rounded-md text-xs text-[#35c3e7]">
@@ -82,7 +82,7 @@ export function MatchDetailModal({ match, onClose }: MatchDetailModalProps) {
 
           {/* Augments */}
           <div>
-            <div className="text-[10px] uppercase tracking-wider text-[#a1a1a1] mb-2 flex items-center gap-1.5">
+            <div className="text-caption text-ally-muted uppercase tracking-wider font-display font-bold mb-2 flex items-center gap-1.5">
               <Zap className="w-3.5 h-3.5" /> Augments
             </div>
             <div className="flex flex-wrap gap-1.5">
