@@ -36,17 +36,17 @@ const REGIONS: { label: string; value: RiotRegion }[] = [
 
 /* ─── Design tokens ─── */
 const C = {
-  bg:         '#0d0d0d',
-  surface:    '#1f1f1f',
-  border:     '#1a1a1a',
+  bg:         'var(--color-ally-bg)',
+  surface:    'var(--color-ally-card)',
+  border:     'var(--color-ally-border)',
   accent:     'var(--color-ally-accent)',
   accentDim:  'color-mix(in srgb, var(--color-ally-accent) 14%, transparent)',
   win:        '#34d399',
   winDim:     'rgba(52,211,153,0.12)',
   loss:       '#ef4444',
   lossDim:    'rgba(239,68,68,0.12)',
-  text:       '#ffffff',
-  muted:      '#a1a1a1',
+  text:       'var(--color-ally-text)',
+  muted:      'var(--color-ally-muted)',
   faint:      '#484848',
   chartGreen: '#34d399',
   chartRed:   '#ef4444',
@@ -406,22 +406,20 @@ function MatchRow({ match, index }: { match: MatchRowData; index: number }) {
 
   return (
     <div
+      className="ally-card"
       style={{
         display: 'grid',
         gridTemplateColumns: '32px 1fr 70px 70px 90px',
         gap: 10, alignItems: 'center',
-        padding: '7px 12px',
-        borderBottom: `1px solid ${C.border}`,
+        padding: '10px 12px',
+        marginBottom: '6px',
         borderLeft: `3px solid ${
           match.placement === 1 ? '#f59e0b'
           : match.placement <= 4 ? '#34d399'
           : '#ef4444'
         }`,
-        transition: 'background 0.1s',
         animation: `fadeSlideUp 0.3s ease-out ${0.1 + index * 0.03}s both`,
       }}
-      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
     >
       {/* Placement */}
       <div style={{
@@ -510,8 +508,8 @@ function MatchRow({ match, index }: { match: MatchRowData; index: number }) {
               <div key={name} style={{position:'relative'}}>
                 <UnitPortrait
                   name={name}
-                  size={32}
-                  radius={6}
+                  size={28}
+                  radius={4}
                   className="border border-ally-border"
                 />
               </div>

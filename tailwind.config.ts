@@ -27,6 +27,7 @@ const config: Config = {
           border:  'var(--color-ally-border)',
           borderBright: 'var(--color-ally-border-bright)',
           hover:   'var(--color-ally-hover)',
+          sidebar: 'var(--color-ally-sidebar)',
           success: '#10b981',
           warning: '#f59e0b',
           error:   '#ef4444',

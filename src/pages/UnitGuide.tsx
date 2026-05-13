@@ -9,10 +9,10 @@ import { ReferenceDetailModal } from '@/components/ReferenceDetailModal'
 /* ─── Design tokens ─── */
 const C = {
   bg:         'var(--color-ally-bg)',
-  surface:    'var(--color-ally-card)',
+  surface:    'var(--color-ally-sidebar)',
   border:     'var(--color-ally-border)',
   accent:     'var(--color-ally-accent)',
-  accentDim:  'var(--color-ally-accent)15',
+  accentDim:  'color-mix(in srgb, var(--color-ally-accent) 15%, transparent)',
   text:       'var(--color-ally-text)',
   muted:      'var(--color-ally-muted)',
   content:    'var(--color-ally-bg)',
@@ -145,9 +145,7 @@ export function UnitGuide({ query, setQuery, costFilter, setCostFilter, tierFilt
     <Fragment>
     <div className="flex h-screen" style={{ animation: 'pageEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1)' }}>
       {/* Left Sidebar */}
-      <div className="flex-shrink-0 flex flex-col" style={{
-        background: '#111111',
-        borderRight: '1px solid #2a2a2a',
+      <div className="flex-shrink-0 flex flex-col ally-sidebar" style={{
         padding: '16px',
         width: '200px',
         flexShrink: 0,
@@ -182,7 +180,7 @@ export function UnitGuide({ query, setQuery, costFilter, setCostFilter, tierFilt
 
         {/* Cost Filter */}
         <div>
-          <div style={{ fontSize: '10px', color: '#333', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px', marginTop: '16px' }}>
+          <div className="ally-sidebar-label">
             Cost
           </div>
           <div className="flex flex-wrap gap-2">
@@ -209,7 +207,7 @@ export function UnitGuide({ query, setQuery, costFilter, setCostFilter, tierFilt
 
         {/* Tier Filter */}
         <div>
-          <div style={{ fontSize: '10px', color: '#333', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px', marginTop: '16px' }}>
+          <div className="ally-sidebar-label">
             Tier
           </div>
           <div className="flex flex-wrap gap-2">
@@ -241,7 +239,7 @@ export function UnitGuide({ query, setQuery, costFilter, setCostFilter, tierFilt
         padding: '16px',
         animation: 'contentEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.15s both',
       }}>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="flex flex-col gap-2">
           {filtered.map((unit, index) => (
             <UnitCard
               key={unit.id}
@@ -315,57 +313,38 @@ function UnitCard({
 
   return (
     <div
-      className="relative overflow-hidden cursor-pointer"
+      className={`ally-card relative overflow-hidden cursor-pointer flex items-center gap-4 p-2 ${keyboardFocus ? 'ring-1 ring-ally-accent ring-inset' : ''}`}
       style={{
-        background: 'var(--color-ally-card)',
-        border: keyboardFocus
-          ? '1px solid var(--color-ally-accent)'
-          : '1px solid var(--color-ally-border)',
-        boxShadow: keyboardFocus
-          ? '0 0 0 2px color-mix(in srgb, var(--color-ally-accent) 35%, transparent)'
-          : undefined,
-        borderRadius: '10px',
-        padding: '0',
-        transition: 'all 0.15s ease',
         animation: `cardEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1) ${index * 40}ms both`,
       }}
       onClick={onClick}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'var(--color-ally-accent)30'
-        e.currentTarget.style.transform = 'translateY(-1px)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = '#2a2a2a'
-        e.currentTarget.style.transform = 'translateY(0)'
-      }}
     >
-      {/* Unit Icon */}
-      <div
-        style={{
-          width: '100%',
-          height: '120px',
-          borderRadius: '10px 10px 0 0',
-          overflow: 'hidden',
-          background: '#111827',
-        }}
-      >
-        <UnitPortrait
-          name={unit.name}
-          size="100%"
-          radius={0}
-          style={{ height: '100%', objectPosition: 'top' }}
-        />
-      </div>
+      <UnitPortrait
+        name={unit.name}
+        size={44}
+        radius={6}
+        style={{ height: 44, objectPosition: 'top' }}
+      />
 
-      {/* Content */}
-      <div style={{ padding: '6px' }}>
-        {/* Unit Name */}
-        <div style={{ fontSize: '11px', fontWeight: 600, color: 'white', marginBottom: '4px' }}>
-          {unit.name}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-0.5">
+          <div className="text-white text-sm font-bold font-display uppercase tracking-wide truncate">{unit.name}</div>
+          <div
+            style={{
+              display: 'inline-block',
+              padding: '1px 5px',
+              borderRadius: '4px',
+              fontSize: '9px',
+              fontWeight: 600,
+              color: tierColors.text,
+              background: tierColors.bg,
+              border: `1px solid ${tierColors.border}`,
+            }}
+          >
+            {unit.tier}
+          </div>
         </div>
-
-        {/* Cost Dot + Traits */}
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2">
           <div
             style={{
               width: '6px',
@@ -374,24 +353,15 @@ function UnitCard({
               background: COST_COLORS[unit.cost],
             }}
           />
-          <div style={{ fontSize: '9px', color: '#555' }}>{unit.traits.slice(0, 2).join(' / ')}</div>
+          <div className="text-gray-400 text-[10px] font-medium font-display uppercase tracking-wider truncate">
+            {unit.traits.join(' · ')}
+          </div>
         </div>
+      </div>
 
-        {/* Tier Pill */}
-        <div
-          style={{
-            display: 'inline-block',
-            padding: '2px 6px',
-            borderRadius: '4px',
-            fontSize: '9px',
-            fontWeight: 600,
-            color: tierColors.text,
-            background: tierColors.bg,
-            border: `1px solid ${tierColors.border}`,
-          }}
-        >
-          {unit.tier}
-        </div>
+      <div className="hidden md:flex flex-col items-end px-4 border-l border-ally-border/50 min-w-[100px]">
+        <div className="text-heading font-numbers font-bold text-ally-text leading-none">{unit.cost}g</div>
+        <div className="text-[9px] text-ally-muted uppercase tracking-widest font-display font-bold">Cost</div>
       </div>
     </div>
   )

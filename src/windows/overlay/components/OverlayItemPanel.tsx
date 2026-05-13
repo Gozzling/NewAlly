@@ -24,7 +24,7 @@ export function OverlayItemPanel() {
   }, [benchItems])
 
   return (
-    <div className="bg-ally-card/90 border border-ally-border rounded-lg p-2 space-y-1.5 shadow-card">
+    <div className="ally-card !bg-ally-card/90 p-2 space-y-1.5 shadow-card">
       <div className="flex items-center gap-1.5 text-caption text-ally-muted uppercase tracking-wider font-display font-semibold">
         <Box className="w-3 h-3 text-ally-accent" /> Items
       </div>
@@ -33,7 +33,7 @@ export function OverlayItemPanel() {
       ) : (
         <div className="flex flex-wrap gap-1">
           {benchItems.map((it: string, i: number) => (
-            <span key={i} className="text-[9px] px-1 py-0.5 bg-ally-bg border border-ally-border rounded text-ally-text-dim font-medium uppercase tracking-tight">{it}</span>
+            <span key={i} className="text-[9px] px-1 py-0.5 bg-ally-bg border border-ally-border rounded text-ally-text-dim font-bold uppercase tracking-tight font-display">{it}</span>
           ))}
         </div>
       )}

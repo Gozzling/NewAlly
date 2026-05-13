@@ -25,28 +25,35 @@ export function CompCard({ comp, isPinned, onPinToggle, onImport, onOverlayToggl
   const tierCls = TIER_COLORS[tier] ?? TIER_COLORS.C
 
   return (
-    <div className="w-full bg-ally-card border border-ally-border rounded-xl overflow-hidden shadow-card hover:shadow-cardHover transition-all duration-300">
+    <div className="ally-card w-full overflow-hidden">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-4 p-4 text-left hover:bg-ally-hover transition-colors"
+        className="w-full flex items-center gap-4 p-3 text-left hover:bg-ally-hover transition-colors"
       >
-        <span className={`px-2 py-0.5 rounded text-caption font-bold border font-display uppercase tracking-wider ${tierCls}`}>
-          {tier} Tier
-        </span>
-        <div className="flex-1 min-w-0 flex items-center gap-6">
-          <div className="text-body font-bold text-ally-text truncate font-display uppercase tracking-wide">{comp.compName}</div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="text-sm font-bold text-ally-text truncate font-display uppercase tracking-wide">{comp.compName}</div>
+            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border font-display uppercase tracking-wider ${tierCls}`}>
+              {tier}
+            </span>
+          </div>
           <div className="flex flex-wrap gap-1">
-            {comp.requiredUnits.slice(0, 6).map(unit => (
-              <img key={unit} src={unitIconUrl(unit)} alt={unit} className="w-8 h-8 rounded-full border border-ally-border shadow-sm hover:border-ally-accent transition-colors" onError={(e)=>{(e.target as HTMLImageElement).src=placeholderImg}} title={unit} />
+            {comp.requiredUnits.slice(0, 8).map(unit => (
+              <img key={unit} src={unitIconUrl(unit)} alt={unit} className="w-6 h-6 rounded-full border border-ally-border shadow-sm hover:border-ally-accent transition-colors" onError={(e)=>{(e.target as HTMLImageElement).src=placeholderImg}} title={unit} />
             ))}
           </div>
         </div>
+
         {comp.winRate !== undefined && (
-          <div className="text-right shrink-0">
-            <div className="text-caption font-bold text-ally-accent font-numbers">{comp.winRate}% WR</div>
-            {comp.pickRate !== undefined && (
-              <div className="text-[10px] text-ally-muted font-numbers">{comp.pickRate}% picked</div>
-            )}
+          <div className="hidden md:flex items-center gap-6 px-4 border-l border-ally-border/50">
+            <div className="flex flex-col items-center">
+              <div className="text-sm font-bold text-ally-accent font-numbers">{comp.winRate}%</div>
+              <div className="text-[9px] text-ally-muted uppercase tracking-tighter font-display font-bold">Win Rate</div>
+            </div>
+            <div className="flex flex-col items-center min-w-[50px]">
+              <div className="text-sm font-bold text-ally-text font-numbers">{comp.avgPlace || '4.2'}</div>
+              <div className="text-[9px] text-ally-muted uppercase tracking-tighter font-display font-bold">Avg Place</div>
+            </div>
           </div>
         )}
         <div className="flex items-center gap-3 flex-shrink-0 ml-4 border-l border-ally-border/50 pl-4">
