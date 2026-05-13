@@ -22,13 +22,16 @@ Deno.serve(async (req: Request) => {
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
     const puuid = String(body.puuid ?? "").trim();
     const region = String(body.region ?? "euw1").toLowerCase();
-    const count = Math.min(Math.max(Number(body.count ?? 20), 1), 50);
+    const requestedCount = Number(body.count ?? 20);
+    const requestedOffset = Number(body.offset ?? 0);
+    const count = Math.min(Math.max(Number.isFinite(requestedCount) ? Math.trunc(requestedCount) : 20, 1), 100);
+    const offset = Math.max(Number.isFinite(requestedOffset) ? Math.trunc(requestedOffset) : 0, 0);
 
     validatePuuid(puuid);
 
     const data = await riotRegionalFetch<string[]>(
       region,
-      `/tft/match/v1/matches/by-puuid/${encodeURIComponent(puuid)}/ids?count=${count}`,
+      `/tft/match/v1/matches/by-puuid/${encodeURIComponent(puuid)}/ids?count=${count}&start=${offset}`,
     );
 
     return jsonResponse(data);
