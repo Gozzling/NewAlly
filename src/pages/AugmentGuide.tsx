@@ -9,14 +9,14 @@ import { ReferenceDetailModal } from '@/components/ReferenceDetailModal'
 
 /* ─── Design tokens ─── */
 const C = {
-  bg:         '#0e0e0e',
-  surface:    '#111111',
-  border:     '#2a2a2a',
+  bg:         'var(--color-ally-bg)',
+  surface:    'var(--color-ally-sidebar)',
+  border:     'var(--color-ally-border)',
   accent:     'var(--color-ally-accent)',
   accentDim:  'color-mix(in srgb, var(--color-ally-accent) 16%, transparent)',
-  text:       '#ffffff',
-  muted:      '#9ca3af',
-  content:    '#0e0e0e',
+  text:       'var(--color-ally-text)',
+  muted:      'var(--color-ally-muted)',
+  content:    'var(--color-ally-bg)',
 }
 
 const TIER_COLORS: Record<string, { text: string; bg: string; border: string; accent: string; glow: string }> = {
@@ -94,9 +94,7 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
     <Fragment>
     <div className="flex h-screen" style={{ animation: 'pageEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1)' }}>
       {/* Left Sidebar */}
-      <div className="flex-shrink-0 flex flex-col" style={{
-        background: '#111111',
-        borderRight: '1px solid #2a2a2a',
+      <div className="flex-shrink-0 flex flex-col ally-sidebar" style={{
         padding: '16px',
         width: '200px',
         flexShrink: 0,
@@ -128,7 +126,7 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
 
         {/* Tier Filter */}
         <div>
-          <div style={{ fontSize: '10px', color: '#333', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px', marginTop: '16px' }}>
+          <div className="ally-sidebar-label">
             Tier
           </div>
           <div className="flex flex-wrap gap-2">
@@ -155,7 +153,7 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
 
         {/* Tag Filter */}
         <div>
-          <div style={{ fontSize: '10px', color: '#333', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px', marginTop: '16px' }}>
+          <div className="ally-sidebar-label">
             Tag
           </div>
           <div className="flex flex-wrap gap-2">
@@ -187,7 +185,7 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
         padding: '16px',
         animation: 'contentEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.15s both',
       }}>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-2">
           {filtered.map((augment, index) => (
             <AugmentCard
               key={augment.id}
@@ -247,94 +245,51 @@ function AugmentCard({ augment, index, onClick }: { augment: Augment; index: num
 
   return (
     <div
-      className="relative overflow-hidden cursor-pointer"
+      className="ally-card relative overflow-hidden cursor-pointer flex items-center gap-4 p-3"
       style={{
-        background: C.surface,
-        border: `1px solid ${C.border}`,
-        borderRadius: '10px',
-        padding: '12px',
-        transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
         animation: `cardEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1) ${index * 40}ms both`,
-        boxShadow: augment.tier === 'prismatic' ? tierColors.glow : 'none',
+        borderLeft: `3px solid ${tierColors.accent}`,
       }}
       onClick={onClick}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = tierColors.accent
-        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3)'
-        e.currentTarget.style.transform = 'scale(1.02)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = C.border
-        e.currentTarget.style.boxShadow = augment.tier === 'prismatic' ? tierColors.glow : 'none'
-        e.currentTarget.style.transform = 'scale(1)'
-      }}
     >
-      {/* Left Border Accent */}
-      <div
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: '3px',
-          background: tierColors.accent,
-        }}
+      <IconWithFallback
+        urls={augmentPortraitUrls(augment.name, augment.iconUrl)}
+        alt={augment.name}
+        size={36}
+        style={{ borderRadius: 6, flexShrink: 0 }}
       />
 
-      {/* Tier Badge */}
-      <div
-        className="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-bold"
-        style={{
-          color: tierColors.text,
-          background: tierColors.bg,
-          border: `1px solid ${tierColors.border}`,
-        }}
-      >
-        {augment.tier.charAt(0).toUpperCase() + augment.tier.slice(1)}
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, paddingLeft: 8 }}>
-        <IconWithFallback
-          urls={augmentPortraitUrls(augment.name, augment.iconUrl)}
-          alt={augment.name}
-          size={36}
-          style={{ borderRadius: 6, flexShrink: 0 }}
-        />
-        <div style={{ fontSize: '13px', fontWeight: 600, color: 'white' }}>{augment.name}</div>
-      </div>
-
-      {/* Description */}
-      <div style={{ fontSize: '11px', color: '#555', lineHeight: '1.4', marginBottom: '8px', paddingLeft: '8px' }}>
-        {augment.description}
-      </div>
-
-      {/* Stats Row */}
-      <div
-        className="flex gap-4"
-        style={{
-          paddingLeft: '8px',
-          paddingTop: '8px',
-          borderTop: `1px solid ${C.border}`,
-        }}
-      >
-        <div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-0.5">
+          <div className="text-white text-sm font-bold font-display uppercase tracking-wide truncate">{augment.name}</div>
           <div
-            className="text-sm font-bold"
+            className="px-1.5 py-0.5 rounded text-[9px] font-bold border"
             style={{
-              color: augment.winRate > 52 ? '#22c55e' : augment.winRate < 50 ? '#ef4444' : '#fbbf24',
+              color: tierColors.text,
+              background: tierColors.bg,
+              borderColor: tierColors.border,
             }}
           >
+            {augment.tier}
+          </div>
+        </div>
+        <div className="text-gray-400 text-xs line-clamp-1 opacity-80">{augment.description}</div>
+      </div>
+
+      <div className="hidden md:flex items-center gap-4 px-4 border-l border-ally-border/50">
+        <div className="flex flex-col items-center">
+          <div className="text-sm font-bold font-numbers" style={{ color: augment.winRate > 52 ? '#22c55e' : augment.winRate < 50 ? '#ef4444' : '#fbbf24' }}>
             {augment.winRate}%
           </div>
-          <div className="text-gray-400 text-[10px]">WIN</div>
+          <div className="text-[9px] text-ally-muted uppercase tracking-tighter font-display font-bold">Win Rate</div>
         </div>
-        <div>
-          <div className="text-white text-sm font-bold">{augment.pickRate}%</div>
-          <div className="text-gray-400 text-[10px]">PICK</div>
+        <div className="flex flex-col items-center">
+          <div className="text-sm font-bold font-numbers text-ally-text">#{augment.avgPlacement}</div>
+          <div className="text-[9px] text-ally-muted uppercase tracking-tighter font-display font-bold">Avg Place</div>
         </div>
-        <div>
-          <div className="text-white text-sm font-bold">#{augment.avgPlacement}</div>
-          <div className="text-gray-400 text-[10px]">AVG</div>
+        <div className="flex flex-col items-center min-w-[50px]">
+          <div className="text-sm font-bold font-numbers text-ally-text">{augment.pickRate}%</div>
+          <div className="text-[9px] text-ally-muted uppercase tracking-tighter font-display font-bold">Pick</div>
         </div>
       </div>
     </div>

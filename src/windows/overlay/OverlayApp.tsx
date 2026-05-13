@@ -10,7 +10,7 @@ import { OverlayCoachTips } from './components/OverlayCoachTips'
 
 function HudBar({ gold, roundType, stage, health }: { gold?: number; roundType?: string; stage?: string; health?: number }) {
   return (
-    <div className="flex items-center gap-2 bg-ally-card/90 border border-ally-border rounded-lg px-3 py-1.5 text-caption pointer-events-none shadow-card">
+    <div className="ally-card !bg-ally-card/90 flex items-center gap-2 px-3 py-1.5 text-caption pointer-events-none shadow-card">
       <span className="text-yellow-400 font-semibold font-numbers">G: {gold ?? '–'}</span>
       <span className="text-ally-muted">|</span>
       <span className="text-ally-text font-display uppercase tracking-wider">{stage ?? '–'}</span>
@@ -34,7 +34,7 @@ const toggleGuideMode = useAppStore((s) => s.toggleGuideMode);
   if (!state?.isInGame) {
     return (
       <div className="w-full h-full flex items-center justify-center pointer-events-none">
-        <div className="bg-ally-card/90 border border-ally-border rounded-lg px-4 py-2 text-caption text-ally-muted font-display uppercase tracking-widest animate-pulse">
+        <div className="ally-card !bg-ally-card/90 px-4 py-2 text-caption text-ally-muted font-display uppercase tracking-widest animate-pulse">
           Waiting for TFT...
         </div>
       </div>

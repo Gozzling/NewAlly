@@ -13,10 +13,10 @@ import { ReferenceDetailModal } from '@/components/ReferenceDetailModal'
 /* ─── Design tokens ─── */
 const C = {
   bg:         'var(--color-ally-bg)',
-  surface:    'var(--color-ally-card)',
+  surface:    'var(--color-ally-sidebar)',
   border:     'var(--color-ally-border)',
   accent:     'var(--color-ally-accent)',
-  accentDim:  'var(--color-ally-accent)15',
+  accentDim:  'color-mix(in srgb, var(--color-ally-accent) 15%, transparent)',
   text:       'var(--color-ally-text)',
   muted:      'var(--color-ally-muted)',
   content:    'var(--color-ally-bg)',
@@ -75,9 +75,7 @@ export function SynergyGuide({ query, setQuery, typeFilter, setTypeFilter, onSyn
     <Fragment>
     <div className="flex h-screen" style={{ animation: 'pageEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1)' }}>
       {/* Left Sidebar */}
-      <div className="flex-shrink-0 flex flex-col" style={{
-        background: '#111111',
-        borderRight: '1px solid #2a2a2a',
+      <div className="flex-shrink-0 flex flex-col ally-sidebar" style={{
         padding: '16px',
         width: '200px',
         flexShrink: 0,
@@ -109,7 +107,7 @@ export function SynergyGuide({ query, setQuery, typeFilter, setTypeFilter, onSyn
 
         {/* Type Filter */}
         <div>
-          <div style={{ fontSize: '10px', color: '#333', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px', marginTop: '16px' }}>
+          <div className="ally-sidebar-label">
             Type
           </div>
           <div className="flex flex-wrap gap-2">
@@ -141,7 +139,7 @@ export function SynergyGuide({ query, setQuery, typeFilter, setTypeFilter, onSyn
         padding: '16px',
         animation: 'contentEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.15s both',
       }}>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-2">
           {filtered.map((synergy, index) => (
             <SynergyCard
               key={synergy.id}
@@ -202,80 +200,55 @@ function SynergyCard({ synergy, index, onClick }: { synergy: Synergy; index: num
 
   return (
     <div
-      className="relative overflow-hidden cursor-pointer"
+      className="ally-card relative overflow-hidden cursor-pointer flex items-center gap-4 p-3"
       style={{
-        background: C.surface,
-        border: `1px solid ${C.border}`,
-        borderRadius: '10px',
-        padding: '12px',
-        transition: 'all 0.15s ease',
         animation: `cardEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1) ${index * 40}ms both`,
       }}
       onClick={onClick}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'var(--color-ally-accent)30'
-        e.currentTarget.style.transform = 'translateY(-1px)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = C.border
-        e.currentTarget.style.transform = 'translateY(0)'
-      }}
     >
-      {/* Trait Name + Type Badge */}
-      <div className="flex items-center justify-between mb-3 gap-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <IconWithFallback
-            urls={traitUrls}
-            alt={synergy.name}
-            size={32}
-            className="h-8 w-8 shrink-0 rounded-md object-cover"
-          />
-          <div className="min-w-0 truncate" style={{ fontSize: '13px', fontWeight: 600, color: 'white' }}>
-            {synergy.name}
-          </div>
-        </div>
-        <div
-          style={{
-            padding: '2px 8px',
-            borderRadius: '4px',
-            fontSize: '10px',
-            fontWeight: 500,
-            color: typeColors.text,
-            background: typeColors.bg,
-            border: `1px solid ${typeColors.border}`,
-          }}
-        >
-          {synergy.type}
-        </div>
-      </div>
+      <IconWithFallback
+        urls={traitUrls}
+        alt={synergy.name}
+        size={36}
+        className="h-9 w-9 shrink-0 rounded-md object-cover"
+      />
 
-      {/* Threshold Pills */}
-      <div className="flex gap-2 mb-3">
-        {synergy.thresholds.map((t) => (
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-0.5">
+          <div className="text-white text-sm font-bold font-display uppercase tracking-wide truncate">{synergy.name}</div>
           <div
-            key={t.count}
+            className="px-1.5 py-0.5 rounded text-[9px] font-bold border"
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '22px',
-              height: '22px',
-              borderRadius: '50%',
-              background: C.surface,
-              border: `1px solid ${C.border}`,
-              fontSize: '11px',
-              color: 'var(--color-ally-accent)',
-              fontWeight: 600,
+              color: typeColors.text,
+              background: typeColors.bg,
+              borderColor: typeColors.border,
             }}
           >
-            {t.count}
+            {synergy.type}
           </div>
-        ))}
+        </div>
+        <div className="text-gray-400 text-xs line-clamp-1 opacity-80">{synergy.description}</div>
       </div>
 
-      {/* Description */}
-      <div style={{ fontSize: '11px', color: '#555', lineHeight: '1.4' }}>
-        {synergy.description}
+      <div className="hidden md:flex items-center gap-6 px-4 border-l border-ally-border/50">
+        <div className="flex flex-col items-center">
+          <div className="text-[9px] text-ally-muted uppercase tracking-tighter mb-1 font-display font-bold">Best Units</div>
+          <div className="flex -space-x-2">
+            {synergy.bestUnits.slice(0, 3).map((unit) => (
+              <UnitPortrait key={unit} name={unit} size={24} radius={12} style={{ border: '1px solid #1f1f1f' }} />
+            ))}
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 min-w-[80px] justify-end">
+          {synergy.thresholds.map((t) => (
+            <div
+              key={t.count}
+              className="w-5 h-5 rounded-full flex items-center justify-center border border-ally-accent/30 text-ally-accent text-[10px] font-bold font-numbers"
+            >
+              {t.count}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

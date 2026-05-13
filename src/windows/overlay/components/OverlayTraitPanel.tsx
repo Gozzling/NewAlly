@@ -28,7 +28,7 @@ export function OverlayTraitPanel() {
   if (traits.length === 0) return null
 
   return (
-    <div className="bg-ally-card/90 border border-ally-border rounded-lg p-2 space-y-1 shadow-card">
+    <div className="ally-card !bg-ally-card/90 p-2 space-y-1 shadow-card">
       <div className="flex items-center gap-1.5 text-caption text-ally-muted uppercase tracking-wider font-display font-semibold">
         <Sparkles className="w-3 h-3 text-ally-accent" /> Active Traits
       </div>

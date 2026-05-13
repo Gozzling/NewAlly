@@ -11,7 +11,7 @@ import { ReferenceDetailModal } from '@/components/ReferenceDetailModal'
 /* ─── Design tokens ─── */
 const C = {
   bg:         'var(--color-ally-bg)',
-  surface:    'var(--color-ally-card)',
+  surface:    'var(--color-ally-sidebar)',
   border:     'var(--color-ally-border)',
   accent:     'var(--color-ally-accent)',
   accentDim:  'color-mix(in srgb, var(--color-ally-accent) 18%, transparent)',
@@ -97,9 +97,7 @@ export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter,
     <Fragment>
     <div className="flex h-screen" style={{ animation: 'pageEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1)' }}>
       {/* Left Sidebar */}
-      <div className="flex-shrink-0 flex flex-col" style={{
-        background: '#111111',
-        borderRight: '1px solid #2a2a2a',
+      <div className="flex-shrink-0 flex flex-col ally-sidebar" style={{
         padding: '16px',
         width: '200px',
         flexShrink: 0,
@@ -131,7 +129,7 @@ export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter,
 
         {/* Category */}
         <div>
-          <div style={{ fontSize: '10px', color: '#333', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px', marginTop: '16px' }}>
+          <div className="ally-sidebar-label">
             Category
           </div>
           <div className="flex flex-wrap gap-2">
@@ -158,7 +156,7 @@ export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter,
 
         {/* Tag Filter */}
         <div>
-          <div style={{ fontSize: '10px', color: '#333', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px', marginTop: '16px' }}>
+          <div className="ally-sidebar-label">
             Tag
           </div>
           <div className="flex flex-wrap gap-2">
@@ -185,7 +183,7 @@ export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter,
 
         {/* Tier Filter */}
         <div>
-          <div style={{ fontSize: '10px', color: '#333', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px', marginTop: '16px' }}>
+          <div className="ally-sidebar-label">
             Tier
           </div>
           <div className="flex flex-wrap gap-2">
@@ -228,7 +226,7 @@ export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter,
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="flex flex-col gap-2">
             {filtered.map((item, index) => (
               <ItemCard
                 key={item.name}
@@ -296,73 +294,51 @@ function ItemCard({ item, index, onClick }: { item: ItemGuideEntry; index: numbe
 
   return (
     <div
-      className="relative overflow-hidden cursor-pointer"
+      className="ally-card relative overflow-hidden cursor-pointer flex items-center gap-4 p-3"
       style={{
-        background: C.surface,
-        border: `1px solid ${C.border}`,
-        borderRadius: '10px',
-        padding: '12px',
-        transition: 'all 0.15s ease',
         animation: `cardEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1) ${index * 40}ms both`,
       }}
       onClick={onClick}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = tierColors.hover
-        e.currentTarget.style.transform = 'translateY(-1px)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = C.border
-        e.currentTarget.style.transform = 'translateY(0)'
-      }}
     >
-      {/* Tier Badge */}
-      <div
-        className="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-bold"
-        style={{
-          color: tierColors.text,
-          background: tierColors.bg,
-          border: `1px solid ${tierColors.border}`,
-        }}
-      >
-        {item.tier}
-      </div>
+      <IconWithFallback
+        urls={itemPortraitUrls(item.name, item.iconUrl, item.iconSlug)}
+        alt={item.name}
+        size={44}
+        style={{ borderRadius: 6, flexShrink: 0 }}
+      />
 
-      <div className="flex items-start gap-3 mb-2">
-        <IconWithFallback
-          urls={itemPortraitUrls(item.name, item.iconUrl, item.iconSlug)}
-          alt={item.name}
-          size={40}
-          style={{ borderRadius: 6, flexShrink: 0 }}
-        />
-        <div className="text-white text-sm font-bold">{item.name}</div>
-      </div>
-
-      <div className="text-[10px] text-cyan-600/90 mb-1 uppercase tracking-wide">{item.category}</div>
-
-      {item.stats ? (
-        <div className="text-gray-300 text-[10px] mb-2 whitespace-pre-line line-clamp-3">{item.stats}</div>
-      ) : null}
-
-      {/* Components */}
-      <div className="text-gray-400 text-[10px] mb-2">
-        {item.components ? item.components.join(' + ') : '—'}
-      </div>
-
-      {/* Effect */}
-      <div className="text-gray-400 text-xs line-clamp-2" style={{ lineHeight: '1.4' }}>
-        {item.effect}
-      </div>
-
-      {/* Best On */}
-      <div className="flex gap-2">
-        {item.bestOn.slice(0, 3).map((unit) => (
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-0.5">
+          <div className="text-white text-sm font-bold font-display uppercase tracking-wide truncate">{item.name}</div>
           <div
-            key={unit}
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}
+            className="px-1.5 py-0.5 rounded text-[9px] font-bold border"
+            style={{
+              color: tierColors.text,
+              background: tierColors.bg,
+              borderColor: tierColors.border,
+            }}
           >
-            <UnitPortrait name={unit} size={28} radius={4} />
+            {item.tier}
           </div>
-        ))}
+        </div>
+        <div className="text-gray-400 text-xs line-clamp-1 opacity-80">{item.effect}</div>
+      </div>
+
+      <div className="hidden md:flex items-center gap-3 px-4 border-l border-ally-border/50">
+        <div className="flex flex-col items-center">
+          <div className="text-[9px] text-ally-muted uppercase tracking-tighter mb-1 font-display font-bold">Best On</div>
+          <div className="flex -space-x-2">
+            {item.bestOn.slice(0, 3).map((unit) => (
+              <UnitPortrait key={unit} name={unit} size={24} radius={12} style={{ border: '1px solid #1f1f1f' }} />
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-col items-end min-w-[80px]">
+          <div className="text-[9px] text-cyan-600 uppercase tracking-widest font-display font-bold mb-0.5">{item.category}</div>
+          <div className="text-[10px] text-gray-500 font-medium truncate w-full text-right">
+            {item.components ? item.components.join(' + ') : 'Unique'}
+          </div>
+        </div>
       </div>
     </div>
   )
