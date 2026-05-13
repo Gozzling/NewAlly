@@ -1,4 +1,10 @@
-import { riotPlatformFetch, riotRegionalFetch, jsonResponse, errorResponse } from "../_shared/riot.ts";
+import {
+  riotPlatformFetch,
+  riotRegionalFetch,
+  jsonResponse,
+  errorResponse,
+  validateSummonerName,
+} from "../_shared/riot.ts";
 
 interface Summoner {
   puuid: string;
@@ -95,9 +101,7 @@ Deno.serve(async (req: Request) => {
     const region = String(body.region ?? "euw1").toLowerCase();
     const count = Math.min(Math.max(Number(body.count ?? 20), 1), 50);
 
-    if (!name) {
-      return jsonResponse({ error: "Missing 'name'", code: "BAD_REQUEST" }, 400);
-    }
+    validateSummonerName(name);
 
     // 1. Resolve summoner
     const summoner = await riotPlatformFetch<Summoner>(

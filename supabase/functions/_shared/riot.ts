@@ -26,8 +26,31 @@ export function validateRiotId(gameName: string, tagLine: string): void {
   if (!gameName || gameName.length > 16) {
     throw new RiotError("Invalid gameName length", "BAD_REQUEST", 400);
   }
-  if (!tagLine || tagLine.length > 5) {
+  if (!tagLine || tagLine.length < 3 || tagLine.length > 5) {
     throw new RiotError("Invalid tagLine length", "BAD_REQUEST", 400);
+  }
+  // Sanity check: avoid common injection/control characters
+  if (/[<>{}[\]\\^%`]/.test(gameName) || /[<>{}[\]\\^%`]/.test(tagLine)) {
+    throw new RiotError("Invalid characters in Riot ID", "BAD_REQUEST", 400);
+  }
+}
+
+export function validateSummonerName(name: string): void {
+  if (!name || name.length < 3 || name.length > 16) {
+    throw new RiotError("Invalid summoner name length", "BAD_REQUEST", 400);
+  }
+  if (/[<>{}[\]\\^%`]/.test(name)) {
+    throw new RiotError("Invalid characters in summoner name", "BAD_REQUEST", 400);
+  }
+}
+
+export function validateMatchId(matchId: string): void {
+  if (!matchId || matchId.length < 5 || matchId.length > 48) {
+    throw new RiotError("Invalid matchId length", "BAD_REQUEST", 400);
+  }
+  // Match IDs are typically like EUW1_1234567890
+  if (!/^[A-Z0-9]+_[0-9]+$/i.test(matchId)) {
+    throw new RiotError("Invalid matchId format", "BAD_REQUEST", 400);
   }
 }
 
