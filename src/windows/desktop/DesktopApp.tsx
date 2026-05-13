@@ -767,7 +767,14 @@ export function DesktopApp() {
   const sortedMetaComps = useMemo(() => {
     return META_COMPS.map((comp, index) => {
       const tier = index < 2 ? 'S' : index < 6 ? 'A' : index < 8 ? 'B' : index < 9 ? 'C' : 'D';
-      return { comp, tier };
+      return {
+        ...comp,
+        tier,
+        winRate: Math.round(50 + Math.random() * 20),
+        top4Rate: Math.round(40 + Math.random() * 20),
+        pickRate: Math.round(5 + Math.random() * 15),
+        avgPlace: Math.round(1 + Math.random() * 9),
+      };
     });
   }, []);
 
@@ -1181,17 +1188,10 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
             <div className="flex flex-col gap-2">
               <div className="text-[11px] uppercase tracking-widest text-white mb-4">Meta Comps</div>
               <div className="grid grid-cols-1 gap-3">
-                {sortedMetaComps.map(({ comp, tier }) => (
+                {sortedMetaComps.map((comp) => (
                   <CompCard
                     key={comp.compName}
-                    comp={{
-                      ...comp,
-                      tier,
-                      winRate: Math.round(50 + Math.random() * 20),
-                      top4Rate: Math.round(40 + Math.random() * 20),
-                      pickRate: Math.round(5 + Math.random() * 15),
-                      avgPlace: Math.round(1 + Math.random() * 9),
-                    }}
+                    comp={comp}
                   />
                 ))}
               </div>

@@ -1,5 +1,5 @@
 // New streamlined comp card adhering to minimal editorial design
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Pin, PinOff, FilePlus, Monitor } from 'lucide-react';
 
 import type { MetaComp } from '@/types/tft';
@@ -18,7 +18,7 @@ interface CompCardNewProps {
   onOverlayToggle?: (comp: MetaComp) => void;
 }
 
-export function CompCardNew({ comp, isPinned, onPinToggle, onImport, onOverlayToggle }: CompCardNewProps) {
+export const CompCardNew = memo(function CompCardNew({ comp, isPinned, onPinToggle, onImport, onOverlayToggle }: CompCardNewProps) {
   const [expanded, setExpanded] = useState(false);
   const tier = comp.tier ?? 'B';
     // Tier badge uses neutral styling per app color tokens
@@ -27,7 +27,7 @@ export function CompCardNew({ comp, isPinned, onPinToggle, onImport, onOverlayTo
   // Simple board placement – just list units in a miniature grid
   const placementGrid = (
     <div className="grid grid-cols-4 gap-1 mt-2">
-      {comp.requiredUnits.map((unit, i) => (
+      {comp.requiredUnits.map((unit) => (
 <div
                     key={unit}
                     className="w-8 h-8 rounded-full bg-ally-bg border border-ally-border flex items-center justify-center text-xs text-ally-text"
@@ -88,7 +88,7 @@ export function CompCardNew({ comp, isPinned, onPinToggle, onImport, onOverlayTo
               <span>{comp.pickRate}% Pick</span>
             )}
             {comp.avgPlace !== undefined && (
-              <span>Avg Place {comp.avgPlace}</span>
+              <span>Avg Place {comp.avgPlace}</span>
             )}
           </div>
         </div>
@@ -147,4 +147,4 @@ export function CompCardNew({ comp, isPinned, onPinToggle, onImport, onOverlayTo
       )}
     </div>
   );
-}
+})
