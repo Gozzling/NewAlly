@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import type { MetaComp } from '../types/tft'
 import { ChevronDown, ChevronUp, Swords, Pin, PinOff, FilePlus, Monitor } from 'lucide-react'
 import placeholderImg from '@/assets/icons/placeholder.svg'
@@ -19,7 +19,7 @@ const TIER_COLORS: Record<string, string> = {
   C: 'bg-neutral-500/20 text-neutral-400 border-neutral-500/40 shadow-[0_0_8px_rgba(115,115,115,0.2)]',
 }
 
-export function CompCard({ comp, isPinned, onPinToggle, onImport, onOverlayToggle }: CompCardProps) {
+export const CompCard = memo(function CompCard({ comp, isPinned, onPinToggle, onImport, onOverlayToggle }: CompCardProps) {
   const [expanded, setExpanded] = useState(false)
   const tier = comp.tier ?? 'B'
   const tierCls = TIER_COLORS[tier] ?? TIER_COLORS.C
@@ -121,4 +121,4 @@ export function CompCard({ comp, isPinned, onPinToggle, onImport, onOverlayToggl
       )}
     </div>
   )
-}
+})
