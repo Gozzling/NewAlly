@@ -11,6 +11,7 @@ interface Summoner {
 }
 
 interface Participant {
+  puuid: string;
   placement: number;
   level: number;
   last_round: number;
@@ -107,13 +108,8 @@ Deno.serve(async (req: Request) => {
           `/tft/match/v1/matches/${encodeURIComponent(matchId)}`,
         );
 
-        const participant = detail.info.participants.find(
-          (p) => p.time_eliminated === Math.max(...detail.info.participants.map((x) => x.time_eliminated)) || true,
-        );
+        const participant = detail.info.participants.find((p) => p.puuid === summoner.puuid);
 
-        // Find participant by matching PUUID via participants array ordering is not guaranteed,
-        // so we return raw match data and let the client parse. For now we send the raw Riot shape
-        // to keep parity with direct API usage.
         matches.push({
           matchId: detail.metadata.match_id,
           date: new Date(detail.info.game_datetime).toISOString(),
