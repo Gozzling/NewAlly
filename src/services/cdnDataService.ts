@@ -15,7 +15,7 @@ const DB_NAME = "tft-ally-cache"
 const STORE_NAME = "set-data"
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000
 /** Bump when cached payload shape / decoding logic changes (forces miss on first read). */
-const CACHE_KEY = "current-set-v4"
+const CACHE_KEY = "current-set-v6"
 
 export type Item = ItemGuideEntry
 
@@ -39,6 +39,22 @@ function flattenEffectMap(effects: unknown): Record<string, number | string> {
   for (const [k, v] of Object.entries(effects as Record<string, unknown>)) {
     if (typeof v === "number" || typeof v === "string") out[k] = v
     else if (typeof v === "boolean") out[k] = v ? "1" : "0"
+    else if (Array.isArray(v)) {
+      const nums = v.filter((x): x is number => typeof x === "number")
+      if (nums.length === v.length && nums.length > 0) {
+        out[k] = nums
+          .map((n) => {
+            if (n > 0 && n <= 1 && /percent|pct|ratio|bonus|increase|as|ad|ap|health|damage|shield|mana|crit|speed|resist|armor|mr|hp/i.test(k)) {
+              return `${Math.round(n * 100)}%`
+            }
+            return String(n)
+          })
+          .join(" / ")
+      } else {
+        const parts = v.filter((x) => x != null).map(String)
+        if (parts.length) out[k] = parts.join(" / ")
+      }
+    }
   }
   return out
 }
@@ -52,6 +68,87 @@ function formatEffectDisplayValue(key: string, v: number | string): string {
   return String(v)
 }
 
+function lookupEffectValue(map: Record<string, number | string>, key: string): number | string | undefined {
+  const tryKeys = [key, key.replace(/_TOOLTIPONLY$/i, ""), key.replace(/_TOOLTIP$/i, "")]
+  for (const tk of tryKeys) {
+    if (Object.prototype.hasOwnProperty.call(map, tk)) return map[tk]
+  }
+  const lower = key.toLowerCase()
+  for (const [mk, mv] of Object.entries(map)) {
+    if (mk.toLowerCase() === lower) return mv
+    const mShort = mk.toLowerCase().replace(/_tooltiponly$/i, "")
+    const kShort = lower.replace(/_tooltiponly$/i, "")
+    if (mShort === kShort) return mv
+  }
+  if (key.length >= 3) {
+    for (const [mk, mv] of Object.entries(map)) {
+      const ml = mk.toLowerCase()
+      if (ml.length < 3) continue
+      if (lower.endsWith(ml) || ml.endsWith(lower)) return mv
+    }
+  }
+  return undefined
+}
+
+function effectKeyCandidates(base: string): string[] {
+  const seen = new Set<string>()
+  const add = (s: string) => {
+    const t = s.trim()
+    if (t.length > 0) seen.add(t)
+  }
+  add(base)
+  for (const p of ["Modified", "Total", "Bonus", "Max", "Min", "TFT"]) {
+    if (base.startsWith(p)) add(base.slice(p.length))
+  }
+  return [...seen]
+}
+
+/** e.g. AD*100 with value 0.35 → "35%" when mult is 100 and value looks like a ratio */
+function formatScaledStat(key: string, value: number, multiplyBy: number): string {
+  const scaled = value * multiplyBy
+  const k = key.toLowerCase()
+  const ratioLike =
+    multiplyBy === 100 &&
+    Math.abs(value) <= 2.5 &&
+    /percent|pct|ratio|bonus|increase|damage|speed|as|ad|ap|health|shield|mana|crit|resist|armor|mr|hp|heal|pen|vamp|lifesteal|duration|chance/i.test(
+      k,
+    )
+  if (ratioLike) return `${Math.round(scaled)}%`
+  if (Number.isInteger(scaled)) return String(scaled)
+  return String(Math.round(scaled * 100) / 100)
+}
+
+/** Resolve @inner@ using Riot-style formulas (AD*100) and effect maps */
+function resolveAtPlaceholder(inner: string, map: Record<string, number | string>): string {
+  const trimmed = inner.trim()
+  if (!trimmed) return ""
+
+  if (/^TFTUnitProperty\./i.test(trimmed) || (/^TFT[A-Za-z]+_[A-Za-z0-9_.]+$/i.test(trimmed) && trimmed.length > 48)) {
+    return ""
+  }
+
+  const mulMatch = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*\*\s*([0-9.]+)$/)
+  if (mulMatch) {
+    const mult = Number(mulMatch[2])
+    if (Number.isFinite(mult)) {
+      for (const base of effectKeyCandidates(mulMatch[1])) {
+        const v = lookupEffectValue(map, base)
+        if (typeof v === "number") return formatScaledStat(base, v, mult)
+        if (typeof v === "string") return v
+      }
+    }
+  }
+
+  for (const cand of effectKeyCandidates(trimmed)) {
+    if (/^[A-Za-z0-9_]+$/.test(cand)) {
+      const v = lookupEffectValue(map, cand)
+      if (v !== undefined) return typeof v === "string" ? v : formatEffectDisplayValue(cand, v)
+    }
+  }
+
+  return ""
+}
+
 /** Strip HTML then substitute `@EffectKey@` from Riot `effects` objects (cdragon tft items/augments). */
 export function formatTftText(raw: string | undefined | null, effects: unknown): string {
   let s = String(raw || "")
@@ -61,24 +158,11 @@ export function formatTftText(raw: string | undefined | null, effects: unknown):
     .replace(/&nbsp;/gi, " ")
     .replace(/\*\*/g, "")
   const map = flattenEffectMap(effects)
-  s = s.replace(/@([A-Za-z0-9_]+)@/g, (_, key: string) => {
-    const tryKeys = [key, key.replace(/_TOOLTIPONLY$/i, ""), key.replace(/_TOOLTIP$/i, "")]
-    for (const tk of tryKeys) {
-      if (Object.prototype.hasOwnProperty.call(map, tk)) {
-        const v = map[tk]
-        return v === undefined ? "" : formatEffectDisplayValue(tk, v)
-      }
-    }
-    const lower = key.toLowerCase()
-    for (const [mk, mv] of Object.entries(map)) {
-      if (mk.toLowerCase() === lower) return formatEffectDisplayValue(mk, mv)
-      const mShort = mk.toLowerCase().replace(/_tooltiponly$/i, "")
-      const kShort = lower.replace(/_tooltiponly$/i, "")
-      if (mShort === kShort) return formatEffectDisplayValue(mk, mv)
-    }
-    return ""
-  })
-  s = s.replace(/@([A-Za-z0-9_]+)@/g, "")
+  s = s.replace(/@([^@]+)@/g, (_, inner: string) => resolveAtPlaceholder(inner, map))
+  // Strip unresolved @...@ (still unknown after formula / key resolution)
+  s = s.replace(/@[^@]*@/g, "")
+  s = s.replace(/@[^%\n]+%/g, "")
+  s = s.replace(/\s*\+\s*%+\s*/g, " ")
   return s.replace(/\s+/g, " ").trim()
 }
 
@@ -144,6 +228,9 @@ interface CDragonItemRow {
   apiName?: string
   name?: string
   desc?: string
+  /** Some CDN rows use `description` instead of `desc`. */
+  description?: string
+  effect?: string
   icon?: string
   associatedTraits?: string[]
   composition?: unknown[]
@@ -208,6 +295,43 @@ function pickSetBlock(raw: CDragonBundle, setNumber: number): CDragonSetBlock | 
   return blocks.find((b) => b.number === setNumber) ?? blocks[blocks.length - 1]
 }
 
+function cleanDescription(desc: string, fallback = ""): string {
+  if (!desc || !desc.trim()) return fallback
+
+  let s = desc
+    // Remove ALL @...@ template variables (any content between @ symbols)
+    .replace(/@[^@]*@/g, "")
+    // @Formula% when there is no closing @ (e.g. +@AD*100@% Attack Damage)
+    .replace(/@[^%\n]+%/g, "")
+    // Remove {{TFT_Keyword_*}} and any {{...}} tokens
+    .replace(/\{\{[^}]+\}\}/g, "")
+    // Leftover "+ @ ... %" fragments become "+%" — drop those runs
+    .replace(/\s*\+\s*%+\s*/g, " ")
+    // Remove threshold pattern artifacts like "() " or "( ) "
+    .replace(/\(\s*\)\s*/g, "")
+    // Remove "Recommended Roles: ..." lines entirely
+    .replace(/Recommended Roles:[^\n.]*/gi, "")
+    // Remove lines that are ONLY a number (leftover substitution blanks)
+    .replace(/^\s*\d+\.?\d*\s*$/gm, "")
+    // Remove HTML tags if any slip through
+    .replace(/<[^>]+>/g, "")
+    // Clean up multiple spaces
+    .replace(/\s{2,}/g, " ")
+    // Clean up spaces before punctuation
+    .replace(/\s+([.,;%])/g, "$1")
+    // Clean up doubled periods
+    .replace(/\.{2,}/g, ".")
+    // Clean up lines starting with just punctuation
+    .replace(/^\s*[.,;:]\s*/gm, "")
+    // Remove empty parentheses
+    .replace(/\(\s*\)/g, "")
+    // Final trim
+    .trim()
+
+  const result = s
+  return result.length > 0 ? result : fallback
+}
+
 function buildItemsByApi(rows: CDragonItemRow[] | undefined): Map<string, CDragonItemRow> {
   const m = new Map<string, CDragonItemRow>()
   if (!Array.isArray(rows)) return m
@@ -216,6 +340,18 @@ function buildItemsByApi(rows: CDragonItemRow[] | undefined): Map<string, CDrago
     if (typeof api === "string" && api.length > 0) m.set(api, row)
   }
   return m
+}
+
+function abilityVariablesAsEffects(champ: CDragonChampion): Record<string, unknown> {
+  const vars = champ.ability?.variables
+  if (!Array.isArray(vars)) return {}
+  const flat: Record<string, unknown> = {}
+  for (const row of vars) {
+    if (!row || typeof row !== "object") continue
+    const r = row as { name?: string; value?: unknown }
+    if (typeof r.name === "string" && r.name.length > 0) flat[r.name] = r.value
+  }
+  return flat
 }
 
 export function transformChampions(setBlock: CDragonSetBlock): Unit[] {
@@ -231,6 +367,7 @@ export function transformChampions(setBlock: CDragonSetBlock): Unit[] {
     if (typeof api === "string" && api.length > 0 && !/^TFT17_/i.test(api)) continue
     if (/dummy|practice|bluegolem|shop|carousel/i.test(api)) continue
     const name = champ.name || champ.characterName || "Unknown"
+    const abilityName = champ.ability?.name ?? "Ability"
     const traits = Array.isArray(champ.traits) ? champ.traits : []
     const dmg = abilityDamagePreview(champ)
     out.push({
@@ -239,8 +376,11 @@ export function transformChampions(setBlock: CDragonSetBlock): Unit[] {
       cost: clampCost(champ.cost ?? 1),
       traits,
       ability: {
-        name: champ.ability?.name ?? "Ability",
-        description: formatTftText(champ.ability?.desc ?? "", {}),
+        name: abilityName,
+        description: cleanDescription(
+          formatTftText(champ.ability?.desc ?? "", abilityVariablesAsEffects(champ)),
+          `${name} — ${abilityName}`,
+        ),
         damage: dmg || "—",
       },
       stats: { hp: 0, ad: 0, ap: 0, armor: 0, mr: 0, atkSpeed: 0, range: 1 },
@@ -277,10 +417,11 @@ export function transformTraits(setBlock: CDragonSetBlock): Synergy[] {
 
     const iconUrl = cdGameAssetUrl(tr.icon)
     const varMap = traitVariableMap(tr)
+    const traitFallback = `${tr.name} trait bonus`
     out.push({
       id: synId(tr.name),
       name: tr.name,
-      description: formatTftText(tr.desc || tr.name, varMap),
+      description: cleanDescription(formatTftText(tr.desc || tr.name, varMap), traitFallback),
       thresholds,
       bestUnits: [],
       bestComps: [],
@@ -301,7 +442,11 @@ export function transformItems(setItemApis: string[], itemsByApi: Map<string, CD
     if (!row?.name) continue
     if (!isGuideItemRow(row)) continue
     const displayName = formatTftText(row.name, row.effects)
-    const effect = formatTftText(row.desc || "", row.effects)
+    const description = cleanDescription(
+      formatTftText(row.desc || row.description || "", row.effects),
+      displayName,
+    )
+    const effect = cleanDescription(formatTftText(row.effect || "", row.effects), displayName)
     if (!displayName || /@/.test(displayName)) continue
     if (seen.has(displayName)) continue
     seen.add(displayName)
@@ -310,7 +455,7 @@ export function transformItems(setItemApis: string[], itemsByApi: Map<string, CD
       name: displayName,
       category: "core",
       stats: "",
-      effect: effect || displayName,
+      effect: effect || description || displayName,
       components: null,
       tags: [],
       tier: "B",
@@ -329,18 +474,24 @@ export function transformAugments(augmentApiNames: string[], itemsByApi: Map<str
     if (!row) continue
     if (!isAugmentRow(row)) continue
     const id = `aug_${apiName.replace(/[^a-zA-Z0-9]+/g, "_").toLowerCase()}`
-    const description = formatTftText(row.desc || row.name || "", row.effects)
-    let name = formatTftText(row.name || "", row.effects)
-    if (!name || /@/.test(name)) name = formatTftText(row.desc || "", row.effects)
+    const rawNameForTier = formatTftText(row.name || "", row.effects) || humanizeAugmentApiName(apiName)
+    const augmentTier = inferAugmentTier(apiName, rawNameForTier)
+    const augmentFallback = `${augmentTier} augment`
+    const description = cleanDescription(
+      formatTftText(row.desc || row.name || "", row.effects),
+      augmentFallback,
+    )
+    let name = cleanDescription(formatTftText(row.name || "", row.effects), augmentFallback)
+    if (!name || /@/.test(name)) name = cleanDescription(formatTftText(row.desc || "", row.effects), augmentFallback)
     if (!name || /@/.test(name)) name = humanizeAugmentApiName(apiName)
-    const effect = (description || name).slice(0, 160)
+    const effect = (description || name).slice(0, 160) || "—"
     const iconUrl = cdGameAssetUrl(row.icon)
     out.push({
       id,
       name,
-      tier: inferAugmentTier(apiName, name),
+      tier: augmentTier,
       description: description || name,
-      effect: effect || "—",
+      effect,
       bestComps: [],
       pickRate: 0,
       winRate: 0,

@@ -24,8 +24,8 @@ export function OverlayItemPanel() {
   }, [benchItems])
 
   return (
-    <div className="bg-ally-card/90 border border-ally-border rounded-lg p-2 space-y-1.5 shadow-card">
-      <div className="flex items-center gap-1.5 text-caption text-ally-muted uppercase tracking-wider font-display font-semibold">
+    <div className="space-y-1.5 rounded-xl border border-ally-border bg-ally-card/95 p-2.5 shadow-card backdrop-blur-sm">
+      <div className="flex items-center gap-1.5 text-caption font-display font-semibold uppercase tracking-wider text-ally-muted">
         <Box className="w-3 h-3 text-ally-accent" /> Items
       </div>
       {benchItems.length === 0 ? (
