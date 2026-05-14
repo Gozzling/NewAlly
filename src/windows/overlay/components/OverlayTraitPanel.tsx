@@ -28,8 +28,8 @@ export function OverlayTraitPanel() {
   if (traits.length === 0) return null
 
   return (
-    <div className="bg-ally-card/90 border border-ally-border rounded-lg p-2 space-y-1 shadow-card">
-      <div className="flex items-center gap-1.5 text-caption text-ally-muted uppercase tracking-wider font-display font-semibold">
+    <div className="space-y-1 rounded-xl border border-ally-border bg-ally-card/95 p-2.5 shadow-card backdrop-blur-sm">
+      <div className="flex items-center gap-1.5 text-caption font-display font-semibold uppercase tracking-wider text-ally-muted">
         <Sparkles className="w-3 h-3 text-ally-accent" /> Active Traits
       </div>
       {traits.map(t => (
@@ -37,7 +37,7 @@ export function OverlayTraitPanel() {
           <span className={`uppercase tracking-wide ${t.active ? 'text-ally-text font-bold' : 'text-ally-muted'}`}>{t.name}</span>
           <div className="flex items-center gap-1">
             {Array.from({ length: Math.max(t.count, t.next?.count || 0) }).map((_, i) => (
-              <div key={i} className={`w-1.5 h-1.5 rounded-full ${i < t.count ? (t.active ? 'bg-ally-accent shadow-[0_0_4px_rgba(0,212,255,0.6)]' : 'bg-ally-muted') : 'bg-ally-border'}`} />
+              <div key={i} className={`h-1.5 w-1.5 rounded-full ${i < t.count ? (t.active ? 'bg-ally-accent shadow-accent' : 'bg-ally-muted') : 'bg-ally-border'}`} />
             ))}
             <span className={`ml-1 font-numbers ${t.active ? 'text-ally-accent font-bold' : 'text-ally-muted'}`}>{t.count}{t.next ? `/${t.next.count}` : ''}</span>
           </div>

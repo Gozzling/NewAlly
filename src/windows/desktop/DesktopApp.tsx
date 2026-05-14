@@ -38,6 +38,7 @@ import { invalidateSearchCorpus } from '@/utils/searchSuggestions';
 import { ITEM_RECIPES } from '@/data/itemRecipes';
 import { EXAMPLE_SUMMONERS } from '@/data/exampleSummoners';
 import type { SearchSuggestion } from '@/utils/searchSuggestions';
+import { Crosshair, Radio, Search, Users } from 'lucide-react';
 
 import { META_COMPS } from '@/data/metaComps';
 import { getPersonalMatches } from '@/services/indexedDbService';
@@ -208,10 +209,10 @@ function riotLookupFromParticipant(p: Record<string, unknown>): string | null {
   return null
 }
 
-const getPlacementColor = (place: number) => {
-  if (place === 1) return '#fbbf24'
-  if (place <= 4) return '#4ade80'
-  return '#ef4444'
+function placementPillClass(place: number) {
+  if (place === 1) return 'bg-ally-warning text-ally-bg ring-1 ring-ally-warning/80'
+  if (place <= 4) return 'bg-ally-success text-ally-text'
+  return 'bg-ally-error text-ally-text'
 }
 
 function parseSpectatorGameLengthSeconds(active: Record<string, unknown>): number {
@@ -472,15 +473,15 @@ function InGamePage() {
   const showNotInGame = hasSearched && !isLoading && !activeGame && !error
 
   return (
-    <div className="p-4">
+    <div className="space-y-8 animate-ally-page-in">
       {showDemoGrid && (
-        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-2 px-3 text-caption text-yellow-500 mb-3 font-display uppercase tracking-wider">
+        <div className="rounded-xl border border-ally-warning/25 bg-ally-warning/10 px-4 py-3 text-caption text-ally-warning font-display font-bold uppercase tracking-wider text-balance">
           Live game detection requires Overwolf. Showing demo data.
         </div>
       )}
 
       {activeGame && !isLoading && (
-        <div className="bg-ally-card border border-ally-border rounded-lg p-3 px-4 mb-4 flex justify-between items-center border-l-4 border-l-ally-accent shadow-card">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ally-border bg-ally-card px-4 py-3 shadow-card border-l-4 border-l-ally-accent">
           <div className="flex items-center gap-2">
             <span className="text-caption font-bold tracking-widest uppercase text-ally-accent border border-ally-accent rounded-md px-2 py-1 font-display">
               {getGameMode(Number.isFinite(queueId) ? queueId : 0)}
@@ -492,236 +493,226 @@ function InGamePage() {
         </div>
       )}
 
-      <div className="flex gap-2 mb-4">
-        <SearchInputWithSuggestions
-          value={searchInput}
-          onChange={setSearchInput}
-          placeholder={ingameSearchPlaceholder || 'Summoner name…'}
-          kinds={['summoner']}
-          wrapperClassName="flex-1"
-          inputClassName="w-full bg-ally-bg border border-ally-border rounded-lg px-3 py-2 text-body text-ally-text outline-none focus:border-ally-accent transition-colors"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              void handleSearch()
-            }
-          }}
-        />
-        <select
-          value={selectedRegion}
-          onChange={(e) => onRegionChange(e.target.value)}
-          className="bg-ally-bg border border-ally-border rounded-lg px-3 py-2 text-body text-ally-text outline-none focus:border-ally-accent transition-colors"
-        >
-          <option value="na1">NA</option>
-          <option value="euw1">EUW</option>
-          <option value="kr">KR</option>
-          <option value="jp1">JP</option>
-        </select>
-        <button
-          type="button"
-          onClick={() => void handleSearch()}
-          disabled={isLoading}
-          className="bg-ally-accent hover:bg-ally-accentDark disabled:opacity-50 disabled:cursor-not-allowed border-none rounded-lg px-4 py-2 text-body text-ally-bg font-bold font-display uppercase tracking-wider transition-all"
-        >
-          Search
-        </button>
-      </div>
+      <section>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-heading font-display uppercase tracking-wider flex items-center gap-2">
+            <Search className="h-5 w-5 shrink-0 text-ally-accent" aria-hidden />
+            Spectator lookup
+          </h2>
+        </div>
+        <div className="flex flex-wrap items-stretch gap-2 rounded-xl border border-ally-border bg-ally-card p-4 shadow-card">
+          <SearchInputWithSuggestions
+            value={searchInput}
+            onChange={setSearchInput}
+            placeholder={ingameSearchPlaceholder || 'Summoner name…'}
+            kinds={['summoner']}
+            wrapperClassName="min-w-0 flex-1 basis-[min(100%,14rem)]"
+            inputClassName="w-full rounded-lg border border-ally-border bg-ally-bg px-3 py-2 text-body text-ally-text outline-none transition-colors focus:border-ally-accent"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                void handleSearch()
+              }
+            }}
+          />
+          <select
+            value={selectedRegion}
+            onChange={(e) => onRegionChange(e.target.value)}
+            className="min-w-[5.5rem] shrink-0 rounded-lg border border-ally-border bg-ally-bg px-3 py-2 text-body text-ally-text outline-none transition-colors focus:border-ally-accent"
+          >
+            <option value="na1">NA</option>
+            <option value="euw1">EUW</option>
+            <option value="kr">KR</option>
+            <option value="jp1">JP</option>
+          </select>
+          <button
+            type="button"
+            onClick={() => void handleSearch()}
+            disabled={isLoading}
+            className="shrink-0 rounded-lg border-none bg-ally-accent px-4 py-2 text-body font-bold font-display uppercase tracking-wider text-ally-bg transition-all hover:bg-ally-accentDark disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Search
+          </button>
+        </div>
+      </section>
 
       {error && !isLoading && (
         <div
           role="alert"
-          className="flex items-start gap-2 bg-ally-error/10 border border-ally-error/20 rounded-lg p-2 px-3 text-caption text-ally-error mb-3"
+          className="flex items-start gap-2 rounded-xl border border-ally-error/25 bg-ally-error/10 p-3 px-4 text-caption text-ally-error"
         >
-          <div className="flex-1 min-w-0 font-medium">{error}</div>
+          <div className="min-w-0 flex-1 font-medium">{error}</div>
           <button
             type="button"
             onClick={() => setError(null)}
             aria-label="Dismiss"
-            className="shrink-0 bg-none border-none text-ally-error cursor-pointer text-lg leading-none px-0.5 opacity-80 hover:opacity-100"
+            className="shrink-0 cursor-pointer border-none bg-transparent px-0.5 text-lg leading-none text-ally-error opacity-80 hover:opacity-100"
           >
             ×
           </button>
         </div>
       )}
 
-      {isLoading ? (
-        <>
-          <div className="bg-ally-card border border-ally-border rounded-lg p-3 mb-3 shadow-card">
-            <div className="mb-1 flex items-center gap-2 text-ally-text font-display font-bold uppercase tracking-wider text-caption">
-              <AllySpinner className="text-ally-accent w-4 h-4" />
-              <span>
-                {loadingPhase === 'player' && 'Resolving player…'}
-                {loadingPhase === 'lobby' && 'Fetching live lobby…'}
-                {!loadingPhase && 'Loading…'}
-              </span>
+      <section>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-heading font-display uppercase tracking-wider flex items-center gap-2">
+            <Users className="h-5 w-5 shrink-0 text-ally-accent" aria-hidden />
+            Lobby intel
+          </h2>
+        </div>
+
+        {isLoading ? (
+          <>
+            <div className="mb-4 rounded-xl border border-ally-border bg-ally-card p-4 shadow-card">
+              <div className="mb-1 flex items-center gap-2 text-caption font-display font-bold uppercase tracking-wider text-ally-text">
+                <AllySpinner className="h-4 w-4 text-ally-accent" />
+                <span>
+                  {loadingPhase === 'player' && 'Resolving player…'}
+                  {loadingPhase === 'lobby' && 'Fetching live lobby…'}
+                  {!loadingPhase && 'Loading…'}
+                </span>
+              </div>
+              <div className="text-caption text-ally-muted">
+                {loadingPhase === 'player' && 'Looking up account with Riot'}
+                {loadingPhase === 'lobby' && 'Spectator API for this region'}
+                {!loadingPhase && 'Please wait'}
+              </div>
             </div>
-            <div className="text-caption text-ally-muted">
-              {loadingPhase === 'player' && 'Looking up account with Riot'}
-              {loadingPhase === 'lobby' && 'Spectator API for this region'}
-              {!loadingPhase && 'Please wait'}
+            <div className="grid grid-cols-2 gap-3">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-[120px] animate-pulse rounded-xl border border-ally-border/50 bg-ally-card shadow-card"
+                />
+              ))}
             </div>
-          </div>
+          </>
+        ) : showDemoGrid ? (
           <div className="grid grid-cols-2 gap-3">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-[120px] rounded-lg bg-ally-card animate-pulse shadow-card border border-ally-border/50"
-              />
-            ))}
+            {INGAME_MOCK_PLAYERS.length === 0 ? (
+              <div className="col-span-2 flex min-h-[220px] flex-col items-center justify-center rounded-xl border border-ally-border bg-ally-card/40 px-6 py-16 text-center shadow-inner">
+                <Crosshair className="mb-3 h-10 w-10 text-ally-muted opacity-40" aria-hidden />
+                <p className="text-body font-display font-bold uppercase tracking-wide text-ally-text">No active lobby detected</p>
+                <p className="mt-2 max-w-md text-caption leading-relaxed text-ally-muted">
+                  Once you enter a TFT game, your opponents will appear here automatically.
+                </p>
+              </div>
+            ) : (
+              INGAME_MOCK_PLAYERS.map((player, i) => (
+                <div
+                  key={i}
+                  className="group flex items-center gap-3 rounded-xl border border-ally-border bg-ally-card p-3 shadow-card transition-colors hover:border-ally-accent/40"
+                >
+                  <div className="h-8 w-8 shrink-0 overflow-hidden rounded-md border border-ally-border bg-ally-bg transition-colors group-hover:border-ally-accent/50">
+                    <img
+                      src={`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${player.profileIconId}.png`}
+                      alt={player.name}
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                      }}
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-0.5 truncate text-body font-bold font-display uppercase tracking-wide text-ally-text">{player.name}</div>
+                    <div className="mb-1.5 flex items-center gap-1 text-caption font-medium text-ally-muted">
+                      {player.rank}
+                      {player.lp > 0 ? <span className="opacity-50">·</span> : null}
+                      {player.lp > 0 ? <span className="font-numbers text-ally-text-dim">{player.lp} LP</span> : ''}
+                    </div>
+                    <div className="mb-1.5 flex flex-wrap gap-1">
+                      {player.recentPlacements.map((place: number, j: number) => (
+                        <div
+                          key={j}
+                          className={`flex h-6 w-6 items-center justify-center rounded text-caption font-bold font-numbers shadow-sm ${placementPillClass(place)}`}
+                        >
+                          {place}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-caption font-display uppercase tracking-tight text-ally-muted">
+                        Avg:{' '}
+                        <span className="font-numbers font-bold text-ally-text">{player.avgPlace > 0 ? player.avgPlace.toFixed(1) : '-'}</span>
+                      </div>
+                      <div className="max-w-[80px] truncate text-[10px] font-bold font-display uppercase text-ally-accent">{player.predictedComp}</div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
-        </>
-      ) : showDemoGrid ? (
-        <div className="grid grid-cols-2 gap-3">
-          {INGAME_MOCK_PLAYERS.length === 0 ? (
-            <div className="col-span-2 py-20 text-center text-ally-muted">
-              <p>No active lobby detected.</p>
-              <p className="text-xs mt-2 opacity-50 text-balance">Once you enter a TFT game, your opponents will appear here automatically.</p>
-            </div>
-          ) : (
-            INGAME_MOCK_PLAYERS.map((player, i) => (
+        ) : showLiveGrid ? (
+          <div className="grid grid-cols-2 gap-3">
+            {livePlayers.map((player, i) => (
               <div
-                key={i}
-                className="bg-ally-card border border-ally-border rounded-lg p-3 flex gap-3 items-center hover:border-ally-accent/30 transition-colors shadow-card group"
+                key={player.puuid || i}
+                className="group flex items-center gap-3 rounded-xl border border-ally-border bg-ally-card p-3 shadow-card transition-colors hover:border-ally-accent/40"
               >
-                <div className="w-8 h-8 rounded-md bg-ally-bg overflow-hidden shrink-0 border border-ally-border group-hover:border-ally-accent/50 transition-colors">
+                <div className="h-8 w-8 shrink-0 overflow-hidden rounded-md border border-ally-border bg-ally-bg transition-colors group-hover:border-ally-accent/50">
                   <img
                     src={`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${player.profileIconId}.png`}
                     alt={player.name}
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none'
                     }}
                   />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-body font-bold text-ally-text mb-0.5 font-display uppercase tracking-wide truncate">{player.name}</div>
-                  <div className="text-caption text-ally-muted mb-1.5 flex items-center gap-1 font-medium">
-                    {player.rank}
-                    {player.lp > 0 ? <span className="opacity-50">·</span> : null}
-                    {player.lp > 0 ? <span className="text-ally-text-dim font-numbers">{player.lp} LP</span> : ''}
-                  </div>
-                  <div className="flex gap-1 mb-1.5 flex-wrap">
-                    {player.recentPlacements.map((place: number, j: number) => (
-                      <div
-                        key={j}
-                        style={{ background: getPlacementColor(place) }}
-                        className="w-6 h-6 rounded flex items-center justify-center text-caption font-bold text-white font-numbers shadow-sm"
-                      >
-                        {place}
+                <div className="min-w-0 flex-1">
+                  <div className="mb-0.5 truncate text-body font-bold font-display uppercase tracking-wide text-ally-text">{player.name}</div>
+                  {player.statsStatus === 'pending' && (
+                    <div className="mb-1.5 animate-pulse text-caption italic text-ally-muted">Loading stats...</div>
+                  )}
+                  {player.statsStatus === 'error' && (
+                    <div className="mb-1.5 text-[10px] text-ally-error">{player.statsError ?? 'Failed to load'}</div>
+                  )}
+                  {player.statsStatus === 'done' && (
+                    <>
+                      <div className="mb-1.5 text-caption font-medium text-ally-muted">
+                        {player.tier && player.rank ? `${player.tier} ${player.rank}` : 'Unranked'}
+                        {player.lp != null && player.lp > 0 ? <span className="opacity-50">·</span> : null}
+                        {player.lp != null && player.lp > 0 ? <span className="font-numbers text-ally-text-dim">{player.lp} LP</span> : ''}
                       </div>
-                    ))}
-                  </div>
-                  <div className="flex justify-between items-center gap-2">
-                    <div className="text-caption text-ally-muted font-display uppercase tracking-tight">
-                      Avg:{' '}
-                      <span className="text-ally-text font-numbers font-bold">{player.avgPlace > 0 ? player.avgPlace.toFixed(1) : '-'}</span>
-                    </div>
-                    <div className="text-[10px] text-ally-accent font-bold font-display uppercase truncate max-w-[80px]">{player.predictedComp}</div>
-                  </div>
+                      <div className="mb-1.5 flex flex-wrap gap-1">
+                        {player.recentPlacements.length > 0 ? (
+                          player.recentPlacements.map((place: number, j: number) => (
+                            <div
+                              key={j}
+                              className={`flex h-6 w-6 items-center justify-center rounded text-caption font-bold font-numbers shadow-sm ${placementPillClass(place)}`}
+                            >
+                              {place}
+                            </div>
+                          ))
+                        ) : (
+                          <span className="text-[10px] font-display uppercase italic text-ally-muted/50">No recent matches</span>
+                        )}
+                      </div>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    disabled={player.statsStatus === 'loading'}
+                    onClick={() => void handleLoadStats(i)}
+                    className="mt-1 rounded-md border border-ally-accent bg-transparent px-2.5 py-1 text-[10px] font-bold font-display uppercase tracking-wider text-ally-accent transition-all hover:bg-ally-accent hover:text-ally-bg disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {player.statsStatus === 'loading' ? 'Loading…' : player.statsStatus === 'done' ? 'Refresh' : 'Load Stats'}
+                  </button>
                 </div>
               </div>
-            ))
-          )}
-        </div>
-      ) : showLiveGrid ? (
-        <div className="grid grid-cols-2 gap-3">
-          {livePlayers.map((player, i) => (
-            <div
-              key={player.puuid || i}
-              className="bg-ally-card border border-ally-border rounded-lg p-3 flex gap-3 items-center hover:border-ally-accent/30 transition-colors shadow-card group"
-            >
-              <div className="w-8 h-8 rounded-md bg-ally-bg overflow-hidden shrink-0 border border-ally-border group-hover:border-ally-accent/50 transition-colors">
-                <img
-                  src={`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${player.profileIconId}.png`}
-                  alt={player.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none'
-                  }}
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-body font-bold text-ally-text mb-0.5 font-display uppercase tracking-wide truncate">{player.name}</div>
-                {player.statsStatus === 'pending' && (
-                  <div className="text-caption text-ally-muted mb-1.5 animate-pulse italic">Loading stats...</div>
-                )}
-                {player.statsStatus === 'error' && (
-                  <div className="text-[10px] text-ally-error mb-1.5">{player.statsError ?? 'Failed to load'}</div>
-                )}
-                {player.statsStatus === 'done' && (
-                  <>
-                    <div className="text-caption text-ally-muted mb-1.5 font-medium">
-                      {player.tier && player.rank ? `${player.tier} ${player.rank}` : 'Unranked'}
-                      {player.lp != null && player.lp > 0 ? <span className="opacity-50">·</span> : null}
-                      {player.lp != null && player.lp > 0 ? <span className="text-ally-text-dim font-numbers">{player.lp} LP</span> : ''}
-                    </div>
-                    <div className="flex gap-1 mb-1.5 flex-wrap">
-                      {player.recentPlacements.length > 0 ? (
-                        player.recentPlacements.map((place: number, j: number) => (
-                          <div
-                            key={j}
-                            style={{ background: getPlacementColor(place) }}
-                            className="w-6 h-6 rounded flex items-center justify-center text-caption font-bold text-white font-numbers shadow-sm"
-                          >
-                            {place}
-                          </div>
-                        ))
-                      ) : (
-                        <span className="text-[10px] text-ally-muted/50 italic font-display uppercase">No recent matches</span>
-                      )}
-                    </div>
-                  </>
-                )}
-                <button
-                  type="button"
-                  disabled={player.statsStatus === 'loading'}
-                  onClick={() => void handleLoadStats(i)}
-                  className="mt-1 text-[10px] font-bold font-display uppercase tracking-wider px-2.5 py-1 rounded-md border border-ally-accent bg-transparent text-ally-accent hover:bg-ally-accent hover:text-ally-bg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                  {player.statsStatus === 'loading' ? 'Loading…' : player.statsStatus === 'done' ? 'Refresh' : 'Load Stats'}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : showNotInGame ? (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '200px',
-            color: '#a1a1a1',
-            fontSize: '14px',
-            textAlign: 'center',
-            padding: '16px 12px',
-          }}
-        >
-          Not currently in a TFT game
-        </div>
-      ) : hasSearched && error ? (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '120px',
-            color: '#a1a1a1',
-            fontSize: '13px',
-            textAlign: 'center',
-            padding: '16px 12px',
-          }}
-        >
-          Fix the issue above and try again.
-        </div>
-      ) : null}
-
-      <style>{`
-        @keyframes shimmer {
-          0% { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-      `}</style>
+            ))}
+          </div>
+        ) : showNotInGame ? (
+          <div className="flex min-h-[200px] flex-col items-center justify-center rounded-xl border border-ally-border bg-ally-card/50 px-6 py-12 text-center shadow-inner">
+            <Radio className="mb-3 h-9 w-9 text-ally-muted opacity-50" aria-hidden />
+            <p className="text-body font-medium text-ally-muted">Not currently in a TFT game</p>
+          </div>
+        ) : hasSearched && error ? (
+          <div className="flex min-h-[120px] items-center justify-center rounded-xl border border-ally-border bg-ally-card/40 px-6 py-10 text-center">
+            <p className="text-caption text-ally-muted">Fix the issue above and try again.</p>
+          </div>
+        ) : null}
+      </section>
     </div>
   )
 }
@@ -1277,8 +1268,7 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
                 {[1,2,3,4,5,6,7,8,1,2].map((place, i) => (
                   <div
                     key={i}
-                    style={{ background: getPlacementColor(place) }}
-                    className={`w-4 h-4 rounded-sm flex items-center justify-center text-[9px] font-bold text-white font-numbers ${place === 1 ? 'ring-1 ring-yellow-400' : ''}`}
+                    className={`w-4 h-4 rounded-sm flex items-center justify-center text-[9px] font-bold font-numbers ${placementPillClass(place)}`}
                   >
                     {place}
                   </div>

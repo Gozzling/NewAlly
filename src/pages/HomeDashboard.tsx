@@ -86,7 +86,7 @@ export function HomeDashboard({ onNavigate }: { onNavigate: (page: string) => vo
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <StatCard label="Avg Placement" value={stats.avgPlace} subtext="Last 20 matches" />
           <StatCard label="Top 4 Rate" value={stats.top4} valueClass="text-ally-success" subtext="Consistent climbing" />
-          <StatCard label="Win Rate" value={stats.winRate} valueClass="text-yellow-400" subtext="Victory dominance" />
+          <StatCard label="Win Rate" value={stats.winRate} valueClass="text-ally-warning" subtext="Victory dominance" />
         </div>
       </section>
 
