@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import type { MetaComp } from '../types/tft'
 import { CompCardNew as CompCard } from '../components/CompCardNew'
 import { StatCard } from '../components/StatCard'
@@ -26,14 +26,22 @@ export function Dashboard() {
   const [comps, setComps] = useState<Array<MetaComp & { tier: Tier; winRate: number; pickRate: number }>>([])
   const [loading, setLoading] = useState(true);
   const [pinnedCompNames, setPinnedCompNames] = useState<Set<string>>(new Set());
-  const handlePinToggle = (compName: string) => {
+  const handlePinToggle = useCallback((compName: string) => {
     setPinnedCompNames(prev => {
       const newSet = new Set(prev);
       if (newSet.has(compName)) newSet.delete(compName);
       else newSet.add(compName);
       return newSet;
     });
-  };
+  }, []);
+
+  const handleImport = useCallback((comp: MetaComp) => {
+    console.log('Importing comp:', comp.compName);
+  }, []);
+
+  const handleOverlayToggle = useCallback((comp: MetaComp) => {
+    console.log('Toggling overlay for comp:', comp.compName);
+  }, []);
 
   useEffect(() => {
     fetch('./metaComps.json')
@@ -158,6 +166,8 @@ export function Dashboard() {
               comp={comp}
               isPinned={pinnedCompNames.has(comp.compName)}
               onPinToggle={handlePinToggle}
+              onImport={handleImport}
+              onOverlayToggle={handleOverlayToggle}
             />
           ))}
         {filtered.length === 0 && (
