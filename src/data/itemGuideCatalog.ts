@@ -3,6 +3,7 @@ import emblemsJson from "./itemGuideEmblems.json"
 import artifactsJson from "./itemGuideArtifacts.json"
 import animaJson from "./itemGuideAnima.json"
 import divineJson from "./itemGuideDivine.json"
+import itemGuideCdnIconUrls from "./itemGuideCdnIconUrls.json"
 import { EMBLEM_RECIPES, ITEM_RECIPES, PSIONIC_ITEMS } from "./items"
 
 export type ItemGuideCategory = "core" | "emblem" | "psionic" | "artifact" | "divine" | "anima"
@@ -20,6 +21,9 @@ export interface ItemGuideEntry {
   /** Community Dragon PNG when loaded from `cdragon/tft` sync */
   iconUrl?: string
 }
+
+type ItemGuideCdnIconUrls = Record<string, string>
+const CDN_GUIDE_ITEM_ICONS = itemGuideCdnIconUrls as ItemGuideCdnIconUrls
 
 type RawRow = { name: string; stats: string; effect: string }
 
@@ -153,7 +157,7 @@ function buildCatalog(): ItemGuideEntry[] {
     tags: ["divine", "anima"],
     tier: "S",
     bestOn: [],
-    iconSlug: "AnimaEmblem",
+    ...(CDN_GUIDE_ITEM_ICONS[r.name] ? { iconUrl: CDN_GUIDE_ITEM_ICONS[r.name] } : {}),
   }))
 
   const anima: ItemGuideEntry[] = (animaJson as RawRow[]).map((r) => ({
@@ -165,7 +169,7 @@ function buildCatalog(): ItemGuideEntry[] {
     tags: ["anima"],
     tier: "A",
     bestOn: [],
-    iconSlug: "AnimaEmblem",
+    ...(CDN_GUIDE_ITEM_ICONS[r.name] ? { iconUrl: CDN_GUIDE_ITEM_ICONS[r.name] } : {}),
   }))
 
   const artifacts: ItemGuideEntry[] = (artifactsJson as RawRow[]).map((r) => ({
@@ -177,7 +181,7 @@ function buildCatalog(): ItemGuideEntry[] {
     tags: ["artifact"],
     tier: "A",
     bestOn: [],
-    iconSlug: "NeedlesslyLargeRod",
+    ...(CDN_GUIDE_ITEM_ICONS[r.name] ? { iconUrl: CDN_GUIDE_ITEM_ICONS[r.name] } : {}),
   }))
 
   return [...core, ...emblems, ...psionic, ...divine, ...artifacts, ...anima]

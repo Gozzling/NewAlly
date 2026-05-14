@@ -17,7 +17,7 @@
   {
     "name": "Blacksmith's Gloves",
     "stats": "+200 Health",
-    "effect": "Each round: Equip 2 random Ornn Artifacts.\n\n[Consumes 3 item slots.]\n"
+    "effect": "Each round: Equip 2 random artifacts.\n\n[Consumes 3 item slots.]\n"
   },
   {
     "name": "Blighting Jewel",

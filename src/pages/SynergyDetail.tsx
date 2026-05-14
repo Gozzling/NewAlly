@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { UnitPortrait } from '@/components/UnitPortrait'
+import { displayThresholdEffect } from '@/utils/traitThresholdDisplay'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -93,7 +94,7 @@ export function SynergyDetail({ synergyId, onBack }: SynergyDetailProps) {
             }}
           >
             <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: C.muted, marginBottom: '12px' }}>Description</div>
-            <div style={{ fontSize: '14px', color: '#d1d5db', lineHeight: 1.6 }}>{synergy.description}</div>
+            <div style={{ fontSize: '14px', color: '#d1d5db', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{synergy.description}</div>
           </div>
 
           {/* Thresholds */}
@@ -118,9 +119,11 @@ export function SynergyDetail({ synergyId, onBack }: SynergyDetailProps) {
                     borderRadius: '8px',
                     fontSize: '13px',
                     color: C.accent,
+                    whiteSpace: 'pre-line',
                   }}
                 >
-                  <span style={{ fontWeight: 700 }}>{t.count}</span> — {t.effect}
+                  <span style={{ fontWeight: 700 }}>{t.count}</span> —{' '}
+                  {displayThresholdEffect(synergy.description, t.effect)}
                 </div>
               ))}
             </div>

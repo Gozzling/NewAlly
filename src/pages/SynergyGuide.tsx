@@ -9,6 +9,7 @@ import { traitPortraitUrls } from '@/utils/iconResolver'
 import { IconWithFallback } from '@/components/IconWithFallback'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { ReferenceDetailModal } from '@/components/ReferenceDetailModal'
+import { displayThresholdEffect } from '@/utils/traitThresholdDisplay'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -142,11 +143,10 @@ export function SynergyGuide({ query, setQuery, typeFilter, setTypeFilter, onSyn
         animation: 'contentEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.15s both',
       }}>
         <div className="grid grid-cols-2 gap-3">
-          {filtered.map((synergy, index) => (
+          {filtered.map((synergy) => (
             <SynergyCard
               key={synergy.id}
               synergy={synergy}
-              index={index}
               onClick={() => handleSynergyClick(synergy)}
             />
           ))}
@@ -163,12 +163,12 @@ export function SynergyGuide({ query, setQuery, typeFilter, setTypeFilter, onSyn
           to { opacity: 1; transform: translateX(0); }
         }
         @keyframes contentEnter {
-          from { opacity: 0; transform: translateX(20px); }
-          to { opacity: 1; transform: translateX(0); }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         @keyframes cardEnter {
-          from { opacity: 0; transform: translateY(12px) scale(0.98); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         @keyframes detailEnter {
           from { opacity: 0; transform: translateX(20px); }
@@ -196,29 +196,22 @@ export function SynergyGuide({ query, setQuery, typeFilter, setTypeFilter, onSyn
   )
 }
 
-function SynergyCard({ synergy, index, onClick }: { synergy: Synergy; index: number; onClick: () => void }) {
+function SynergyCard({ synergy, onClick }: { synergy: Synergy; onClick: () => void }) {
   const typeColors = TYPE_COLORS[synergy.type] ?? TYPE_COLORS.hybrid
   const traitUrls = traitPortraitUrls(synergy.name, synergy.iconUrl)
 
   return (
     <div
-      className="relative overflow-hidden cursor-pointer"
+      className="relative cursor-pointer overflow-hidden rounded-[10px] border border-solid border-ally-border bg-ally-card p-3 transition-[transform,border-color] duration-150 ease-out hover:-translate-y-px"
       style={{
-        background: C.surface,
-        border: `1px solid ${C.border}`,
-        borderRadius: '10px',
-        padding: '12px',
-        transition: 'all 0.15s ease',
-        animation: `cardEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1) ${index * 40}ms both`,
+        animation: 'cardEnter 0.22s ease-out both',
       }}
       onClick={onClick}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'var(--color-ally-accent)30'
-        e.currentTarget.style.transform = 'translateY(-1px)'
+        e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-ally-accent) 30%, transparent)'
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = C.border
-        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.borderColor = ''
       }}
     >
       {/* Trait Name + Type Badge */}
@@ -274,7 +267,7 @@ function SynergyCard({ synergy, index, onClick }: { synergy: Synergy; index: num
       </div>
 
       {/* Description */}
-      <div style={{ fontSize: '11px', color: '#555', lineHeight: '1.4' }}>
+      <div style={{ fontSize: '11px', color: '#555', lineHeight: '1.4', whiteSpace: 'pre-line' }}>
         {synergy.description}
       </div>
     </div>
@@ -386,7 +379,9 @@ function SynergyDetail({
               >
                 {threshold.count}
               </div>
-              <div style={{ fontSize: '13px', color: '#ccc' }}>{threshold.effect}</div>
+              <div style={{ fontSize: '13px', color: '#ccc', whiteSpace: 'pre-line' }}>
+                {displayThresholdEffect(synergy.description, threshold.effect)}
+              </div>
             </div>
           </div>
         ))}

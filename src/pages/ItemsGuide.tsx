@@ -229,11 +229,10 @@ export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter,
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-3">
-            {filtered.map((item, index) => (
+            {filtered.map((item) => (
               <ItemCard
                 key={item.name}
                 item={item}
-                index={index}
                 onClick={() => handleItemClick(item)}
               />
             ))}
@@ -251,12 +250,12 @@ export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter,
           to { opacity: 1; transform: translateX(0); }
         }
         @keyframes contentEnter {
-          from { opacity: 0; transform: translateX(20px); }
-          to { opacity: 1; transform: translateX(0); }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         @keyframes cardEnter {
-          from { opacity: 0; transform: translateY(12px) scale(0.98); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         @keyframes detailEnter {
           from { opacity: 0; transform: translateX(20px); }
@@ -291,28 +290,21 @@ export function ItemsGuide({ query, setQuery, categoryFilter, setCategoryFilter,
   )
 }
 
-function ItemCard({ item, index, onClick }: { item: ItemGuideEntry; index: number; onClick: () => void }) {
+function ItemCard({ item, onClick }: { item: ItemGuideEntry; onClick: () => void }) {
   const tierColors = TIER_COLORS[item.tier] ?? TIER_COLORS.C
 
   return (
     <div
-      className="relative overflow-hidden cursor-pointer"
+      className="relative cursor-pointer overflow-hidden rounded-[10px] border border-solid border-ally-border bg-ally-card p-3 transition-[transform,border-color] duration-150 ease-out hover:-translate-y-px"
       style={{
-        background: C.surface,
-        border: `1px solid ${C.border}`,
-        borderRadius: '10px',
-        padding: '12px',
-        transition: 'all 0.15s ease',
-        animation: `cardEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1) ${index * 40}ms both`,
+        animation: 'cardEnter 0.22s ease-out both',
       }}
       onClick={onClick}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = tierColors.hover
-        e.currentTarget.style.transform = 'translateY(-1px)'
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = C.border
-        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.borderColor = ''
       }}
     >
       {/* Tier Badge */}
@@ -349,7 +341,7 @@ function ItemCard({ item, index, onClick }: { item: ItemGuideEntry; index: numbe
       </div>
 
       {/* Effect */}
-      <div className="text-gray-400 text-xs line-clamp-2" style={{ lineHeight: '1.4' }}>
+      <div className="text-gray-400 text-xs line-clamp-2 whitespace-pre-line" style={{ lineHeight: '1.4' }}>
         {item.effect}
       </div>
 
@@ -477,7 +469,7 @@ function ItemDetail({
             ))}
           </div>
         ) : (
-          <div style={{ fontSize: '13px', color: '#888' }}>Ornn artifact, carousel drop, or Anima Squad reward (not crafted from components).</div>
+          <div style={{ fontSize: '13px', color: '#888' }}>Artifact — carousel, armory, or Anima reward (not crafted from components).</div>
         )}
       </div>
 
@@ -487,7 +479,7 @@ function ItemDetail({
           Effect
         </div>
         <div style={{ padding: '16px', borderRadius: '8px', background: C.surface, border: `1px solid ${C.border}` }}>
-          <div style={{ fontSize: '13px', color: '#ccc' }}>{item.effect}</div>
+          <div style={{ fontSize: '13px', color: '#ccc', whiteSpace: 'pre-line' }}>{item.effect}</div>
         </div>
       </div>
 

@@ -19,6 +19,7 @@ import { useCoachMatchHistory } from '@/hooks/useCoachMatchHistory'
 import { STATIC_META_VERSION } from '@/meta/tftCurrentSet'
 import { useAppStore } from '@/store/useAppStore'
 import { BUNDLED_SET_DATA } from '@/services/cdnDataService'
+import { displayThresholdEffect } from '@/utils/traitThresholdDisplay'
 import type { MetaComp } from '@/types/tft'
 import { AllySpinner } from '@/components/AllyLoading'
 
@@ -348,7 +349,14 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
       const syn = traitRoster.find(s => s.name === name)
       const active = !!syn?.thresholds.filter(t => count >= t.count).pop()
       const next   = syn?.thresholds.find(t => count < t.count)
-      return { name, count, active, next, effect: syn && count > 0 ? syn.thresholds.filter(t => count >= t.count).pop()?.effect : '' }
+      return {
+        name,
+        count,
+        active,
+        next,
+        traitDescription: syn?.description ?? "",
+        effect: syn && count > 0 ? syn.thresholds.filter((t) => count >= t.count).pop()?.effect ?? "" : "",
+      }
     }).sort((a, b) => (b.active ? 1 : 0) - (a.active ? 1 : 0))
   }, [allUnits, unitMap])
 
@@ -1063,7 +1071,11 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
                       }}>
                         <span>{t.name}</span>
                         <span style={{ opacity: 0.5 }}>{t.count}</span>
-                        {t.active && t.effect && <span style={{ opacity: 0.6, fontWeight: 400, fontSize: 9 }}>{t.effect}</span>}
+                        {t.active && t.effect && (
+                          <span style={{ opacity: 0.6, fontWeight: 400, fontSize: 9 }}>
+                            {displayThresholdEffect(t.traitDescription, t.effect)}
+                          </span>
+                        )}
                         {!t.active && t.next && <span style={{ opacity: 0.3, fontWeight: 400, fontSize: 9 }}>→ {t.next.count}</span>}
                       </div>
                     ))}

@@ -167,7 +167,7 @@ export function ItemDetail({ itemName, onBack, embedded = false }: ItemDetailPro
                 </div>
               </div>
             ) : (
-              <div style={{ fontSize: '13px', color: '#888', lineHeight: 1.5 }}>Ornn artifact, carousel drop, or Anima Squad reward — not built from the component grid.</div>
+              <div style={{ fontSize: '13px', color: '#888', lineHeight: 1.5 }}>Artifact — carousel, armory, or Anima reward — not built from the component grid.</div>
             )}
           </div>
 

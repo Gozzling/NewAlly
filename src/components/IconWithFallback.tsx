@@ -11,10 +11,12 @@ type IconWithFallbackProps = {
 
 export function IconWithFallback({ urls, alt = '', size, className, style, fallback }: IconWithFallbackProps) {
   const [index, setIndex] = useState(0)
+  /** Portrait helpers return a new array each render; only reset when URL list actually changes. */
+  const urlsKey = urls.join('\0')
 
   useEffect(() => {
     setIndex(0)
-  }, [urls])
+  }, [urlsKey])
 
   const src = urls[index]
   const isLast = index >= urls.length - 1

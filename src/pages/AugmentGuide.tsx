@@ -188,11 +188,10 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
         animation: 'contentEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.15s both',
       }}>
         <div className="grid grid-cols-2 gap-3">
-          {filtered.map((augment, index) => (
+          {filtered.map((augment) => (
             <AugmentCard
               key={augment.id}
               augment={augment}
-              index={index}
               onClick={() => handleAugmentClick(augment)}
             />
           ))}
@@ -209,12 +208,12 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
           to { opacity: 1; transform: translateX(0); }
         }
         @keyframes contentEnter {
-          from { opacity: 0; transform: translateX(20px); }
-          to { opacity: 1; transform: translateX(0); }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         @keyframes cardEnter {
-          from { opacity: 0; transform: translateY(12px) scale(0.98); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         @keyframes detailEnter {
           from { opacity: 0; transform: translateX(20px); }
@@ -242,31 +241,25 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
   )
 }
 
-function AugmentCard({ augment, index, onClick }: { augment: Augment; index: number; onClick: () => void }) {
+function AugmentCard({ augment, onClick }: { augment: Augment; onClick: () => void }) {
   const tierColors = TIER_COLORS[augment.tier] ?? TIER_COLORS.silver
+  const baseShadow = augment.tier === 'prismatic' ? tierColors.glow : 'none'
 
   return (
     <div
-      className="relative overflow-hidden cursor-pointer"
+      className="relative cursor-pointer overflow-hidden rounded-[10px] border border-solid border-ally-border bg-ally-card p-3 transition-[transform,border-color,box-shadow] duration-150 ease-out hover:scale-[1.01]"
       style={{
-        background: C.surface,
-        border: `1px solid ${C.border}`,
-        borderRadius: '10px',
-        padding: '12px',
-        transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
-        animation: `cardEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1) ${index * 40}ms both`,
-        boxShadow: augment.tier === 'prismatic' ? tierColors.glow : 'none',
+        animation: 'cardEnter 0.22s ease-out both',
+        boxShadow: baseShadow,
       }}
       onClick={onClick}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = tierColors.accent
         e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3)'
-        e.currentTarget.style.transform = 'scale(1.02)'
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = C.border
-        e.currentTarget.style.boxShadow = augment.tier === 'prismatic' ? tierColors.glow : 'none'
-        e.currentTarget.style.transform = 'scale(1)'
+        e.currentTarget.style.borderColor = ''
+        e.currentTarget.style.boxShadow = baseShadow
       }}
     >
       {/* Left Border Accent */}
@@ -304,7 +297,7 @@ function AugmentCard({ augment, index, onClick }: { augment: Augment; index: num
       </div>
 
       {/* Description */}
-      <div style={{ fontSize: '11px', color: '#555', lineHeight: '1.4', marginBottom: '8px', paddingLeft: '8px' }}>
+      <div style={{ fontSize: '11px', color: '#555', lineHeight: '1.4', marginBottom: '8px', paddingLeft: '8px', whiteSpace: 'pre-line' }}>
         {augment.description}
       </div>
 
@@ -416,7 +409,7 @@ function AugmentDetail({ augment, onBack, embedded = false }: { augment: Augment
           Description
         </div>
         <div style={{ padding: '16px', borderRadius: '8px', background: '#1a1a1a', border: '1px solid #2a2a2a' }}>
-          <div style={{ fontSize: '13px', color: '#ccc' }}>{augment.description}</div>
+          <div style={{ fontSize: '13px', color: '#ccc', whiteSpace: 'pre-line' }}>{augment.description}</div>
         </div>
       </div>
 
@@ -426,7 +419,7 @@ function AugmentDetail({ augment, onBack, embedded = false }: { augment: Augment
           Effect
         </div>
         <div style={{ padding: '16px', borderRadius: '8px', background: '#111827', border: '1px solid #16162a' }}>
-          <div style={{ fontSize: '13px', color: '#ccc' }}>{augment.effect}</div>
+          <div style={{ fontSize: '13px', color: '#ccc', whiteSpace: 'pre-line' }}>{augment.effect}</div>
         </div>
       </div>
 

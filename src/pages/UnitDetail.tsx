@@ -190,7 +190,7 @@ export function UnitDetail({ unitId, onBack }: UnitDetailProps) {
           >
             <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: C.muted, marginBottom: '12px' }}>Ability</div>
             <div style={{ fontSize: '18px', fontWeight: 700, color: C.accent, marginBottom: '8px' }}>{unit.ability.name}</div>
-            <div style={{ fontSize: '14px', color: '#d1d5db', lineHeight: 1.6, marginBottom: '8px' }}>{unit.ability.description}</div>
+            <div style={{ fontSize: '14px', color: '#d1d5db', lineHeight: 1.6, marginBottom: '8px', whiteSpace: 'pre-line' }}>{unit.ability.description}</div>
             <div style={{ fontSize: '13px', color: C.muted, fontStyle: 'italic' }}>{unit.ability.damage}</div>
           </div>
 

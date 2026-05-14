@@ -37,4 +37,39 @@ describe('formatTftText', () => {
     const effects = { TFT17_SpaceGroove_HealthRegen: 0.02 }
     expect(formatTftText(text, effects)).toBe('Regen: 2')
   })
+
+  it('should unwrap TFTKeyword and strip rules blocks', () => {
+    const text =
+      'Gain <TFTKeyword>Precision</TFTKeyword>.<br><br><rules>Recommended Roles: Marksman</rules><br>Deal damage.'
+    expect(formatTftText(text, {})).toBe('Gain Precision.\n\nDeal damage.')
+  })
+
+  it('should resolve {{TFT_Keyword_*}} to a short label when not in effects', () => {
+    const text = 'Bonus.<br><br>{{TFT_Keyword_Precision}}'
+    expect(formatTftText(text, {})).toBe('Bonus.\n\nPrecision')
+  })
+
+  it('should humanize {{TFT17_*}} state keys (e.g. The Groove)', () => {
+    const text = 'Enters {{TFT17_SpaceGroove_TheGroove}} for @GrooveDuration@ seconds.'
+    const effects = { GrooveDuration: 2.5 }
+    expect(formatTftText(text, effects)).toBe('Enters The Groove for 3 seconds.')
+  })
+
+  it('should strip set-only only-item loc keys', () => {
+    const text = 'Power.<br><br>{{TFT13_ChemBaronOnlyItem}}'
+    expect(formatTftText(text, {})).toBe('Power.')
+  })
+
+  it('should unwrap magicDamage and remove empty scale parens', () => {
+    const text =
+      'Snip for <magicDamage>@ModifiedDamage@ (%i:scaleAP%)</magicDamage> magic damage.'
+    const effects = { ModifiedDamage: 200 }
+    expect(formatTftText(text, effects)).toBe('Snip for 200 magic damage.')
+  })
+
+  it('should round non-percent effect numbers to whole (half-up)', () => {
+    expect(formatTftText('Wait @Sec@s.', { Sec: 2.4 })).toBe('Wait 2s.')
+    expect(formatTftText('Wait @Sec@s.', { Sec: 2.5 })).toBe('Wait 3s.')
+    expect(formatTftText('Bonus @N@.', { N: 10.6 })).toBe('Bonus 11.')
+  })
 })

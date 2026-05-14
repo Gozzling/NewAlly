@@ -12,6 +12,7 @@
     "data:item-icons": "node scripts/download-item-icons.mjs",
     "data:icons": "node scripts/download-unit-icons.mjs && node scripts/download-item-icons.mjs",
     "data:tft-cd": "node scripts/download-tft-community-dragon.mjs",
+    "data:item-guide-cdn-icons": "node scripts/generate-item-guide-cdn-icon-urls.mjs",
     "data:list-cd-augments": "node scripts/list-cd-augments-set17.mjs",
     "data:tft-riot-sync": "node scripts/generate-tft-from-riot.mjs"
   },

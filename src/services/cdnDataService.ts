@@ -15,7 +15,7 @@ const DB_NAME = "tft-ally-cache"
 const STORE_NAME = "set-data"
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000
 /** Bump when cached payload shape / decoding logic changes (forces miss on first read). */
-const CACHE_KEY = "current-set-v4"
+const CACHE_KEY = "current-set-v10"
 
 export type Item = ItemGuideEntry
 
@@ -43,24 +43,132 @@ function flattenEffectMap(effects: unknown): Record<string, number | string> {
   return out
 }
 
+/** Nearest whole number for UI (fractional part ≥ 0.5 rounds up). */
+function roundTftWhole(n: number): number {
+  if (!Number.isFinite(n)) return n
+  return Math.round(n)
+}
+
 function formatEffectDisplayValue(key: string, v: number | string): string {
   if (typeof v === "string") return v
   const k = key.toLowerCase()
   if ((k.includes("percent") || k.includes("pct") || k.endsWith("ratio") || k.includes("increase")) && v > 0 && v <= 1) {
-    return `${Math.round(v * 100)}%`
+    return `${roundTftWhole(v * 100)}%`
   }
-  return String(v)
+  return String(roundTftWhole(v))
 }
 
-/** Strip HTML then substitute `@EffectKey@` from Riot `effects` objects (cdragon tft items/augments). */
+/** Title-case words for loc-key fallbacks (e.g. `precision` → `Precision`). */
+function titleCaseWords(s: string): string {
+  return s
+    .split(/\s+/)
+    .map((w) => (w.length === 0 ? "" : w[0].toUpperCase() + w.slice(1).toLowerCase()))
+    .filter(Boolean)
+    .join(" ")
+}
+
+/** Split CamelCase / snake into spaced words, then title-case. */
+function humanizeLocFragment(raw: string): string {
+  const spaced = raw.replace(/_/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2")
+  return titleCaseWords(spaced.trim())
+}
+
+/**
+ * Riot `{{TFT_*}}` loc references — not in `effects`; drop set-only junk, otherwise short label from key tail.
+ */
+function humanizeDoubleBraceKey(key: string): string {
+  const k = key.trim()
+  if (!k) return ""
+  if (/onlyitem$/i.test(k) || /_only_/i.test(k)) return ""
+  if (/^TFT_Keyword_/i.test(k)) return humanizeLocFragment(k.replace(/^TFT_Keyword_/i, ""))
+  const stripped = k.replace(/^TFT\d+_/i, "")
+  const parts = stripped.split("_").filter(Boolean)
+  const last = parts[parts.length - 1] || stripped
+  return humanizeLocFragment(last)
+}
+
+const TFT_UNWRAP_TAGS = [
+  "TFTKeyword",
+  "TFTRadiantItemBonus",
+  "spellPassive",
+  "spellActive",
+  "magicDamage",
+  "physicalDamage",
+  "trueDamage",
+  "scaleShimmer",
+  "scaleHealth",
+  "scaleShield",
+  "scaleArmor",
+  "scaleMR",
+  "scaleMana",
+  "scaleAttackSpeed",
+  "scaleAP",
+  "scaleAD",
+  "size",
+  "status",
+  "spellName",
+  "spellSubName",
+] as const
+
+function stripTftRulesBlocks(s: string): string {
+  return s.replace(/<rules\b[^>]*>[\s\S]*?<\/rules>/gi, "")
+}
+
+/** Unwrap known paired Riot rich-text tags (inner text keeps @ tokens for a later pass). */
+function unwrapKnownPairedTags(input: string): string {
+  let s = input
+  for (let i = 0; i < 14; i++) {
+    const prev = s
+    for (const tag of TFT_UNWRAP_TAGS) {
+      const re = new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)</${tag}>`, "gi")
+      s = s.replace(re, "$1")
+    }
+    if (s === prev) break
+  }
+  return s
+}
+
+function normalizeRowTags(s: string): string {
+  return s.replace(/<\/row>/gi, "\n").replace(/<row\b[^>]*>/gi, "\n")
+}
+
+function resolveDoubleBraces(s: string, map: Record<string, number | string>): string {
+  return s.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (_, inner: string) => {
+    const key = inner.trim()
+    if (Object.prototype.hasOwnProperty.call(map, key)) {
+      return formatEffectDisplayValue(key, map[key])
+    }
+    for (const [mk, mv] of Object.entries(map)) {
+      if (mk.toLowerCase() === key.toLowerCase()) return formatEffectDisplayValue(mk, mv)
+    }
+    return humanizeDoubleBraceKey(key)
+  })
+}
+
+/** Collapse horizontal space per line; keep paragraph breaks from `<br>`. */
+function finalizeTftWhitespace(s: string): string {
+  const lines = s.replace(/\r\n?/g, "\n").split("\n")
+  const out: string[] = []
+  for (const line of lines) {
+    const t = line.replace(/[ \t]+/g, " ").replace(/\s+,/g, ",").trim()
+    if (t.length > 0) out.push(t)
+  }
+  return out.join("\n\n").trim()
+}
+
+/** Strip HTML / Riot rich text, resolve `@Key@` and `{{loc}}`, preserve readable paragraphs. */
 export function formatTftText(raw: string | undefined | null, effects: unknown): string {
   let s = String(raw || "")
     .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/%i:[A-Za-z0-9_]+%/gi, "")
     .replace(/&nbsp;/gi, " ")
-    .replace(/\*\*/g, "")
+  s = stripTftRulesBlocks(s)
+  s = unwrapKnownPairedTags(s)
+  s = normalizeRowTags(s)
+  s = s.replace(/<[^>]+>/g, " ")
+  s = s.replace(/%i:[A-Za-z0-9_]+%/gi, "")
+  s = s.replace(/\*\*/g, "")
   const map = flattenEffectMap(effects)
+  s = resolveDoubleBraces(s, map)
   s = s.replace(/@([A-Za-z0-9_*.:]+)@/g, (_, token: string) => {
     let key = token
     let multiplier = 1
@@ -110,7 +218,9 @@ export function formatTftText(raw: string | undefined | null, effects: unknown):
     return ""
   })
   s = s.replace(/@([A-Za-z0-9_*.:]+)@/g, "")
-  return s.replace(/\s+/g, " ").trim()
+  while (/\(\s*\)/.test(s)) s = s.replace(/\(\s*\)/g, "")
+  s = s.replace(/\s+([.,;:!?])/g, "$1")
+  return finalizeTftWhitespace(s)
 }
 function traitVariableMap(tr: CDragonTrait): Record<string, unknown> {
   const out: Record<string, unknown> = {}
@@ -119,6 +229,75 @@ function traitVariableMap(tr: CDragonTrait): Record<string, unknown> {
     if (v && typeof v === "object" && !Array.isArray(v)) Object.assign(out, v)
   }
   return out
+}
+
+/** Human-readable summary from Riot per-threshold `variables` (matches style in bundled Bastion-style rows). */
+function formatTraitThresholdVariables(vars: Record<string, unknown> | undefined): string {
+  if (!vars || typeof vars !== "object" || Array.isArray(vars)) return ""
+  const skip = new Set(["MinUnits", "MaxUnits"])
+  const parts: string[] = []
+  for (const [rawKey, rawVal] of Object.entries(vars)) {
+    if (skip.has(rawKey)) continue
+    if (rawVal === null || rawVal === undefined) continue
+    if (typeof rawVal === "number") {
+      const lk = rawKey.toLowerCase()
+      const maybeRatio = rawVal > 0 && rawVal <= 1 && !lk.includes("duration") && !lk.includes("count")
+      const wantsPercent =
+        maybeRatio &&
+        (lk.includes("percent") ||
+          lk.includes("pct") ||
+          lk.includes("ratio") ||
+          lk.includes("multiplier") ||
+          lk.includes("bonus") ||
+          lk.includes("dr") ||
+          lk.includes("resist") ||
+          lk.includes("vamp") ||
+          lk.includes("crit") ||
+          lk.includes("speed") ||
+          lk.includes("heal"))
+      let display: string
+      if (wantsPercent) display = `${roundTftWhole(rawVal * 100)}%`
+      else display = String(roundTftWhole(rawVal))
+      parts.push(`${rawKey}: ${display}`)
+    } else if (typeof rawVal === "boolean") {
+      parts.push(`${rawKey}: ${rawVal ? "yes" : "no"}`)
+    } else if (typeof rawVal === "string" && rawVal.trim()) {
+      parts.push(`${rawKey}: ${rawVal.trim()}`)
+    } else if (Array.isArray(rawVal) && rawVal.length > 0 && rawVal.every((x) => typeof x === "number")) {
+      parts.push(`${rawKey}: ${rawVal.map((x) => roundTftWhole(x)).join("/")}`)
+    }
+  }
+  return parts.join(" · ")
+}
+
+function thresholdEffectLine(tr: CDragonTrait, e: CDragonTraitEffect): string {
+  const min = typeof e.minUnits === "number" ? e.minUnits : 0
+  const varMap = traitVariableMap(tr)
+  const tierVars =
+    e.variables && typeof e.variables === "object" && !Array.isArray(e.variables)
+      ? (e.variables as Record<string, unknown>)
+      : {}
+  const merged = { ...varMap, ...tierVars }
+
+  if (typeof e.description === "string" && e.description.trim()) {
+    const line = formatTftText(e.description, merged).trim()
+    if (line.length > 0) return line
+  }
+
+  const fromNumbers = formatTraitThresholdVariables(e.variables)
+  if (fromNumbers.length > 0) return fromNumbers
+
+  if (tr.desc) {
+    const globalParsed = formatTftText(tr.desc, varMap).trim()
+    const mergedParsed = formatTftText(tr.desc, merged).trim()
+    if (mergedParsed.length > 0 && mergedParsed !== globalParsed) return mergedParsed
+  }
+
+  if (min > 0) {
+    if (min === 1) return "Innate — details in the trait description above."
+    return `${min}+ units: unlock the next tier of this trait (details in the description above).`
+  }
+  return "See trait description above."
 }
 
 function normalizeStringList(raw: unknown): string[] {
@@ -155,9 +334,11 @@ function abilityDamagePreview(champ: CDragonChampion): string {
 
   const val = (dmgVar as any)?.value
   if (Array.isArray(val)) {
-    const filtered = val.filter(v => v !== 0)
-    return filtered.length > 0 ? filtered.join("/") : val.join("/")
+    const filtered = val.filter((v) => v !== 0)
+    const src = filtered.length > 0 ? filtered : val
+    return src.map((x: number) => roundTftWhole(Number(x))).join("/")
   }
+  if (typeof val === "number" && Number.isFinite(val)) return String(roundTftWhole(val))
   if (val != null) return String(val)
   return ""
 }
@@ -194,12 +375,21 @@ interface CDragonChampion {
   }
 }
 
+interface CDragonTraitEffect {
+  minUnits?: number
+  maxUnits?: number
+  style?: number
+  variables?: Record<string, unknown>
+  /** Some CD rows include a per-threshold blurb. */
+  description?: string
+}
+
 interface CDragonTrait {
   apiName?: string
   name?: string
   desc?: string
   icon?: string
-  effects?: Array<{ minUnits?: number; maxUnits?: number; style?: number; variables?: Record<string, unknown> }>
+  effects?: CDragonTraitEffect[]
 }
 
 interface CDragonItemRow {
@@ -342,32 +532,22 @@ export function transformTraits(setBlock: CDragonSetBlock): Synergy[] {
       .filter((e) => typeof e.minUnits === "number" && e.minUnits > 0)
       .map((e) => ({
         count: e.minUnits as number,
-        effect: e.variables ? formatTftText("Bonus (Tier @MinUnits@)", e.variables) : "Tier bonus (see trait description)",
+        effect: thresholdEffectLine(tr, e),
       }))
 
     if (thresholds.length === 0) {
-      thresholds.push({ count: 1, effect: "Innate (see description)" })
+      thresholds.push({ count: 1, effect: thresholdEffectLine(tr, { minUnits: 1 }) })
     }
 
     const iconUrl = cdGameAssetUrl(tr.icon)
     const varMap = traitVariableMap(tr)
     const description = formatTftText(tr.desc || tr.name, varMap)
 
-    // Better threshold effects if possible
-    const enhancedThresholds = thresholds.map((t, idx) => {
-        const effect = effects.find(e => e.minUnits === t.count)
-        if (effect && effect.variables) {
-            // Some sets have per-tier descriptions, but often it's just the main desc.
-            // For now we keep the default but allow for future expansion.
-        }
-        return t
-    })
-
     out.push({
       id: synId(tr.name),
       name: tr.name,
       description,
-      thresholds: enhancedThresholds,
+      thresholds,
       bestUnits: [],
       bestComps: [],
       counters: [],
@@ -398,7 +578,7 @@ export function transformItems(setItemApis: string[], itemsByApi: Map<string, CD
         for (const [k, v] of Object.entries(row.effects)) {
             if (typeof v === 'number' && v !== 0) {
                 const humanKey = k.replace(/([A-Z])/g, ' $1').trim()
-                const displayVal = v > 0 && v <= 1 ? `${Math.round(v * 100)}%` : v
+                const displayVal = v > 0 && v <= 1 ? `${roundTftWhole(v * 100)}%` : roundTftWhole(v)
                 statsList.push(`${humanKey}: ${displayVal}`)
             }
         }
