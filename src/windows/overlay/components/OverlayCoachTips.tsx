@@ -131,7 +131,7 @@ export function OverlayCoachTips() {
 
   return (
     <div className="pointer-events-none select-none">
-      <div className="space-y-1.5 rounded-xl border border-ally-border bg-ally-card/95 p-2.5 shadow-card backdrop-blur-sm">
+      <div className="bg-ally-card/90 border border-ally-border rounded-lg p-2 space-y-1.5 shadow-card">
         <button
           type="button"
           onClick={() => setExpanded((e) => !e)}

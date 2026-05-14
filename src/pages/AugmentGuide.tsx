@@ -431,6 +431,7 @@ function AugmentDetail({ augment, onBack, embedded = false }: { augment: Augment
       </div>
 
       {/* Stats Cards */}
+      {augment.winRate > 0 ? (
       <div className="grid grid-cols-3 gap-3 mb-8">
         {[
           { label: 'Win Rate', value: `${augment.winRate}%`, color: augment.winRate > 52 ? '#22c55e' : augment.winRate < 50 ? '#ef4444' : '#fbbf24' },
@@ -452,6 +453,11 @@ function AugmentDetail({ augment, onBack, embedded = false }: { augment: Augment
           </div>
         ))}
       </div>
+      ) : (
+        <div style={{ marginBottom: '32px', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', fontSize: '12px', color: '#666', textAlign: 'center' }}>
+          Real-time stats currently unavailable for this augment.
+        </div>
+      )}
 
       {/* Best Comps */}
       <div style={{ marginBottom: '32px' }}>

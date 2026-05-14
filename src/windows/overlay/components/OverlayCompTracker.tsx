@@ -12,9 +12,9 @@ export function OverlayCompTracker() {
   }, [activeComp])
 
   if (!comp) return (
-    <div className="rounded-xl border border-ally-border bg-ally-card/95 p-2.5 text-center shadow-card backdrop-blur-sm">
-      <div className="text-caption font-display font-bold uppercase tracking-wider text-ally-muted">No comp detected</div>
-      <div className="mt-0.5 text-[9px] text-ally-muted/70">Place units on board</div>
+    <div className="bg-ally-card/90 border border-ally-border rounded-lg p-2 text-center shadow-card">
+      <div className="text-caption text-ally-muted font-display uppercase tracking-wider">No comp detected</div>
+      <div className="text-[9px] text-ally-muted/60 mt-0.5">Place units on board</div>
     </div>
   )
 
@@ -22,7 +22,7 @@ export function OverlayCompTracker() {
   const matchPct = activeComp?.matchPercentage || 0
 
   return (
-    <div className="space-y-1.5 rounded-xl border border-ally-border bg-ally-card/95 p-2.5 shadow-card backdrop-blur-sm">
+    <div className="bg-ally-card/90 border border-ally-border rounded-lg p-2 space-y-1.5 shadow-card">
       <div className="flex items-center gap-1.5">
         <Target className="w-3 h-3 text-ally-accent" />
         <span className="text-caption font-bold text-ally-text font-display uppercase tracking-wide truncate">{comp.compName}</span>

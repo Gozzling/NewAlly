@@ -164,6 +164,14 @@ export function UnitDetail({ unitId, onBack }: UnitDetailProps) {
                 <div style={{ fontSize: '24px', fontWeight: 700, color: C.text }}>{unit.stats.atkSpeed}</div>
                 <div style={{ fontSize: '11px', color: C.muted, marginTop: '4px' }}>AS</div>
               </div>
+              <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                <div style={{ fontSize: '24px', fontWeight: 700, color: C.text }}>{unit.stats.armor}/{unit.stats.mr}</div>
+                <div style={{ fontSize: '11px', color: C.muted, marginTop: '4px' }}>Armor/MR</div>
+              </div>
+              <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                <div style={{ fontSize: '24px', fontWeight: 700, color: C.text }}>{unit.stats.range}</div>
+                <div style={{ fontSize: '11px', color: C.muted, marginTop: '4px' }}>Range</div>
+              </div>
             </div>
           </div>
         </div>
