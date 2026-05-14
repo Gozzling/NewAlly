@@ -1,4 +1,10 @@
-import { riotPlatformFetch, riotRegionalFetch, jsonResponse, errorResponse } from "../_shared/riot.ts";
+import {
+  riotPlatformFetch,
+  riotRegionalFetch,
+  jsonResponse,
+  errorResponse,
+  validateMatchId,
+} from "../_shared/riot.ts";
 
 interface Summoner {
   puuid: string;
@@ -47,26 +53,6 @@ interface ParsedMatch {
   gameLength: number;
 }
 
-function regionToContinent(region: string): string {
-  switch (region.toLowerCase()) {
-    case "br1":
-    case "la1":
-    case "la2":
-    case "na1":
-      return "americas";
-    case "eun1":
-    case "euw1":
-    case "tr1":
-    case "ru":
-      return "europe";
-    case "jp1":
-    case "kr":
-      return "asia";
-    default:
-      return "sea";
-  }
-}
-
 function normalizeCompName(traits: Participant["traits"]): string {
   const active = traits
     .filter((t) => t.style > 0)
@@ -95,8 +81,8 @@ Deno.serve(async (req: Request) => {
     const region = String(body.region ?? "euw1").toLowerCase();
     const count = Math.min(Math.max(Number(body.count ?? 20), 1), 50);
 
-    if (!name) {
-      return jsonResponse({ error: "Missing 'name'", code: "BAD_REQUEST" }, 400);
+    if (!name || name.length > 16) {
+      return jsonResponse({ error: "Invalid 'name'", code: "BAD_REQUEST" }, 400);
     }
 
     // 1. Resolve summoner
@@ -106,7 +92,6 @@ Deno.serve(async (req: Request) => {
     );
 
     // 2. Fetch match IDs
-    const continent = regionToContinent(region);
     const matchIds = await riotRegionalFetch<string[]>(
       region,
       `/tft/match/v1/matches/by-puuid/${encodeURIComponent(summoner.puuid)}/ids?count=${count}`,
@@ -116,6 +101,7 @@ Deno.serve(async (req: Request) => {
     const matches: ParsedMatch[] = [];
     for (const matchId of matchIds) {
       try {
+        validateMatchId(matchId);
         const detail = await riotRegionalFetch<MatchDetail>(
           region,
           `/tft/match/v1/matches/${encodeURIComponent(matchId)}`,

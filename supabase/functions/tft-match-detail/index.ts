@@ -1,4 +1,9 @@
-import { riotRegionalFetch, jsonResponse, errorResponse } from "../_shared/riot.ts";
+import {
+  riotRegionalFetch,
+  jsonResponse,
+  errorResponse,
+  validateMatchId,
+} from "../_shared/riot.ts";
 
 // GET /tft/match/v1/matches/{matchId}
 Deno.serve(async (req: Request) => {
@@ -18,9 +23,7 @@ Deno.serve(async (req: Request) => {
     const matchId = String(body.matchId ?? "").trim();
     const region = String(body.region ?? "euw1").toLowerCase();
 
-    if (!matchId) {
-      return jsonResponse({ error: "Missing 'matchId'", code: "BAD_REQUEST" }, 400);
-    }
+    validateMatchId(matchId);
 
     const data = await riotRegionalFetch(
       region,
