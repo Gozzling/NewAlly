@@ -1,6 +1,5 @@
 import { unitIconSlug } from "@/utils/unitDisplay"
 import { encodePublicIconFilename } from "@/utils/publicAssetUrl"
-import { CURRENT_TFT_SET_NUMBER } from "@/meta/tftCurrentSet"
 
 const CD_BASE = "https://raw.communitydragon.org/latest/game"
 
@@ -19,22 +18,10 @@ export function cdGameAssetUrl(assetPath: string | undefined | null): string | u
   return `${CD_BASE}/assets/${urlPath}`.replace(/\.tex$/i, ".png")
 }
 
-const traitSlug = (traitName: string) => traitName.toLowerCase().replace(/[^a-z0-9]/g, "")
-
-/**
- * Community Dragon trait filenames vary (`trait_icon_17_foo.tft_set17.png`, `trait_icon_foo.png`, …).
- * Try several patterns when {@link Synergy.iconUrl} from game data is missing.
- */
-export function traitIconFallbackUrls(traitName: string): string[] {
-  const slug = traitSlug(traitName)
-  if (!slug) return []
-  const n = CURRENT_TFT_SET_NUMBER
-  return [
-    `${CD_BASE}/assets/ux/traiticons/trait_icon_${n}_${slug}.tft_set${n}.png`,
-    `${CD_BASE}/assets/ux/traiticons/trait_icon_${slug}.tft_set${n}.png`,
-    `${CD_BASE}/assets/ux/traiticons/trait_icon_${n}_${slug}.png`,
-    `${CD_BASE}/assets/ux/traiticons/trait_icon_${slug}.png`,
-  ]
+/** TFT trait art (slug may not match Riot internal filenames for every trait). */
+export function traitIconUrl(traitName: string): string {
+  const slug = traitName.toLowerCase().replace(/[^a-z0-9]/g, "")
+  return `${CD_BASE}/assets/ux/traiticons/trait_icon_${slug}.tft_set17.png`
 }
 
 export function augmentIconUrl(augmentName: string): string {
@@ -52,21 +39,6 @@ export function itemIconUrl(itemName: string, iconSlug?: string): string {
   return `${CD_BASE}/assets/maps/particles/tft/item_icons/${slug}.png`
 }
 
-/** Extra CD paths — display-name slugs rarely match a single on-disk name for TFT items. */
-export function itemIconFallbackUrls(itemName: string, iconSlug?: string): string[] {
-  const base = iconSlug ?? itemName
-  const slug = base.toLowerCase().replace(/[^a-z0-9]/g, "")
-  if (!slug) return []
-  const set = CURRENT_TFT_SET_NUMBER
-  return [
-    `${CD_BASE}/assets/maps/particles/tft/item_icons/standard/tft_item_${slug}.png`,
-    `${CD_BASE}/assets/maps/particles/tft/item_icons/standard/${slug}.png`,
-    `${CD_BASE}/assets/maps/tft/icons/items/tft_item_${slug}.png`,
-    `${CD_BASE}/assets/maps/tft/icons/items/tft${set}_${slug}.png`,
-    `${CD_BASE}/assets/maps/tft/icons/items/${slug}.png`,
-  ]
-}
-
 /** Local roster squares (`public/unit-icons`, `.png` slugs via {@link unitIconSlug}). */
 export function unitIconUrl(unitName: string): string {
   return `/unit-icons/${encodePublicIconFilename(unitIconSlug(unitName))}.png`
@@ -74,6 +46,5 @@ export function unitIconUrl(unitName: string): string {
 
 export function unitSplashUrl(unitName: string): string {
   const slug = unitName.toLowerCase().replace(/[^a-z0-9]/g, "")
-  const n = CURRENT_TFT_SET_NUMBER
-  return `${CD_BASE}/assets/ux/tft/championsplashes/${slug}.tft_set${n}.png`
+  return `${CD_BASE}/assets/ux/tft/championsplashes/${slug}.tft_set17.png`
 }

@@ -56,8 +56,8 @@ const activeGuideComp = useAppStore((s) => s.activeGuideComp);
   )
 
   return (
-    <div className="space-y-2 rounded-xl border border-ally-border bg-ally-card/95 p-2.5 shadow-card backdrop-blur-sm">
-      <div className="flex items-center justify-between text-caption font-display font-semibold uppercase tracking-wider text-ally-muted">
+    <div className="bg-ally-card/90 border border-ally-border rounded-lg p-2 space-y-2 shadow-card">
+      <div className="flex items-center justify-between text-caption text-ally-muted uppercase tracking-wider font-display font-semibold">
         <div className="flex items-center gap-1">
           <Hammer className="w-3 h-3 text-ally-accent" />
           <span>Playing: {guideUnits.slice(0, 3).join(' + ')}</span>
@@ -92,7 +92,7 @@ const activeGuideComp = useAppStore((s) => s.activeGuideComp);
           </span>
           <div className="flex-1 h-1 bg-ally-bg rounded-pill overflow-hidden">
             <div
-              className="h-full rounded-pill bg-ally-accent shadow-accent"
+              className="h-full bg-ally-accent shadow-[0_0_8px_rgba(0,212,255,0.4)]"
               style={{
                 width: `${guideUnits.length > 0 ? (onBoardSet.size / guideUnits.length) * 100 : 0}%`,
               }}
@@ -125,8 +125,8 @@ const activeGuideComp = useAppStore((s) => s.activeGuideComp);
             return (
               <div
                 key={index}
-                className={`flex h-7 w-7 items-center justify-center rounded-sm border bg-ally-bg/50 font-display text-[10px] font-bold uppercase ${
-                  isGuideUnit ? 'border-ally-accent text-ally-accent shadow-accent' : 'border-ally-border text-ally-muted'
+                className={`flex items-center justify-center w-7 h-7 rounded-sm border bg-ally-bg/50 font-display font-bold text-[10px] uppercase ${
+                  isGuideUnit ? 'border-ally-accent text-ally-accent shadow-[inset_0_0_4px_rgba(0,212,255,0.2)]' : 'border-ally-border text-ally-muted'
                 }`}
               >
                 {unit.length > 2 ? unit.slice(0, 2) : unit}

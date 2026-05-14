@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 type IconWithFallbackProps = {
   urls: string[]
@@ -9,42 +9,30 @@ type IconWithFallbackProps = {
   fallback?: React.ReactNode
 }
 
-/** Stable identity for url list — callers often pass a fresh array each render (`urls={fn()})`). */
-function urlsKey(urls: string[]): string {
-  return urls.join('\0')
-}
-
 export function IconWithFallback({ urls, alt = '', size, className, style, fallback }: IconWithFallbackProps) {
-  const resolvedUrls = useMemo(
-    () => urls.filter((u): u is string => typeof u === 'string' && u.trim().length > 0),
-    [urlsKey(urls)],
-  )
-
   const [index, setIndex] = useState(0)
-  const key = urlsKey(resolvedUrls)
 
   useEffect(() => {
     setIndex(0)
-  }, [key])
+  }, [urls])
 
-  const src = resolvedUrls[index]
-  const isLast = index >= resolvedUrls.length - 1
+  const src = urls[index]
+  const isLast = index >= urls.length - 1
 
   const onError = useCallback(() => {
     if (!isLast) {
-      setIndex((i) => i + 1)
+      setIndex(i => i + 1)
     } else {
-      setIndex(resolvedUrls.length)
+      setIndex(urls.length)
     }
-  }, [isLast, resolvedUrls.length])
+  }, [isLast, urls.length])
 
-  if (index >= resolvedUrls.length || !src) {
+  if (index >= urls.length) {
     return <>{fallback ?? null}</>
   }
 
   return (
     <img
-      key={src}
       src={src}
       alt={alt}
       className={className}
@@ -52,7 +40,7 @@ export function IconWithFallback({ urls, alt = '', size, className, style, fallb
         width: size,
         height: size,
         objectFit: 'cover',
-        ...style,
+        ...style
       }}
       onError={onError}
     />
