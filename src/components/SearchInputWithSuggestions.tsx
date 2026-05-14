@@ -1,4 +1,6 @@
 import {
+  useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -58,7 +60,9 @@ export function SearchInputWithSuggestions({
   prependWhenEmpty = false,
   ...inputProps
 }: SearchInputWithSuggestionsProps) {
+  const componentId = useId()
   const [open, setOpen] = useState(false)
+  const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const suggestions = useMemo(() => {
@@ -86,16 +90,32 @@ export function SearchInputWithSuggestions({
   ])
 
   const groupedSuggestions = useMemo(() => {
-    const groups: Record<string, { icon?: string; suggestions: SearchSuggestion[] }> = {}
-    for (const s of suggestions) {
+    const groups: Record<
+      string,
+      { icon?: string; suggestions: (SearchSuggestion & { globalIndex: number })[] }
+    > = {}
+    suggestions.forEach((s, globalIndex) => {
       const groupName = s.group || suggestionKindLabel(s.kind)
       if (!groups[groupName]) {
         groups[groupName] = { icon: s.groupIcon, suggestions: [] }
       }
-      groups[groupName].suggestions.push(s)
-    }
+      groups[groupName].suggestions.push({ ...s, globalIndex })
+    })
     return groups
   }, [suggestions])
+
+  useEffect(() => {
+    setHighlightedIndex(-1)
+  }, [suggestions, open])
+
+  useEffect(() => {
+    if (highlightedIndex >= 0 && open) {
+      const el = document.getElementById(`${componentId}-suggestion-${highlightedIndex}`)
+      if (el) {
+        el.scrollIntoView({ block: 'nearest', behavior: 'auto' })
+      }
+    }
+  }, [highlightedIndex, open, componentId])
 
   const showList = open && suggestions.length > 0
 
@@ -132,7 +152,26 @@ export function SearchInputWithSuggestions({
           inputProps.onBlur?.(e)
         }}
         onKeyDown={(e) => {
-          if (e.key === 'Escape') setOpen(false)
+          if (e.key === 'Escape') {
+            setOpen(false)
+          } else if (e.key === 'ArrowDown') {
+            if (!showList) {
+              setOpen(true)
+            } else {
+              setHighlightedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : prev))
+            }
+            e.preventDefault()
+          } else if (e.key === 'ArrowUp') {
+            if (showList) {
+              setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : -1))
+            }
+            e.preventDefault()
+          } else if (e.key === 'Enter') {
+            if (showList && highlightedIndex >= 0) {
+              pick(suggestions[highlightedIndex])
+              e.preventDefault()
+            }
+          }
           inputProps.onKeyDown?.(e)
         }}
         className={inputClassName}
@@ -140,11 +179,17 @@ export function SearchInputWithSuggestions({
         role="combobox"
         aria-expanded={showList}
         aria-autocomplete="list"
+        aria-controls={`${componentId}-suggestions-list`}
+        aria-activedescendant={
+          highlightedIndex >= 0 ? `${componentId}-suggestion-${highlightedIndex}` : undefined
+        }
       />
       {showList && (
         <div
+          id={`${componentId}-suggestions-list`}
           className="absolute left-0 right-0 top-full z-50 mt-1 max-h-[400px] overflow-y-auto rounded-lg border border-ally-border bg-ally-bg/95 p-1 shadow-2xl backdrop-blur-md animate-ally-dropdown-in"
           style={{ zIndex: listZIndex }}
+          role="listbox"
         >
           {Object.entries(groupedSuggestions).map(([groupName, { icon, suggestions: groupItems }]) => (
             <div key={groupName} className="mb-2 last:mb-0">
@@ -153,24 +198,52 @@ export function SearchInputWithSuggestions({
                 <span>{groupName}</span>
                 <div className="h-px flex-1 bg-ally-accent/20" />
               </div>
-              <ul role="listbox">
+              <ul>
                 {groupItems.map((s) => (
-                  <li key={`${s.kind}:${s.id}:${s.label}`} role="option">
+                  <li
+                    key={`${s.kind}:${s.id}:${s.label}`}
+                    id={`${componentId}-suggestion-${s.globalIndex}`}
+                    role="option"
+                    aria-selected={s.globalIndex === highlightedIndex}
+                  >
                     <button
                       type="button"
-                      className="group flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left transition-colors hover:bg-ally-accent/10"
+                      className={`group flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left transition-colors ${
+                        s.globalIndex === highlightedIndex
+                          ? 'bg-ally-accent/20'
+                          : 'hover:bg-ally-accent/10'
+                      }`}
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => pick(s)}
+                      onMouseEnter={() => setHighlightedIndex(s.globalIndex)}
                     >
-                      <div className="flex h-6 w-6 items-center justify-center rounded bg-ally-card text-xs group-hover:bg-ally-accent group-hover:text-black transition-colors">
+                      <div
+                        className={`flex h-6 w-6 items-center justify-center rounded bg-ally-card text-xs transition-colors ${
+                          s.globalIndex === highlightedIndex
+                            ? 'bg-ally-accent text-black'
+                            : 'group-hover:bg-ally-accent group-hover:text-black'
+                        }`}
+                      >
                         {icon || '•'}
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[13px] font-medium text-white group-hover:text-ally-accent">
+                        <span
+                          className={`text-[13px] font-medium transition-colors ${
+                            s.globalIndex === highlightedIndex
+                              ? 'text-ally-accent'
+                              : 'text-white group-hover:text-ally-accent'
+                          }`}
+                        >
                           {s.label}
                         </span>
                         {s.group && (
-                          <span className="text-[9px] uppercase tracking-tighter text-ally-muted group-hover:text-ally-accent/70">
+                          <span
+                            className={`text-[9px] uppercase tracking-tighter transition-colors ${
+                              s.globalIndex === highlightedIndex
+                                ? 'text-ally-accent/70'
+                                : 'text-ally-muted group-hover:text-ally-accent/70'
+                            }`}
+                          >
                             {suggestionKindLabel(s.kind)}
                           </span>
                         )}
