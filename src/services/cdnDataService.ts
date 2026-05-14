@@ -61,27 +61,57 @@ export function formatTftText(raw: string | undefined | null, effects: unknown):
     .replace(/&nbsp;/gi, " ")
     .replace(/\*\*/g, "")
   const map = flattenEffectMap(effects)
-  s = s.replace(/@([A-Za-z0-9_]+)@/g, (_, key: string) => {
+  s = s.replace(/@([A-Za-z0-9_*.:]+)@/g, (_, token: string) => {
+    let key = token
+    let multiplier = 1
+
+    if (key.includes("*")) {
+      const parts = key.split("*")
+      key = parts[0]
+      multiplier = parseFloat(parts[1]) || 1
+    }
+
+    if (key.includes(":")) {
+      key = key.split(":").pop() || key
+    }
+
+    // Fallback for suffix 100/10 if exact key not found
+    if (!Object.prototype.hasOwnProperty.call(map, key)) {
+      const m = key.match(/(\d+)$/)
+      if (m) {
+        const suffix = m[1]
+        if (suffix === "100" || suffix === "10") {
+          const stem = key.slice(0, -suffix.length)
+          if (Object.prototype.hasOwnProperty.call(map, stem)) {
+            key = stem
+            multiplier = parseFloat(suffix)
+          }
+        }
+      }
+    }
+
     const tryKeys = [key, key.replace(/_TOOLTIPONLY$/i, ""), key.replace(/_TOOLTIP$/i, "")]
     for (const tk of tryKeys) {
       if (Object.prototype.hasOwnProperty.call(map, tk)) {
         const v = map[tk]
-        return v === undefined ? "" : formatEffectDisplayValue(tk, v)
+        if (v === undefined) return ""
+        const numericVal = typeof v === "number" ? v * multiplier : v
+        return formatEffectDisplayValue(tk, numericVal)
       }
     }
+
     const lower = key.toLowerCase()
     for (const [mk, mv] of Object.entries(map)) {
-      if (mk.toLowerCase() === lower) return formatEffectDisplayValue(mk, mv)
-      const mShort = mk.toLowerCase().replace(/_tooltiponly$/i, "")
-      const kShort = lower.replace(/_tooltiponly$/i, "")
-      if (mShort === kShort) return formatEffectDisplayValue(mk, mv)
+      if (mk.toLowerCase() === lower || mk.toLowerCase().replace(/_tooltiponly$/i, "") === lower.replace(/_tooltiponly$/i, "")) {
+        const numericVal = typeof mv === "number" ? mv * multiplier : mv
+        return formatEffectDisplayValue(mk, numericVal)
+      }
     }
     return ""
   })
-  s = s.replace(/@([A-Za-z0-9_]+)@/g, "")
+  s = s.replace(/@([A-Za-z0-9_*.:]+)@/g, "")
   return s.replace(/\s+/g, " ").trim()
 }
-
 function traitVariableMap(tr: CDragonTrait): Record<string, unknown> {
   const out: Record<string, unknown> = {}
   for (const e of tr.effects || []) {
