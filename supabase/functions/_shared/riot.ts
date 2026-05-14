@@ -41,6 +41,15 @@ export function validatePuuid(puuid: string): void {
   }
 }
 
+export function validateMatchId(matchId: string): void {
+  if (!matchId || matchId.length < 5 || matchId.length > 64) {
+    throw new RiotError("Invalid matchId length", "BAD_REQUEST", 400);
+  }
+  if (!/^[A-Z0-9_]+$/.test(matchId)) {
+    throw new RiotError("Invalid matchId format", "BAD_REQUEST", 400);
+  }
+}
+
 function regionToContinent(region: string): string {
   const r = region.toLowerCase();
   switch (r) {
