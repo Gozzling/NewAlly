@@ -5,7 +5,7 @@ import {
   validatePuuid,
 } from "../_shared/riot.ts";
 
-// GET /tft/league/v1/entries/by-summoner/{summonerId}
+// GET /tft/league/v1/entries/by-puuid/{puuid}
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -21,14 +21,14 @@ Deno.serve(async (req: Request) => {
   try {
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
 
-    const summonerId = String(body.summonerId ?? "").trim();
+    const puuid = String(body.puuid ?? body.summonerId ?? "").trim();
     const region = String(body.region ?? "euw1").toLowerCase();
 
-    validatePuuid(summonerId);
+    validatePuuid(puuid);
 
     const data = await riotPlatformFetch(
       region,
-      `/tft/league/v1/by-puuid/${encodeURIComponent(summonerId)}`,
+      `/tft/league/v1/entries/by-puuid/${encodeURIComponent(puuid)}`,
     );
 
     return jsonResponse(data);

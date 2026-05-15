@@ -100,8 +100,8 @@ export async function fetchSummonerByNameSupabase(name: string, region: RiotRegi
   return result
 }
 
-export async function fetchLeagueEntriesSupabase(summonerId: string, region: RiotRegion): Promise<LeagueEntry[]> {
-  return invoke<LeagueEntry[]>('tft-league', { summonerId, region })
+export async function fetchLeagueEntriesSupabase(puuid: string, region: RiotRegion): Promise<LeagueEntry[]> {
+  return invoke<LeagueEntry[]>('tft-league', { puuid, summonerId: puuid, region })
 }
 
 export async function fetchMatchIdsSupabase(

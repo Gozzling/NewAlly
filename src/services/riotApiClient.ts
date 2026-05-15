@@ -247,16 +247,16 @@ export async function fetchSummonerByName(name: string, region: RiotRegion, logF
   return data
 }
 
-export async function fetchLeagueEntries(summonerId: string, region: RiotRegion): Promise<LeagueEntry[]> {
-  const cacheKey = `league:${region}:${summonerId}`
+export async function fetchLeagueEntries(puuid: string, region: RiotRegion): Promise<LeagueEntry[]> {
+  const cacheKey = `league:${region}:${puuid}`
   const cached = getCache<LeagueEntry[]>(cacheKey)
   if (cached) {
     return cached
   }
 
   const data = await trySupabase(
-    () => fetchLeagueEntriesSupabase(summonerId, region),
-    () => riotFetch<LeagueEntry[]>(`/tft/league/v1/by-puuid/${summonerId}`, region),
+    () => fetchLeagueEntriesSupabase(puuid, region),
+    () => riotFetch<LeagueEntry[]>(`/tft/league/v1/entries/by-puuid/${encodeURIComponent(puuid)}`, region),
   )
   setCache(cacheKey, data, ONE_HOUR)
   return data
@@ -284,7 +284,7 @@ export async function fetchMatchIds(
   log(`[MH] fetchMatchIds URL: ${url}`)
 
   const data = await trySupabase(
-    () => fetchMatchIdsSupabase(puuid, riotRegion, count),
+    () => fetchMatchIdsSupabase(puuid, riotRegion, count, offset, log),
     async () => {
       log('[FALLBACK] Using direct Riot API')
       const fullUrl = `https://${matchRegion}.api.riotgames.com${url}`
