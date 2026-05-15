@@ -34,18 +34,26 @@ interface HistoryRow {
   items?: string[];
 }
 
-function canonicalUnitName(raw: string, champions: typeof BUNDLED_UNITS): string {
-  const u = champions.find((x) => unitMatchKey(x.name) === unitMatchKey(raw));
+/**
+ * Complexity: O(1) Map lookup.
+ * Replaces O(N) .find() for significant speedup when processing large match histories.
+ */
+function canonicalUnitName(raw: string, championMap: Map<string, (typeof BUNDLED_UNITS)[number]>): string {
+  const u = championMap.get(unitMatchKey(raw));
   return u?.name ?? raw;
 }
 
+/**
+ * Complexity: O(U) where U is number of units (constant ~8-10).
+ * Replaces O(U * C) where C is number of champions in set (~60).
+ */
 function traitCountsFromUnitNames(
   unitNames: string[],
-  champions: typeof BUNDLED_UNITS,
+  championMap: Map<string, (typeof BUNDLED_UNITS)[number]>,
 ): Record<string, number> {
   const c: Record<string, number> = {};
   for (const raw of unitNames) {
-    const u = champions.find((x) => unitMatchKey(x.name) === unitMatchKey(raw));
+    const u = championMap.get(unitMatchKey(raw));
     if (!u) continue;
     for (const t of u.traits) {
       c[t] = (c[t] ?? 0) + 1;
@@ -79,53 +87,11 @@ function mapToPerformance(m: Map<string, number[]>): Record<string, HistoryPerfo
   return out;
 }
 
-function buildTraitThresholdHistory(
-  slice: HistoryRow[],
-  champions: typeof BUNDLED_UNITS,
-  traitRoster: typeof BUNDLED_SYNERGIES,
-): PlayerMatchHistorySummary["traitThresholdHistory"] {
-  type Acc = { games: number; top4: number; placementSum: number; placementN: number };
-  const buckets = new Map<string, Acc>();
-
-  for (const m of slice) {
-    const units = m.units ?? [];
-    if (units.length === 0) continue;
-    const p = m.placement;
-    if (p < 1) continue;
-    const counts = traitCountsFromUnitNames(units, champions);
-    const isTop4 = p <= 4;
-
-    for (const [traitName, cnt] of Object.entries(counts)) {
-      const syn = traitRoster.find((s) => s.name === traitName);
-      if (!syn) continue;
-      for (const th of syn.thresholds) {
-        if (cnt >= th.count) {
-          const key = `${traitName}:${th.count}`;
-          let acc = buckets.get(key);
-          if (!acc) {
-            acc = { games: 0, top4: 0, placementSum: 0, placementN: 0 };
-            buckets.set(key, acc);
-          }
-          acc.games += 1;
-          if (isTop4) acc.top4 += 1;
-          acc.placementSum += p;
-          acc.placementN += 1;
-        }
-      }
-    }
-  }
-
-  const out: PlayerMatchHistorySummary["traitThresholdHistory"] = {};
-  for (const [key, acc] of buckets.entries()) {
-    out[key] = {
-      games: acc.games,
-      top4Rate: acc.games > 0 ? acc.top4 / acc.games : null,
-      avgPlacement: acc.placementN > 0 ? acc.placementSum / acc.placementN : null,
-    };
-  }
-  return out;
-}
-
+/**
+ * Complexity: O(M * U) where M = match history size, U = units/match (~8).
+ * Optimized from O(M * U * C) where C = champion roster size (~60) by using Map lookups.
+ * Also performs only a single pass over the match history (O(M)).
+ */
 function aggregateHistoryRows(
   sortedSlice: HistoryRow[],
   contextData?: { champions?: typeof BUNDLED_UNITS; traits?: typeof BUNDLED_SYNERGIES },
@@ -137,6 +103,13 @@ function aggregateHistoryRows(
 
   const champions = contextData?.champions ?? BUNDLED_UNITS;
   const traitRoster = contextData?.traits ?? BUNDLED_SYNERGIES;
+
+  /** Pre-build lookup maps for O(1) complexity within the match iteration loop. */
+  const championMap = new Map<string, (typeof BUNDLED_UNITS)[number]>();
+  for (const c of champions) championMap.set(unitMatchKey(c.name), c);
+
+  const traitMap = new Map<string, (typeof BUNDLED_SYNERGIES)[number]>();
+  for (const t of traitRoster) traitMap.set(t.name, t);
 
   const placements = sortedSlice.map((m) => m.placement).filter((p) => p > 0);
   const avgPlacement = placements.length > 0 ? placements.reduce((a, b) => a + b, 0) / placements.length : null;
@@ -150,26 +123,55 @@ function aggregateHistoryRows(
   const itemPlacements = new Map<string, number[]>();
   const itemsByCompFrequency: Record<string, Record<string, number>> = {};
 
+  /**
+   * Merged logic from buildTraitThresholdHistory to eliminate a redundant full pass
+   * over the match history.
+   */
+  type ThresholdAcc = { games: number; top4: number; placementSum: number; placementN: number };
+  const thresholdBuckets = new Map<string, ThresholdAcc>();
+
   for (const m of sortedSlice) {
+    const p = m.placement;
+    if (p < 1) continue;
+    const isTop4 = p <= 4;
+
     const c = m.comp?.trim() || null;
     if (c) {
       compFrequency[c] = (compFrequency[c] ?? 0) + 1;
-      pushPlacement(compPlacements, c, m.placement);
+      pushPlacement(compPlacements, c, p);
     }
 
-    const traitCounts = traitCountsFromUnitNames(m.units, champions);
-    for (const traitName of Object.keys(traitCounts)) {
-      if (traitCounts[traitName]! > 0) {
-        pushPlacement(traitPlacements, traitName, m.placement);
+    const traitCounts = traitCountsFromUnitNames(m.units, championMap);
+    for (const [traitName, cnt] of Object.entries(traitCounts)) {
+      if (cnt > 0) {
+        pushPlacement(traitPlacements, traitName, p);
+      }
+
+      // Update trait threshold stats (previously in buildTraitThresholdHistory)
+      const syn = traitMap.get(traitName);
+      if (!syn) continue;
+      for (const th of syn.thresholds) {
+        if (cnt >= th.count) {
+          const key = `${traitName}:${th.count}`;
+          let acc = thresholdBuckets.get(key);
+          if (!acc) {
+            acc = { games: 0, top4: 0, placementSum: 0, placementN: 0 };
+            thresholdBuckets.set(key, acc);
+          }
+          acc.games += 1;
+          if (isTop4) acc.top4 += 1;
+          acc.placementSum += p;
+          acc.placementN += 1;
+        }
       }
     }
 
     const seenUnits = new Set<string>();
     for (const raw of m.units) {
-      const name = canonicalUnitName(raw, champions);
+      const name = canonicalUnitName(raw, championMap);
       if (seenUnits.has(name)) continue;
       seenUnits.add(name);
-      pushPlacement(unitPlacements, name, m.placement);
+      pushPlacement(unitPlacements, name, p);
     }
 
     const compBucket = c ?? "—";
@@ -204,13 +206,23 @@ function aggregateHistoryRows(
     })
     .sort((a, b) => b.playCount - a.playCount || a.avgPlace - b.avgPlace);
 
+  /** Finalize trait threshold history from accumulated buckets. */
+  const traitThresholdHistory: PlayerMatchHistorySummary["traitThresholdHistory"] = {};
+  for (const [key, acc] of thresholdBuckets.entries()) {
+    traitThresholdHistory[key] = {
+      games: acc.games,
+      top4Rate: acc.games > 0 ? acc.top4 / acc.games : null,
+      avgPlacement: acc.placementN > 0 ? acc.placementSum / acc.placementN : null,
+    };
+  }
+
   return {
     windowSize: n,
     avgPlacement,
     top4Rate,
     favoriteComp,
     compFrequency,
-    traitThresholdHistory: buildTraitThresholdHistory(sortedSlice, champions, traitRoster),
+    traitThresholdHistory,
     recentPlacements: placements.slice(0, 20),
     traitPerformance: mapToPerformance(traitPlacements),
     unitPerformance: mapToPerformance(unitPlacements),
