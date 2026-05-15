@@ -4,6 +4,7 @@ import {
   jsonResponse,
   errorResponse,
   validateRiotId,
+  validateRegion,
 } from "../_shared/riot.ts";
 
 Deno.serve(async (req: Request) => {
@@ -22,7 +23,7 @@ Deno.serve(async (req: Request) => {
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
     let gameName = String(body.gameName ?? "").trim();
     let tagLine  = String(body.tagLine  ?? "").trim();
-    const region = String(body.region ?? "euw1").toLowerCase();
+    const region = validateRegion(String(body.region ?? "euw1"));
 
     // Support combined "GameName#TagLine" in 'name' field
     if (!gameName && body.name) {
@@ -41,7 +42,7 @@ Deno.serve(async (req: Request) => {
     // Step 1: resolve GameName#TagLine → PUUID via Riot Account API
     const account   = await riotAccountFetch(region, gameName, tagLine);
     // Step 2: get summoner record by PUUID
-    const summoner  = await riotPlatformFetch(region, `/tft/summoner/v1/summoners/by-puuid/${account.puuid}`);
+    const summoner  = await riotPlatformFetch(region, `/tft/summoner/v1/summoners/by-puuid/${encodeURIComponent(account.puuid)}`);
 
     return jsonResponse({
       id:            summoner.id,

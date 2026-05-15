@@ -50,6 +50,22 @@ export function validateMatchId(matchId: string): void {
   }
 }
 
+export function validateCount(count: unknown): number {
+  const c = Number(count ?? 20);
+  if (isNaN(c) || c < 1 || c > 100) {
+    throw new RiotError("Invalid count (1-100 required)", "BAD_REQUEST", 400);
+  }
+  return c;
+}
+
+export function validateOffset(offset: unknown): number {
+  const o = Number(offset ?? 0);
+  if (isNaN(o) || o < 0) {
+    throw new RiotError("Invalid offset (>= 0 required)", "BAD_REQUEST", 400);
+  }
+  return o;
+}
+
 function regionToContinent(region: string): string {
   const r = region.toLowerCase();
   switch (r) {
@@ -159,20 +175,11 @@ export async function riotPlatformFetchOrNull<T>(
   if (res.status === 404) return null;
   if (res.status === 429) throw new RiotError("Rate limited by Riot", "RATE_LIMIT", 429);
   if (res.status === 403) {
-    const hint = (await res.text().catch(() => "")).slice(0, 280);
-    throw new RiotError(
-      hint ? `Forbidden (403): ${hint}` : "Forbidden (403): invalid key or product not allowed (e.g. spectator)",
-      "FORBIDDEN",
-      403,
-    );
+    // Avoid returning raw API body (hints) to the client to prevent info leakage
+    throw new RiotError("Forbidden (403): invalid key or product not allowed", "FORBIDDEN", 403);
   }
   if (!res.ok) {
-    const hint = (await res.text().catch(() => "")).slice(0, 280);
-    throw new RiotError(
-      hint ? `Riot API error ${res.status}: ${hint}` : `Riot API error ${res.status}`,
-      "API_ERROR",
-      res.status,
-    );
+    throw new RiotError(`Riot API error ${res.status}`, "API_ERROR", res.status);
   }
 
   const text = await res.text();
@@ -225,6 +232,7 @@ export function errorResponse(err: unknown): Response {
       err.status >= 500 ? 502 : err.status,
     );
   }
-  const message = err instanceof Error ? err.message : "Unknown error";
-  return jsonResponse({ error: message, code: "INTERNAL_ERROR" }, 500);
+  // Generic error for non-Riot exceptions to prevent info leakage
+  console.error("[INTERNAL_ERROR]", err);
+  return jsonResponse({ error: "Internal server error", code: "INTERNAL_ERROR" }, 500);
 }
