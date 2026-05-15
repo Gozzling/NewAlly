@@ -33,6 +33,7 @@ export const CompCard = memo(function CompCard({ comp, isPinned, onPinToggle, on
     <div className="w-full bg-ally-card border border-ally-border rounded-xl overflow-hidden shadow-card hover:shadow-cardHover transition-all duration-300">
       <button
         onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
         className="w-full flex items-center gap-4 p-4 text-left hover:bg-ally-hover transition-colors"
       >
         <span className={`px-2 py-0.5 rounded text-caption font-bold border font-display uppercase tracking-wider ${tierCls}`}>
@@ -58,6 +59,7 @@ export const CompCard = memo(function CompCard({ comp, isPinned, onPinToggle, on
           <button
             onClick={(e) => { e.stopPropagation(); onPinToggle?.(comp.compName); }}
             title={isPinned ? "Unpin comp" : "Pin comp"}
+            aria-label={isPinned ? "Unpin comp" : "Pin comp"}
             className="text-ally-muted hover:text-ally-accent transition-colors p-1"
           >
             {isPinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
@@ -65,6 +67,7 @@ export const CompCard = memo(function CompCard({ comp, isPinned, onPinToggle, on
           <button
             onClick={(e) => { e.stopPropagation(); onImport?.(comp); }}
             title="Import to team builder"
+            aria-label="Import to team builder"
             className="text-ally-muted hover:text-ally-accent transition-colors p-1"
           >
             <FilePlus className="w-4 h-4" />
@@ -72,6 +75,7 @@ export const CompCard = memo(function CompCard({ comp, isPinned, onPinToggle, on
           <button
             onClick={(e) => { e.stopPropagation(); onOverlayToggle?.(comp); }}
             title="Display on overlay"
+            aria-label="Display on overlay"
             className="text-ally-muted hover:text-ally-accent transition-colors p-1"
           >
             <Monitor className="w-4 h-4" />
