@@ -4,6 +4,7 @@ import {
   jsonResponse,
   errorResponse,
   validateRiotId,
+  validateRegion,
 } from "../_shared/riot.ts";
 
 Deno.serve(async (req: Request) => {
@@ -22,7 +23,7 @@ Deno.serve(async (req: Request) => {
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
     let gameName = String(body.gameName ?? "").trim();
     let tagLine  = String(body.tagLine  ?? "").trim();
-    const region = String(body.region ?? "euw1").toLowerCase();
+    const region = validateRegion(String(body.region ?? "euw1"));
 
     if (!gameName && body.name) {
       const combined = String(body.name).trim();
@@ -40,7 +41,7 @@ Deno.serve(async (req: Request) => {
     const account = await riotAccountFetch(region, gameName, tagLine);
     const summoner = await riotPlatformFetch<{
       puuid: string; summonerLevel: number; profileIconId: number
-    }>(region, `/tft/summoner/v1/summoners/by-puuid/${account.puuid}`);
+    }>(region, `/tft/summoner/v1/summoners/by-puuid/${encodeURIComponent(account.puuid)}`);
 
     return jsonResponse({
       name:          `${account.gameName}#${account.tagLine}`,

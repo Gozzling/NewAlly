@@ -1,9 +1,13 @@
 import {
   riotPlatformFetch,
   riotRegionalFetch,
+  riotAccountFetch,
   jsonResponse,
   errorResponse,
+  validateRegion,
+  validateRiotId,
   validateMatchId,
+  validateCount,
 } from "../_shared/riot.ts";
 
 interface Summoner {
@@ -77,24 +81,32 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
-    const name = String(body.name ?? "").trim();
-    const region = String(body.region ?? "euw1").toLowerCase();
-    const count = Math.min(Math.max(Number(body.count ?? 20), 1), 50);
+    let gameName = String(body.gameName ?? "").trim();
+    let tagLine  = String(body.tagLine  ?? "").trim();
+    const region = validateRegion(String(body.region ?? "euw1"));
+    const count  = validateCount(body.count ?? 20);
 
-    if (!name || name.length > 16) {
-      return jsonResponse({ error: "Invalid 'name'", code: "BAD_REQUEST" }, 400);
+    // Support combined "GameName#TagLine" in 'name' field
+    if (!gameName && body.name) {
+      const combined = String(body.name).trim();
+      const hashIdx  = combined.lastIndexOf('#');
+      if (hashIdx === -1) {
+        gameName = combined;
+      } else {
+        gameName = combined.slice(0, hashIdx);
+        tagLine  = combined.slice(hashIdx + 1);
+      }
     }
 
-    // 1. Resolve summoner
-    const summoner = await riotPlatformFetch<Summoner>(
-      region,
-      `/tft/summoner/v1/summoners/by-name/${encodeURIComponent(name)}`,
-    );
+    validateRiotId(gameName, tagLine);
 
-    // 2. Fetch match IDs
+    // 1. Resolve GameName#TagLine → PUUID via Riot Account API
+    const account = await riotAccountFetch(region, gameName, tagLine);
+
+    // 2. Fetch match IDs by PUUID
     const matchIds = await riotRegionalFetch<string[]>(
       region,
-      `/tft/match/v1/matches/by-puuid/${encodeURIComponent(summoner.puuid)}/ids?count=${count}`,
+      `/tft/match/v1/matches/by-puuid/${encodeURIComponent(account.puuid)}/ids?count=${count}`,
     );
 
     // 3. Batch fetch match details (sequentially to respect rate limit)
