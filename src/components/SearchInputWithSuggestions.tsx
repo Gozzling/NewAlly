@@ -9,6 +9,7 @@ import {
   type ReactNode,
   type Ref,
 } from 'react'
+import { X } from 'lucide-react'
 import type { SearchSuggestion, SearchSuggestionKind } from '@/utils/searchSuggestions'
 import {
   filterSearchSuggestions,
@@ -153,7 +154,15 @@ export function SearchInputWithSuggestions({
         }}
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
-            setOpen(false)
+            if (showList) {
+              setOpen(false)
+              e.preventDefault()
+              e.stopPropagation()
+            } else if (value) {
+              onChange('')
+              e.preventDefault()
+              e.stopPropagation()
+            }
           } else if (e.key === 'ArrowDown') {
             if (!showList) {
               setOpen(true)
@@ -174,7 +183,7 @@ export function SearchInputWithSuggestions({
           }
           inputProps.onKeyDown?.(e)
         }}
-        className={inputClassName}
+        className={`${inputClassName} ${value ? 'pr-9' : ''}`}
         style={inputStyle}
         role="combobox"
         aria-expanded={showList}
@@ -184,6 +193,16 @@ export function SearchInputWithSuggestions({
           highlightedIndex >= 0 ? `${componentId}-suggestion-${highlightedIndex}` : undefined
         }
       />
+      {value && (
+        <button
+          type="button"
+          onClick={() => onChange('')}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-ally-muted hover:text-white transition-colors"
+          aria-label="Clear search"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
       {showList && (
         <div
           id={`${componentId}-suggestions-list`}
