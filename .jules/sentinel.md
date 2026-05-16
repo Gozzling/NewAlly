@@ -7,3 +7,8 @@
 **Vulnerability:** Missing validation for Match IDs in proxy functions. Malformed match IDs could potentially be used for path traversal or internal API probing if passed unsanitized to the Riot API regional endpoints.
 **Learning:** Shared validation logic should be as granular as possible. Centralizing `validateMatchId` alongside `validatePuuid` and `validateRegion` ensures consistent safety across all match-related edge functions.
 **Prevention:** Always validate all parameters influencing downstream API requests, even if they are intermediary results (like match IDs returned from another API call), to maintain defense-in-depth.
+
+## 2026-05-14 - Sanitizing Proxy Error Responses to Prevent Info Leakage
+**Vulnerability:** Information leakage through Riot API response 'hints' and raw internal error messages. Proxy functions were returning raw `res.text()` from Riot 403/non-OK responses and `err.message` for internal errors, which could expose API key status, account details, or stack traces.
+**Learning:** Proxy layers must strictly control the surface area of error messages. Even "helpful" hints from upstream APIs can be a security risk if they contain implementation details or secrets. Centralizing error formatting in a shared utility ensures consistency.
+**Prevention:** Never pass raw upstream response bodies or internal error messages directly to the client. Use a whitelist of safe error messages or genericize them based on status codes.

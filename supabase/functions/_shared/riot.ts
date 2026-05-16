@@ -159,17 +159,15 @@ export async function riotPlatformFetchOrNull<T>(
   if (res.status === 404) return null;
   if (res.status === 429) throw new RiotError("Rate limited by Riot", "RATE_LIMIT", 429);
   if (res.status === 403) {
-    const hint = (await res.text().catch(() => "")).slice(0, 280);
     throw new RiotError(
-      hint ? `Forbidden (403): ${hint}` : "Forbidden (403): invalid key or product not allowed (e.g. spectator)",
+      "Forbidden (403): invalid key or product not allowed",
       "FORBIDDEN",
       403,
     );
   }
   if (!res.ok) {
-    const hint = (await res.text().catch(() => "")).slice(0, 280);
     throw new RiotError(
-      hint ? `Riot API error ${res.status}: ${hint}` : `Riot API error ${res.status}`,
+      `Riot API error ${res.status}`,
       "API_ERROR",
       res.status,
     );
@@ -220,11 +218,13 @@ export function jsonResponse(data: unknown, status = 200): Response {
 
 export function errorResponse(err: unknown): Response {
   if (err instanceof RiotError) {
+    // For 5xx errors from Riot, don't leak the raw message to the client
+    const message = err.status >= 500 ? "Internal Riot API Error" : err.message;
     return jsonResponse(
-      { error: err.message, code: err.code },
+      { error: message, code: err.code },
       err.status >= 500 ? 502 : err.status,
     );
   }
-  const message = err instanceof Error ? err.message : "Unknown error";
-  return jsonResponse({ error: message, code: "INTERNAL_ERROR" }, 500);
+  // For unexpected internal errors, return a generic message
+  return jsonResponse({ error: "An unexpected error occurred", code: "INTERNAL_ERROR" }, 500);
 }
