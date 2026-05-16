@@ -1,3 +1,0 @@
-## 2025-05-15 - Memoization of Heavy UI Cards
-**Learning:** Even when documentation or memory suggests components are memoized, they might not be in the actual source code. Heavy components like `CompCard` and `StatCard` that are rendered in lists (e.g., in `Dashboard.tsx`) cause significant performance degradation during state updates (like typing in a search box) if not wrapped in `React.memo`. Furthermore, `React.memo` is only effective if all props, including event handlers, maintain stable references using `useCallback`.
-**Action:** Always verify memoization in the source code for list items. When applying `React.memo`, ensure parent components use `useCallback` for all passed functions.
