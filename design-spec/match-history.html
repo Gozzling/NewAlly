@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=900" />
+  <title>TFT Ally — Match History design spec (900px)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /*
+      Chromium 91-safe: hex + rgba(var(--*-rgb), a). No oklch / color-mix.
+      Structural surfaces flat; shimmer only on .sk stripes.
+      Match History extends home/shell tokens + adds row / unit-slot / trait-gold primitives.
+    */
+    :root {
+      --color-ally-bg: #181818;
+      --color-ally-card: #1f1f1f;
+      --color-ally-accent: #35c3e7;
+      --color-ally-accent-rgb: 53, 195, 231;
+      --color-ally-text: #ffffff;
+      --color-ally-text-dim: #e0e0e0;
+      --color-ally-muted: #a1a1a1;
+      --color-ally-border: #2a2a2a;
+      --color-ally-hover: #252525;
+
+      --color-surface-depth-0: var(--color-ally-bg);
+      --color-surface-depth-1: var(--color-ally-card);
+      --color-surface-depth-2: #242424;
+
+      --color-ally-accent-soft: rgba(var(--color-ally-accent-rgb), 0.10);
+      --color-ally-accent-muted: rgba(var(--color-ally-accent-rgb), 0.18);
+      --color-ally-accent-border: rgba(var(--color-ally-accent-rgb), 0.28);
+      --color-ally-accent-glow: rgba(var(--color-ally-accent-rgb), 0.35);
+      --focus-ring: 0 0 0 1px rgba(var(--color-ally-accent-rgb), 0.45);
+
+      --color-placement-first: #d4a520;
+      --color-placement-first-rgb: 212, 165, 32;
+      --color-placement-top4: #10b981;
+      --color-placement-top4-rgb: 16, 185, 129;
+      --color-placement-bot4: #dc2626;
+      --color-placement-bot4-rgb: 220, 38, 38;
+
+      /* Unit slot cost rings — muted neutrals so they never read as placement green/red */
+      --color-unit-cost-1-border: #4b5563;
+      --color-unit-cost-2-border: #64748b;
+      --color-unit-cost-3-border: #71717a;
+      --color-unit-cost-4-border: #a16207;
+      --color-unit-cost-5-border-rgb: 212, 165, 32;
+
+      --font-display: "Chakra Petch", "Rajdhani", sans-serif;
+      --font-body: "Manrope", system-ui, sans-serif;
+      --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+      --text-display: 1.375rem;
+      --text-title: 1.125rem;
+      --text-body: 0.8125rem;
+      --text-caption: 0.6875rem;
+      --text-mono: 0.75rem;
+
+      --shell-width: 900px;
+      --topbar-height: 44px;
+      --rail-width: 52px;
+      --right-sidebar-width: 200px;
+
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-pill: 999px;
+      --border-hairline: 1px solid var(--color-ally-border);
+      --border-focus: 1px solid var(--color-ally-accent-border);
+
+      --motion-skeleton-duration: 1.15s;
+      --motion-skeleton-ease: linear;
+
+      --color-trait-bronze-fg: #d4a574;
+      --color-trait-bronze-bg: rgba(180, 120, 60, 0.15);
+      --color-trait-bronze-border: rgba(180, 120, 60, 0.35);
+      --color-trait-silver-fg: #c8d0d8;
+      --color-trait-silver-bg: rgba(180, 190, 200, 0.12);
+      --color-trait-silver-border: rgba(180, 190, 200, 0.35);
+      --color-trait-gold-fg: #e7c547;
+      --color-trait-gold-bg: rgba(200, 160, 40, 0.14);
+      --color-trait-gold-border: rgba(212, 175, 55, 0.42);
+      --color-trait-prismatic-fg: #c4b5fd;
+      --color-trait-prismatic-bg: rgba(167, 139, 250, 0.12);
+      --color-trait-prismatic-border: rgba(139, 92, 246, 0.4);
+      --color-danger-soft: #f87171;
+
+      --color-alert-bg: rgba(var(--color-placement-bot4-rgb), 0.10);
+      --color-alert-border: rgba(var(--color-placement-bot4-rgb), 0.40);
+
+      --color-shell-backdrop: #0d0d0d;
+      --color-spec-toolbar-bg: #111111;
+      --color-spec-toolbar-border: #333333;
+
+      --color-match-selected-bg: rgba(var(--color-ally-accent-rgb), 0.08);
+      --color-match-selected-border: rgba(var(--color-ally-accent-rgb), 0.35);
+
+      /*
+        LP history line chart (Mobalytics-style ladder blotter reference):
+        Data plane only — ladder zone tint + dashed promotion line live inside SVG defs.
+      */
+      --color-lp-history-line: var(--color-ally-accent);
+      --color-lp-history-marker-ring: var(--color-surface-depth-2);
+      --color-lp-history-grid-strong: rgba(255, 255, 255, 0.08);
+      --color-lp-history-grid-faint: rgba(255, 255, 255, 0.05);
+      --color-lp-history-axis-muted-rgb: 113, 147, 156;
+      --color-lp-history-tier-upper-fg: var(--color-placement-top4);
+      /* Legacy aliases for any remaining blotter glyphs */
+      --color-lp-chart-gain: var(--color-placement-top4);
+      --color-lp-chart-loss: var(--color-placement-bot4);
+      --color-lp-chart-loss-soft: rgba(var(--color-placement-bot4-rgb), 0.45);
+      --color-lp-chart-grid: var(--color-lp-history-grid-faint);
+      --color-lp-chart-zero: rgba(255, 255, 255, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      line-height: 1.45;
+      color: var(--color-ally-text);
+      background: var(--color-shell-backdrop);
+    }
+
+    .spec-toolbar {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--color-ally-muted);
+      background: var(--color-spec-toolbar-bg);
+      border-bottom: 1px solid var(--color-spec-toolbar-border);
+      padding: var(--space-2) var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+    }
+    .spec-toolbar strong { color: var(--color-ally-text-dim); }
+    .spec-toolbar label { display: inline-flex; align-items: center; gap: var(--space-1); cursor: pointer; user-select: none; }
+    .spec-toolbar input { accent-color: var(--color-ally-accent); }
+
+    .app-frame {
+      width: var(--shell-width);
+      max-width: 100%;
+      margin: 0 auto;
+      background: var(--color-surface-depth-0);
+      border: 1px solid var(--color-ally-border);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: var(--topbar-height);
+      min-height: var(--topbar-height);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 0 var(--space-3) 0 var(--space-2);
+      background: var(--color-surface-depth-1);
+      border-bottom: var(--border-hairline);
+      flex-shrink: 0;
+    }
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 0 var(--space-2);
+      flex-shrink: 0;
+    }
+    .topbar-logo-mark {
+      width: 26px;
+      height: 26px;
+      border-radius: var(--radius-sm);
+      border: var(--border-focus);
+      background: var(--color-surface-depth-0);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 12px var(--color-ally-accent-glow);
+    }
+    .topbar-logo-mark svg { width: 14px; height: 14px; fill: var(--color-ally-accent); }
+    .topbar-logo-type {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .topbar-search {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      height: 30px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(var(--color-ally-accent-rgb), 0.22);
+      background: var(--color-surface-depth-0);
+      padding: 0 var(--space-3);
+      gap: var(--space-2);
+    }
+    .topbar-search svg { flex-shrink: 0; opacity: 0.55; }
+    .topbar-search input {
+      flex: 1;
+      min-width: 0;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--color-ally-text);
+      font-family: var(--font-body);
+      font-size: 0.8125rem;
+    }
+    .topbar-search input::placeholder { color: var(--color-ally-muted); }
+    .topbar-search:focus-within { box-shadow: var(--focus-ring); }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .win-btn {
+      width: 36px;
+      height: 28px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--color-ally-muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+    .win-btn:hover { background: var(--color-ally-hover); color: var(--color-ally-text); }
+    .win-btn.close:hover { background: rgba(var(--color-placement-bot4-rgb), 0.2); color: var(--color-danger-soft); }
+
+    .shell-body {
+      display: flex;
+      min-height: 560px;
+      height: min(720px, calc(100vh - 120px));
+    }
+
+    .rail {
+      width: var(--rail-width);
+      flex-shrink: 0;
+      background: var(--color-surface-depth-1);
+      border-right: var(--border-hairline);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--space-2) 0;
+      gap: var(--space-1);
+    }
+    .rail-btn {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: var(--radius-md);
+      background: transparent;
+      color: var(--color-ally-muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+    .rail-btn:hover { background: var(--color-ally-hover); color: var(--color-ally-text-dim); }
+    .rail-btn.active {
+      background: var(--color-surface-depth-0);
+      color: var(--color-ally-accent);
+      border: var(--border-focus);
+      box-shadow: inset 0 0 12px var(--color-ally-accent-soft);
+    }
+    .rail-btn svg { width: 22px; height: 22px; }
+
+    .main-scroll {
+      flex: 1;
+      min-width: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: var(--color-surface-depth-0);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(var(--color-ally-accent-rgb), 0.35) var(--color-surface-depth-1);
+    }
+    .main-scroll::-webkit-scrollbar { width: 6px; }
+    .main-scroll::-webkit-scrollbar-track { background: var(--color-surface-depth-1); }
+    .main-scroll::-webkit-scrollbar-thumb {
+      background: rgba(var(--color-ally-accent-rgb), 0.35);
+      border-radius: var(--radius-pill);
+    }
+
+    .main-inner {
+      padding: var(--space-4);
+      max-width: 100%;
+    }
+
+    .sidebar {
+      width: var(--right-sidebar-width);
+      flex-shrink: 0;
+      background: var(--color-surface-depth-1);
+      border-left: var(--border-hairline);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+
+    .page-header { margin-bottom: var(--space-4); }
+    .page-kicker {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-ally-muted);
+      margin-bottom: var(--space-1);
+    }
+    .page-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: var(--text-display);
+      letter-spacing: 0.02em;
+      line-height: 1.15;
+      margin: 0 0 var(--space-2);
+    }
+    .page-sub {
+      margin: 0;
+      font-size: 0.8125rem;
+      color: var(--color-ally-muted);
+      max-width: 60ch;
+    }
+
+    .tab-row {
+      display: flex;
+      gap: var(--space-1);
+      border-bottom: var(--border-hairline);
+      margin-top: var(--space-2);
+      flex-wrap: wrap;
+    }
+    .tab {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      padding: var(--space-2) var(--space-3);
+      border: none;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      background: transparent;
+      color: var(--color-ally-muted);
+      cursor: pointer;
+      margin-bottom: -1px;
+    }
+    .tab:hover { color: var(--color-ally-text-dim); background: var(--color-ally-hover); }
+    .tab[aria-selected="true"] {
+      color: var(--color-ally-accent);
+      background: var(--color-surface-depth-2);
+      border: var(--border-hairline);
+      border-bottom-color: var(--color-surface-depth-2);
+    }
+
+    .tab-panel { display: none; margin-top: var(--space-4); }
+    .tab-panel.is-active { display: block; }
+
+    .toolbar-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      align-items: center;
+      margin-bottom: var(--space-4);
+      min-width: 0;
+    }
+    .toolbar-meta {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--color-ally-muted);
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .seg {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      display: inline-flex;
+      gap: var(--space-1);
+      flex-shrink: 0;
+    }
+    .seg-btn {
+      padding: 5px var(--space-3);
+      border-radius: var(--radius-sm);
+      border: var(--border-hairline);
+      background: var(--color-surface-depth-1);
+      color: var(--color-ally-muted);
+      cursor: pointer;
+    }
+    .seg-btn:hover { color: var(--color-ally-text-dim); border-color: rgba(var(--color-ally-accent-rgb), 0.28); }
+    .seg-btn[aria-pressed="true"] {
+      color: var(--color-ally-accent);
+      border-color: var(--color-ally-accent-border);
+      background: rgba(var(--color-ally-accent-rgb), 0.10);
+      box-shadow: inset 0 0 10px rgba(var(--color-ally-accent-rgb), 0.08);
+    }
+
+    .stat-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-2);
+      margin-bottom: var(--space-4);
+    }
+    .stat-cell {
+      background: var(--color-surface-depth-1);
+      border: var(--border-hairline);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+      min-width: 0;
+    }
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--color-ally-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: var(--space-1);
+    }
+    .stat-value {
+      font-family: var(--font-display);
+      font-size: 1.1875rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      word-break: break-word;
+    }
+    .stat-delta {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      margin-top: var(--space-1);
+    }
+    .stat-delta.pos { color: var(--color-placement-top4); }
+    .stat-delta.neg { color: var(--color-placement-bot4); }
+    .stat-delta.flat { color: var(--color-ally-muted); }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-3);
+      margin-bottom: var(--space-2);
+    }
+    .section-head h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: var(--text-title);
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+    .section-head span {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--color-ally-muted);
+      text-align: right;
+    }
+    .section-rule {
+      height: 1px;
+      background: var(--color-ally-border);
+      margin-bottom: var(--space-3);
+    }
+
+    /*
+      MATCH ROW — rationale (inline w/ markup comments too):
+      - 648px usable: CSS grid pins placement + LP edges; comp line ellipsizes; traits/units wrap with 4px gutters.
+      - Left outcome rail reuses semantic placement colors (distinct from cyan accent).
+      - LP column right-aligned mono tabular for vertical scan — Bloomberg-style ledger read.
+    */
+    .match-stack { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); }
+
+    .match-card {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) 68px;
+      grid-template-rows: auto auto auto;
+      grid-template-areas:
+        "pl head lp"
+        "pl traits traits"
+        "pl units units";
+      column-gap: var(--space-3);
+      row-gap: var(--space-2);
+      align-items: start;
+      background: var(--color-surface-depth-1);
+      border: var(--border-hairline);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+      position: relative;
+      border-left: 3px solid var(--color-ally-border);
+    }
+    .match-card.is-selected {
+      background: var(--color-match-selected-bg);
+      border-color: var(--color-match-selected-border);
+    }
+    .match-card[data-outcome="first"] { border-left-color: rgba(var(--color-placement-first-rgb), 0.85); }
+    .match-card[data-outcome="top"] { border-left-color: rgba(var(--color-placement-top4-rgb), 0.75); }
+    .match-card[data-outcome="bot"] { border-left-color: rgba(var(--color-placement-bot4-rgb), 0.75); }
+
+    .placement-badge {
+      grid-area: pl;
+      justify-self: start;
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-sm);
+      display: grid;
+      place-items: center;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.125rem;
+      font-variant-numeric: tabular-nums;
+      border: 1px solid transparent;
+      margin-top: 1px;
+    }
+    .placement-badge[data-outcome="first"] {
+      background: rgba(var(--color-placement-first-rgb), 0.16);
+      color: var(--color-placement-first);
+      border-color: rgba(var(--color-placement-first-rgb), 0.40);
+    }
+    .placement-badge[data-outcome="top"] {
+      background: rgba(var(--color-placement-top4-rgb), 0.10);
+      color: var(--color-placement-top4);
+      border-color: rgba(var(--color-placement-top4-rgb), 0.32);
+    }
+    .placement-badge[data-outcome="bot"] {
+      background: rgba(var(--color-placement-bot4-rgb), 0.12);
+      color: var(--color-placement-bot4);
+      border-color: rgba(var(--color-placement-bot4-rgb), 0.34);
+    }
+
+    .match-head { grid-area: head; min-width: 0; }
+    .match-comp {
+      margin: 0;
+      font-weight: 650;
+      font-size: 0.875rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .match-meta-line {
+      margin-top: var(--space-1);
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--color-ally-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .lp-cell {
+      grid-area: lp;
+      text-align: right;
+      align-self: start;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: var(--text-mono);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.35;
+      margin-top: 2px;
+    }
+    .lp-cell.win { color: var(--color-placement-top4); }
+    .lp-cell.loss { color: var(--color-placement-bot4); }
+    .lp-cell.flat { color: var(--color-ally-muted); }
+    .lp-sub {
+      display: block;
+      font-weight: 400;
+      font-size: 9px;
+      color: var(--color-ally-muted);
+      margin-top: 2px;
+    }
+
+    .trait-row {
+      grid-area: traits;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      min-width: 0;
+    }
+    .trait-pill {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      letter-spacing: 0.03em;
+      border: 1px solid transparent;
+      white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .trait-pill.bronze { color: var(--color-trait-bronze-fg); background: var(--color-trait-bronze-bg); border-color: var(--color-trait-bronze-border); }
+    .trait-pill.silver { color: var(--color-trait-silver-fg); background: var(--color-trait-silver-bg); border-color: var(--color-trait-silver-border); }
+    .trait-pill.gold { color: var(--color-trait-gold-fg); background: var(--color-trait-gold-bg); border-color: var(--color-trait-gold-border); }
+    .trait-pill.prismatic { color: var(--color-trait-prismatic-fg); background: var(--color-trait-prismatic-bg); border-color: var(--color-trait-prismatic-border); }
+
+    .unit-row {
+      grid-area: units;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      align-items: flex-end;
+      min-width: 0;
+    }
+    /*
+      UNIT SLOT — 28×28; cost rings use unit tokens (never placement colors).
+      LP chart — ladder line blotter (+ markers); tier tint zone + dashed promo line inside SVG plot only.
+    */
+    .lp-chart-panel {
+      margin-bottom: var(--space-4);
+      padding: var(--space-3);
+      border: var(--border-hairline);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-depth-1);
+    }
+    .lp-chart-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      margin-bottom: var(--space-2);
+      flex-wrap: wrap;
+    }
+    /* Legacy mono title kept for queues that omit the rich heading */
+    .lp-chart-title {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-ally-muted);
+    }
+    .lp-history-heading {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-2);
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+    .lp-history-title-main {
+      margin: 0;
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.01em;
+      color: var(--color-ally-text);
+    }
+    .lp-history-queue {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--color-ally-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .btn-lp-range {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--color-ally-text-dim);
+      background: var(--color-surface-depth-0);
+      border: 1px solid var(--color-ally-border);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .btn-lp-range:hover {
+      border-color: rgba(var(--color-ally-accent-rgb), 0.35);
+      color: var(--color-ally-text);
+    }
+    .lp-range-chevron {
+      color: var(--color-ally-muted);
+      letter-spacing: 0.06em;
+    }
+    .lp-chart-meta {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--color-ally-muted);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .lp-chart-legend {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .lp-chart-swatch {
+      width: 8px;
+      height: 8px;
+      border-radius: 1px;
+      flex-shrink: 0;
+    }
+    .lp-chart-swatch.gain { background: var(--color-lp-chart-gain); }
+    .lp-chart-swatch.loss { background: var(--color-lp-chart-loss-soft); border: 1px solid rgba(var(--color-placement-bot4-rgb), 0.55); box-sizing: border-box; }
+    .lp-chart-svg-wrap {
+      width: 100%;
+      overflow: hidden;
+    }
+    .lp-chart-svg {
+      width: 100%;
+      height: 102px;
+      display: block;
+      font-family: var(--font-mono);
+    }
+    .lp-chart-svg.lp-history-svg {
+      height: 168px;
+    }
+    .lp-history-svg .lh-bg {
+      fill: transparent;
+    }
+    .lh-zone-a { stop-color: rgb(var(--color-placement-top4-rgb)); stop-opacity: 0.2; }
+    .lh-zone-b { stop-color: rgb(var(--color-placement-top4-rgb)); stop-opacity: 0; }
+    .lp-history-svg .lh-grid-strong {
+      stroke: var(--color-lp-history-grid-strong);
+      stroke-width: 1px;
+      shape-rendering: crispEdges;
+    }
+    .lp-history-svg .lh-grid-faint {
+      stroke: var(--color-lp-history-grid-faint);
+      stroke-width: 1px;
+      shape-rendering: crispEdges;
+    }
+    .lp-history-svg .lh-threshold {
+      stroke: var(--color-placement-top4);
+      stroke-width: 1.25px;
+      stroke-dasharray: 5 4;
+      shape-rendering: crispEdges;
+    }
+    .lp-history-svg .lh-line {
+      fill: none;
+      stroke: var(--color-lp-history-line);
+      stroke-width: 2.35;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .lp-history-svg .lh-marker-fill {
+      fill: var(--color-lp-history-line);
+    }
+    .lp-history-svg .lh-marker-stroke {
+      stroke: var(--color-lp-history-marker-ring);
+      stroke-width: 1.5px;
+      fill: var(--color-lp-history-line);
+    }
+    .lp-history-svg .lh-tier-muted {
+      fill: rgb(var(--color-lp-history-axis-muted-rgb));
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 500;
+    }
+    .lp-history-svg .lh-tier-upper {
+      fill: var(--color-lp-history-tier-upper-fg);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 600;
+    }
+    .lp-history-svg .lh-date {
+      fill: var(--color-ally-muted);
+      font-family: var(--font-mono);
+      font-size: 9px;
+    }
+
+    .unit-slot {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--color-ally-border);
+      background: var(--color-surface-depth-0);
+      display: grid;
+      place-items: center;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .unit-slot[data-cost="1"] { border-color: var(--color-unit-cost-1-border); }
+    .unit-slot[data-cost="2"] { border-color: var(--color-unit-cost-2-border); }
+    .unit-slot[data-cost="3"] { border-color: var(--color-unit-cost-3-border); }
+    .unit-slot[data-cost="4"] { border-color: var(--color-unit-cost-4-border); }
+    .unit-slot[data-cost="5"] { border-color: rgba(var(--color-unit-cost-5-border-rgb), 0.9); box-shadow: 0 0 0 1px rgba(var(--color-unit-cost-5-border-rgb), 0.15); }
+    .unit-icon {
+      width: 22px;
+      height: 22px;
+      object-fit: cover;
+      border-radius: 2px;
+      display: block;
+      pointer-events: none;
+      user-select: none;
+    }
+    .unit-glyph {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--color-ally-text-dim);
+    }
+    .unit-star {
+      position: absolute;
+      bottom: 1px;
+      right: 1px;
+      font-family: var(--font-mono);
+      font-size: 8px;
+      line-height: 1;
+      color: var(--color-ally-muted);
+      letter-spacing: 0.03em;
+    }
+
+    .load-more-row {
+      display: flex;
+      justify-content: center;
+      margin-top: var(--space-2);
+    }
+
+    .alert-banner {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-alert-border);
+      background: var(--color-alert-bg);
+      padding: var(--space-3);
+      margin-bottom: var(--space-4);
+      display: flex;
+      gap: var(--space-3);
+      align-items: flex-start;
+    }
+    .alert-banner svg { flex-shrink: 0; color: var(--color-placement-bot4); }
+    .alert-title {
+      margin: 0 0 var(--space-1);
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: var(--text-mono);
+    }
+    .alert-copy {
+      margin: 0 0 var(--space-3);
+      font-size: 0.75rem;
+      color: var(--color-ally-text-dim);
+      line-height: 1.4;
+      font-family: var(--font-mono);
+      word-break: break-word;
+    }
+    .btn-row { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+    .empty-block {
+      border: 1px dashed var(--color-ally-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-6);
+      text-align: center;
+      background: var(--color-surface-depth-1);
+    }
+    .empty-block svg { margin-bottom: var(--space-3); opacity: 0.45; }
+    .empty-title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: var(--text-title);
+      margin: 0 0 var(--space-2);
+    }
+    .empty-copy {
+      font-size: 0.8125rem;
+      color: var(--color-ally-muted);
+      margin: 0 0 var(--space-4);
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .btn-ghost {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-sm);
+      border: var(--border-focus);
+      background: transparent;
+      color: var(--color-ally-accent);
+      cursor: pointer;
+    }
+    .btn-ghost:hover { background: var(--color-ally-accent-soft); }
+    .btn-solid {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-ally-accent-border);
+      background: rgba(var(--color-ally-accent-rgb), 0.22);
+      color: var(--color-ally-accent);
+      cursor: pointer;
+    }
+    .btn-solid:hover { background: rgba(var(--color-ally-accent-rgb), 0.28); }
+    .btn-quiet {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-sm);
+      border: var(--border-hairline);
+      background: transparent;
+      color: var(--color-ally-text-dim);
+      cursor: pointer;
+    }
+    .btn-quiet:hover { background: var(--color-ally-hover); color: var(--color-ally-text); }
+
+    @keyframes skeleton-shimmer {
+      0% { background-position: 0 0; }
+      100% { background-position: 200px 0; }
+    }
+    .sk {
+      border-radius: var(--radius-sm);
+      background: linear-gradient(
+        90deg,
+        var(--color-surface-depth-2) 0px,
+        rgba(var(--color-ally-accent-rgb), 0.07) 80px,
+        var(--color-surface-depth-2) 160px
+      );
+      background-size: 200px 100%;
+      animation: skeleton-shimmer var(--motion-skeleton-duration) var(--motion-skeleton-ease) infinite;
+    }
+    .sk-line { height: 12px; margin-bottom: var(--space-2); }
+    .sk-line.short { width: 40%; }
+    .sk-line.med { width: 72%; }
+    .sk-stat { height: 44px; border-radius: var(--radius-md); }
+    .sk-match { height: 108px; border-radius: var(--radius-md); margin-bottom: var(--space-2); }
+    .sk-lp-chart { height: 168px; border-radius: var(--radius-md); margin-bottom: var(--space-4); }
+
+    [data-preview="populated"] .when-populated,
+    [data-preview="skeleton"] .when-skeleton,
+    [data-preview="empty"] .when-empty,
+    [data-preview="error"] .when-error { display: block; }
+    [data-preview="populated"] .when-skeleton,
+    [data-preview="populated"] .when-empty,
+    [data-preview="populated"] .when-error,
+    [data-preview="skeleton"] .when-populated,
+    [data-preview="skeleton"] .when-empty,
+    [data-preview="skeleton"] .when-error,
+    [data-preview="empty"] .when-populated,
+    [data-preview="empty"] .when-skeleton,
+    [data-preview="empty"] .when-error,
+    [data-preview="error"] .when-populated,
+    [data-preview="error"] .when-skeleton,
+    [data-preview="error"] .when-empty { display: none !important; }
+
+    .toast {
+      position: absolute;
+      right: var(--space-4);
+      bottom: var(--space-4);
+      width: 280px;
+      padding: var(--space-3);
+      background: var(--color-surface-depth-2);
+      border: var(--border-hairline);
+      border-left: 3px solid var(--color-ally-accent);
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      font-size: 0.75rem;
+      z-index: 20;
+      display: none;
+    }
+    [data-preview="populated"] .toast { display: block; }
+
+    .side-stack {
+      display: none;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+  </style>
+</head>
+<body>
+  <!--
+    RATIONALE — Match History page (648px scroll column):
+    - Primary job is ledger scan + comp recall — rows are tighter than Home coach cards but share depth-1 surfaces + hairline separators.
+    - Queue tabs segregate ladders without duplicating rails; segmented patch filter uses aria-pressed for real WCAG-friendly toggle group (interaction-fidelity brief).
+    - Placement badge + LP column bookend each row — eyes bounce left/right like a blotter, not radial around cyan accent rails.
+    - Trait pills intentionally small (9px mono) to avoid crowding units; ellipsis prevents wrap explosion at min width.
+    - Selected row introduces --color-match-selected-* overlay so implementation can wire keyboard selection without reinventing visuals.
+    - Sidebar surfaces sync latency + ingest queue — aligns with TFT competitive “is data fresh?” anxiety.
+    - LP ladder blotter (Mobalytics reference posture): teal polyline + ringed markers — emerald zone tint + dashed promo threshold live inside SVG (not chrome).
+    - Unit strip uses real icon assets (public/unit-icons) so match rows read as roster recall, not abstract letters.
+  -->
+  <div class="spec-toolbar">
+    <strong>Design spec</strong>
+    <span>design-spec/match-history.html · state preview only</span>
+    <label><input type="radio" name="preview" value="populated" checked /> Populated</label>
+    <label><input type="radio" name="preview" value="skeleton" /> Skeleton</label>
+    <label><input type="radio" name="preview" value="empty" /> Empty</label>
+    <label><input type="radio" name="preview" value="error" /> Error</label>
+  </div>
+
+  <div class="app-frame" id="mhFrame" data-preview="populated">
+    <header class="topbar">
+      <div class="topbar-logo">
+        <div class="topbar-logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L12 6M12 18L12 22M2 12L6 12M18 12L22 12M4.2 4.2L7 7M17 17L19.8 19.8M19.8 4.2L17 7M7 17L4.2 19.8M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+        </div>
+        <span class="topbar-logo-type">Ally</span>
+      </div>
+      <div class="topbar-search" role="search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input type="search" placeholder="Search summoners, units, traits…" aria-label="Global search" />
+      </div>
+      <div class="topbar-actions" aria-label="Window controls">
+        <button type="button" class="win-btn" title="Minimize" aria-label="Minimize">
+          <svg width="10" height="10" viewBox="0 0 10 10"><rect y="4" width="10" height="2" fill="currentColor"/></svg>
+        </button>
+        <button type="button" class="win-btn" title="Maximize" aria-label="Maximize">
+          <svg width="10" height="10" viewBox="0 0 10 10"><rect width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        </button>
+        <button type="button" class="win-btn close" title="Close" aria-label="Close">
+          <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.5"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="shell-body">
+      <nav class="rail" aria-label="Primary navigation">
+        <button type="button" class="rail-btn" title="Home">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 11.5L12 4l8 7.5V20a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-8.5z"/></svg>
+        </button>
+        <button type="button" class="rail-btn active" title="Match history" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 6h16M4 12h10M4 18h16"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Units">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2M16 11v2M19 11v2"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Traits">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 3l7 4v10l-7 4-7-4V7l7-4z"/><path d="M12 3v18"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Items">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Augments">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 2l2 4 4 2-4 2-2 4-2-4-4-2 4-2 2-4z"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Comps">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        </button>
+      </nav>
+
+      <!-- main-inner padding uses --space-4 (16px) all around -->
+      <main class="main-scroll" aria-label="Match history content">
+        <div class="main-inner">
+
+          <div class="when-populated">
+            <header class="page-header">
+              <div class="page-kicker">desktop · match history</div>
+              <h1 class="page-title">Match blotter</h1>
+              <p class="page-sub">Queues separated, comps recallable — read placement + LP deltas as a ticker, traits as breadcrumbs, carriers as silhouette strip.</p>
+              <!-- tabs: mono caption sizing + hairline divider — interacts via tablist -->
+              <div class="tab-row" id="mhTabs" role="tablist" aria-label="Queues">
+                <button type="button" class="tab" role="tab" id="tab-ranked" aria-controls="panel-ranked" aria-selected="true" data-tab="ranked">Ranked</button>
+                <button type="button" class="tab" role="tab" id="tab-hyper" aria-controls="panel-hyper" aria-selected="false" data-tab="hyper">Hyper Roll</button>
+                <button type="button" class="tab" role="tab" id="tab-doubles" aria-controls="panel-doubles" aria-selected="false" data-tab="doubles">Double Up</button>
+              </div>
+            </header>
+
+            <div id="panel-ranked" class="tab-panel is-active" role="tabpanel" aria-labelledby="tab-ranked" data-tab-panel="ranked">
+              <!-- toolbar-row gap --space-2; segmented buttons use mono uppercase + aria-pressed -->
+              <div class="toolbar-row">
+                <div class="seg" role="group" aria-label="Patch filter" id="patchSeg">
+                  <button type="button" class="seg-btn" aria-pressed="true" data-patch="live">Live patch</button>
+                  <button type="button" class="seg-btn" aria-pressed="false" data-patch="prev">Previous</button>
+                  <button type="button" class="seg-btn" aria-pressed="false" data-patch="pbe">PBE</button>
+                </div>
+                <span class="toolbar-meta">Window locked to last 28 ranked games pulled · deltas vs ladder accounting</span>
+              </div>
+
+              <!-- stat-strip: 4-up grid repeats shell/home rhythm -->
+              <div class="stat-strip">
+                <div class="stat-cell">
+                  <div class="stat-label">Fetched</div>
+                  <div class="stat-value">18</div>
+                  <div class="stat-delta flat">manual refresh</div>
+                </div>
+                <div class="stat-cell">
+                  <div class="stat-label">Avg place · window</div>
+                  <div class="stat-value">4.72</div>
+                  <div class="stat-delta neg">heavy top-right tail</div>
+                </div>
+                <div class="stat-cell">
+                  <div class="stat-label">Net LP · window</div>
+                  <div class="stat-value">−62</div>
+                  <div class="stat-delta neg">skewed bot-4 swings</div>
+                </div>
+                <div class="stat-cell">
+                  <div class="stat-label">Top-4 %</div>
+                  <div class="stat-value">44%</div>
+                  <div class="stat-delta flat">median climb band</div>
+                </div>
+              </div>
+
+              <!-- LP history ladder — matches Mobalytics reference: cyan line + dot markers + plat muted axis + emerald zone above promo dashed E IV threshold; angled date stamps (--space-3 panel gutter) -->
+              <div class="lp-chart-panel" aria-label="Ranked ladder LP over matches">
+                <div class="lp-chart-head">
+                  <div class="lp-history-heading">
+                    <h2 class="lp-history-title-main">LP History</h2>
+                    <span class="lp-history-queue">Ranked</span>
+                  </div>
+                  <button type="button" class="btn-lp-range">Last 12 <span class="lp-range-chevron" aria-hidden="true">| ∨</span></button>
+                </div>
+                <div class="lp-chart-svg-wrap">
+                  <svg class="lp-chart-svg lp-history-svg" viewBox="0 0 640 168" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="lp-ranked-history-title">
+                    <title id="lp-ranked-history-title">Ranked LP ladder — last twelve games climbed from Plat II bandwidth into Emerald promo zone · accent stroke tracks ladder position</title>
+                    <defs>
+                      <linearGradient id="lhZoneRanked" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" class="lh-zone-a"/>
+                        <stop offset="92%" class="lh-zone-a"/>
+                        <stop offset="100%" class="lh-zone-b"/>
+                      </linearGradient>
+                    </defs>
+                    <!-- plot window: left 74 right 628 top 42 bottom 126 -->
+                    <line class="lh-grid-faint" x1="74" y1="126" x2="628" y2="126"/>
+                    <line class="lh-grid-faint" x1="74" y1="114" x2="628" y2="114"/>
+                    <line class="lh-grid-faint" x1="74" y1="102" x2="628" y2="102"/>
+                    <line class="lh-grid-faint" x1="74" y1="89" x2="628" y2="89"/>
+                    <polygon points="74,42 628,42 628,74 74,74" fill="url(#lhZoneRanked)"/>
+                    <line class="lh-threshold" x1="74" y1="74" x2="628" y2="74"/>
+                    <line class="lh-grid-faint" x1="74" y1="58" x2="628" y2="58"/>
+                    <text class="lh-tier-muted" x="52" y="129" text-anchor="end">P III</text>
+                    <text class="lh-tier-muted" x="52" y="116" text-anchor="end">P II</text>
+                    <text class="lh-tier-muted" x="52" y="103" text-anchor="end">P I</text>
+                    <text class="lh-tier-upper" x="52" y="77" text-anchor="end">E IV</text>
+                    <text class="lh-tier-upper" x="52" y="61" text-anchor="end">E III</text>
+                    <polyline points="76,118 126,112 174,114 223,107 274,109 324,103 371,91 418,94 466,82 517,71 569,61 617,53" class="lh-line"/>
+                    <circle cx="76" cy="118" r="4" class="lh-marker-stroke"><title>29 Apr · P III bandwidth</title></circle>
+                    <circle cx="126" cy="112" r="4" class="lh-marker-stroke"><title>Apr 30</title></circle>
+                    <circle cx="174" cy="114" r="4" class="lh-marker-stroke"><title>1 May</title></circle>
+                    <circle cx="223" cy="107" r="4" class="lh-marker-stroke"><title>3 May</title></circle>
+                    <circle cx="274" cy="109" r="4" class="lh-marker-stroke"><title>5 May</title></circle>
+                    <circle cx="324" cy="103" r="4" class="lh-marker-stroke"><title>7 May</title></circle>
+                    <circle cx="371" cy="91" r="4" class="lh-marker-stroke"><title>9 May</title></circle>
+                    <circle cx="418" cy="94" r="4" class="lh-marker-stroke"><title>11 May</title></circle>
+                    <circle cx="466" cy="82" r="4" class="lh-marker-stroke"><title>13 May · E IV brush</title></circle>
+                    <circle cx="517" cy="71" r="4" class="lh-marker-stroke"><title>15 May</title></circle>
+                    <circle cx="569" cy="61" r="4" class="lh-marker-stroke"><title>16 May</title></circle>
+                    <circle cx="617" cy="53" r="4" class="lh-marker-stroke"><title>17 May · E III buffer</title></circle>
+                    <g class="lh-dates">
+                      <g transform="translate(76 134) rotate(-42 0 0)"><text class="lh-date" x="0" y="0">29 Apr</text></g>
+                      <g transform="translate(174 134) rotate(-42 0 0)"><text class="lh-date" x="0" y="0">1 May</text></g>
+                      <g transform="translate(274 134) rotate(-42 0 0)"><text class="lh-date" x="0" y="0">5 May</text></g>
+                      <g transform="translate(371 134) rotate(-42 0 0)"><text class="lh-date" x="0" y="0">9 May</text></g>
+                      <g transform="translate(466 134) rotate(-42 0 0)"><text class="lh-date" x="0" y="0">13 May</text></g>
+                      <g transform="translate(569 134) rotate(-42 0 0)"><text class="lh-date" x="0" y="0">16 May</text></g>
+                      <g transform="translate(617 134) rotate(-42 0 0)"><text class="lh-date" x="0" y="0">17 May</text></g>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="section-head">
+                <h2>Matches</h2>
+                <span>ordinal + clock · scouting recall</span>
+              </div>
+              <div class="section-rule" aria-hidden="true"></div>
+
+              <div class="match-stack">
+                <!-- Row A: spacing inside card --space-3 padding; gutters between rows --space-2 -->
+                <article class="match-card is-selected" tabindex="0" data-outcome="first" aria-label="First place Bilgewater duelists 31 minutes ago">
+                  <div class="placement-badge" data-outcome="first">1</div>
+                  <div class="match-head">
+                    <p class="match-comp">Bilgewater — Tempo Duelists · <span style="font-family:var(--font-mono);color:var(--color-ally-muted)">Sniper reroll contingency</span></p>
+                    <div class="match-meta-line">31m · Ranked TFT · Carousel #5 · Lobby MMR skew high</div>
+                  </div>
+                  <div class="lp-cell win">
+                    +34
+                    <span class="lp-sub">ΔLP</span>
+                  </div>
+                  <div class="trait-row" aria-label="Traits">
+                    <span class="trait-pill bronze">BW 6</span>
+                    <span class="trait-pill silver">Duelist 4</span>
+                    <span class="trait-pill bronze">Cannoneer 2</span>
+                    <span class="trait-pill prismatic">Hextech 3</span>
+                  </div>
+                  <div class="unit-row" aria-label="Board carriers (unit icons)">
+                    <div class="unit-slot" data-cost="1"><img class="unit-icon" src="../public/unit-icons/Gwen.webp" width="22" height="22" alt="" /><span class="unit-star">2★</span></div>
+                    <div class="unit-slot" data-cost="3"><img class="unit-icon" src="../public/unit-icons/Karma.webp" width="22" height="22" alt="" /><span class="unit-star">2★</span></div>
+                    <div class="unit-slot" data-cost="5"><img class="unit-icon" src="../public/unit-icons/Jhin.webp" width="22" height="22" alt="" /><span class="unit-star">1★</span></div>
+                    <div class="unit-slot" data-cost="5"><img class="unit-icon" src="../public/unit-icons/AurelionSol.webp" width="22" height="22" alt="" /><span class="unit-star">1★</span></div>
+                    <div class="unit-slot" data-cost="5"><img class="unit-icon" src="../public/unit-icons/Samira.webp" width="22" height="22" alt="" /><span class="unit-star">1★</span></div>
+                    <div class="unit-slot" data-cost="5"><img class="unit-icon" src="../public/unit-icons/Ezreal.webp" width="22" height="22" alt="" /><span class="unit-star">★★</span></div>
+                  </div>
+                </article>
+
+                <article class="match-card" tabindex="0" data-outcome="top" aria-label="Third place Prism Innovators hyper roll econ line">
+                  <div class="placement-badge" data-outcome="top">3</div>
+                  <div class="match-head">
+                    <p class="match-comp">Prism innovators · two-star caps</p>
+                    <div class="match-meta-line">48m · Ranked TFT · triple rod opener · econ held at 40+</div>
+                  </div>
+                  <div class="lp-cell win">
+                    +17
+                    <span class="lp-sub">ΔLP</span>
+                  </div>
+                  <div class="trait-row">
+                    <span class="trait-pill gold">Innovator 5</span>
+                    <span class="trait-pill silver">Clockwork 3</span>
+                    <span class="trait-pill bronze">Innovator emblem</span>
+                  </div>
+                  <div class="unit-row" aria-label="Board carriers (unit icons)">
+                    <div class="unit-slot" data-cost="2"><img class="unit-icon" src="../public/unit-icons/Zoe.webp" width="22" height="22" alt="" /><span class="unit-star">★★★</span></div>
+                    <div class="unit-slot" data-cost="3"><img class="unit-icon" src="../public/unit-icons/Viktor.webp" width="22" height="22" alt="" /><span class="unit-star">2★</span></div>
+                    <div class="unit-slot" data-cost="4"><img class="unit-icon" src="../public/unit-icons/Xayah.webp" width="22" height="22" alt="" /><span class="unit-star">2★</span></div>
+                    <div class="unit-slot" data-cost="4"><img class="unit-icon" src="../public/unit-icons/Veigar.webp" width="22" height="22" alt="" /><span class="unit-star">2★</span></div>
+                  </div>
+                </article>
+
+                <article class="match-card" tabindex="0" data-outcome="bot" aria-label="Eighth space groove vertical fast 8 bleed">
+                  <div class="placement-badge" data-outcome="bot">8</div>
+                  <div class="match-head">
+                    <p class="match-comp">Space Groove slam · carousel contested</p>
+                    <div class="match-meta-line">22m · Ranked TFT · three pairs stage 3-7 · econ collapse</div>
+                  </div>
+                  <div class="lp-cell loss">
+                    −48
+                    <span class="lp-sub">ΔLP</span>
+                  </div>
+                  <div class="trait-row">
+                    <span class="trait-pill bronze">Groove 4</span>
+                    <span class="trait-pill silver">Mage 6</span>
+                    <span class="trait-pill prismatic">Space groove crown</span>
+                  </div>
+                  <div class="unit-row" aria-label="Board carriers (unit icons)">
+                    <div class="unit-slot" data-cost="1"><img class="unit-icon" src="../public/unit-icons/Nunu.webp" width="22" height="22" alt="" /><span class="unit-star">2★</span></div>
+                    <div class="unit-slot" data-cost="2"><img class="unit-icon" src="../public/unit-icons/Vex.webp" width="22" height="22" alt="" /><span class="unit-star">2★</span></div>
+                    <div class="unit-slot" data-cost="3"><img class="unit-icon" src="../public/unit-icons/Urgot.webp" width="22" height="22" alt="" /><span class="unit-star">1★</span></div>
+                    <div class="unit-slot" data-cost="3"><img class="unit-icon" src="../public/unit-icons/Teemo.webp" width="22" height="22" alt="" /><span class="unit-star">1★</span></div>
+                  </div>
+                </article>
+              </div>
+
+              <!-- load-more: ghost button aligns to chrome quiet actions -->
+              <div class="load-more-row">
+                <button type="button" class="btn-quiet">Load older block</button>
+              </div>
+            </div>
+
+            <div id="panel-hyper" class="tab-panel" role="tabpanel" aria-labelledby="tab-hyper" data-tab-panel="hyper">
+              <div class="stat-strip">
+                <div class="stat-cell"><div class="stat-label">Fetched</div><div class="stat-value">9</div><div class="stat-delta flat">session cap</div></div>
+                <div class="stat-cell"><div class="stat-label">Avg placement</div><div class="stat-value">3.8</div><div class="stat-delta flat">skew top-heavy</div></div>
+                <div class="stat-cell"><div class="stat-label">LP proxy</div><div class="stat-value">+12</div><div class="stat-delta flat">internal rating drift</div></div>
+                <div class="stat-cell"><div class="stat-label">Fastest bleed</div><div class="stat-value">6-1</div><div class="stat-delta neg">high variance</div></div>
+              </div>
+              <div class="lp-chart-panel" aria-label="Hyper Roll ladder proxy — rating history">
+                <div class="lp-chart-head">
+                  <div class="lp-history-heading">
+                    <h2 class="lp-history-title-main">Rating history</h2>
+                    <span class="lp-history-queue">Hyper Roll</span>
+                  </div>
+                  <button type="button" class="btn-lp-range">Last 6 <span class="lp-range-chevron" aria-hidden="true">| ∨</span></button>
+                </div>
+                <div class="lp-chart-svg-wrap">
+                  <svg class="lp-chart-svg lp-history-svg" viewBox="0 0 640 168" preserveAspectRatio="xMidYMid meet" role="img">
+                    <title>Hyper Roll internal rating blotter — tighter banding than ladder; dashed line reads “tier-up band” Σ micro-drift still +12 from stat strip.</title>
+                    <defs>
+                      <linearGradient id="lhZoneHyper" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" class="lh-zone-a"/><stop offset="92%" class="lh-zone-a"/><stop offset="100%" class="lh-zone-b"/>
+                      </linearGradient>
+                    </defs>
+                    <line class="lh-grid-faint" x1="74" y1="126" x2="628" y2="126"/>
+                    <line class="lh-grid-faint" x1="74" y1="110" x2="628" y2="110"/>
+                    <line class="lh-grid-faint" x1="74" y1="94" x2="628" y2="94"/>
+                    <line class="lh-grid-faint" x1="74" y1="78" x2="628" y2="78"/>
+                    <polygon points="74,42 628,42 628,78 74,78" fill="url(#lhZoneHyper)"/>
+                    <line class="lh-threshold" x1="74" y1="78" x2="628" y2="78"/>
+                    <text class="lh-tier-muted" x="52" y="129" text-anchor="end">860</text>
+                    <text class="lh-tier-muted" x="52" y="114" text-anchor="end">900</text>
+                    <text class="lh-tier-muted" x="52" y="96" text-anchor="end">940</text>
+                    <text class="lh-tier-upper" x="52" y="82" text-anchor="end">960</text>
+                    <text class="lh-tier-upper" x="52" y="60" text-anchor="end">980</text>
+                    <polyline points="84,118 194,112 294,122 394,109 486,116 596,128" class="lh-line"/>
+                    <circle cx="84" cy="118" r="4" class="lh-marker-stroke"><title>G1 drift +6</title></circle>
+                    <circle cx="194" cy="112" r="4" class="lh-marker-stroke"><title>G2 bleed −3</title></circle>
+                    <circle cx="294" cy="122" r="4" class="lh-marker-stroke"><title>G3 spike +8</title></circle>
+                    <circle cx="394" cy="109" r="4" class="lh-marker-stroke"><title>G4 flat −2</title></circle>
+                    <circle cx="486" cy="116" r="4" class="lh-marker-stroke"><title>G5 push +10</title></circle>
+                    <circle cx="596" cy="128" r="4" class="lh-marker-stroke"><title>G6 tax −7</title></circle>
+                    <g>
+                      <g transform="translate(84 139) rotate(-38 0 0)"><text class="lh-date" x="0" y="0">Mon</text></g>
+                      <g transform="translate(194 139) rotate(-38 0 0)"><text class="lh-date" x="0" y="0">Tue</text></g>
+                      <g transform="translate(294 139) rotate(-38 0 0)"><text class="lh-date" x="0" y="0">Wed</text></g>
+                      <g transform="translate(394 139) rotate(-38 0 0)"><text class="lh-date" x="0" y="0">Thu</text></g>
+                      <g transform="translate(486 139) rotate(-38 0 0)"><text class="lh-date" x="0" y="0">Fri</text></g>
+                      <g transform="translate(596 139) rotate(-38 0 0)"><text class="lh-date" x="0" y="0">Sat</text></g>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+              <div class="section-head"><h2>Matches</h2><span>density relaxed · faster clocks</span></div>
+              <div class="section-rule" aria-hidden="true"></div>
+              <!-- duplicate row component pattern for parity -->
+              <div class="match-stack">
+                <article class="match-card" tabindex="0" data-outcome="top">
+                  <div class="placement-badge" data-outcome="top">4</div>
+                  <div class="match-head">
+                    <p class="match-comp">Arb reroll stabilization</p>
+                    <div class="match-meta-line">19m · Hyper Roll · econ curve flat</div>
+                  </div>
+                  <div class="lp-cell win">
+                    +4
+                    <span class="lp-sub">Δrating</span>
+                  </div>
+                  <div class="trait-row">
+                    <span class="trait-pill bronze">Arb 4</span>
+                    <span class="trait-pill silver">Tank 3</span>
+                  </div>
+                  <div class="unit-row" aria-label="Board carriers (unit icons)">
+                    <div class="unit-slot" data-cost="2"><img class="unit-icon" src="../public/unit-icons/Rammus.webp" width="22" height="22" alt="" /><span class="unit-star">2★</span></div>
+                    <div class="unit-slot" data-cost="3"><img class="unit-icon" src="../public/unit-icons/RekSai.webp" width="22" height="22" alt="" /><span class="unit-star">2★</span></div>
+                    <div class="unit-slot" data-cost="3"><img class="unit-icon" src="../public/unit-icons/Pyke.webp" width="22" height="22" alt="" /><span class="unit-star">1★</span></div>
+                  </div>
+                </article>
+              </div>
+            </div>
+
+            <div id="panel-doubles" class="tab-panel" role="tabpanel" aria-labelledby="tab-doubles" data-tab-panel="doubles">
+              <div class="stat-strip">
+                <div class="stat-cell"><div class="stat-label">Duos synced</div><div class="stat-value">1</div><div class="stat-delta flat">partner linked</div></div>
+                <div class="stat-cell"><div class="stat-label">Team avg · 20</div><div class="stat-value">3.42</div><div class="stat-delta pos">cohort outperform</div></div>
+                <div class="stat-cell"><div class="stat-label">Pivot rate</div><div class="stat-value">41%</div><div class="stat-delta flat">shared boards</div></div>
+                <div class="stat-cell"><div class="stat-label">Assist tags</div><div class="stat-value">6</div><div class="stat-delta flat">carousel calls</div></div>
+              </div>
+              <div class="lp-chart-panel" aria-label="Double Up ladder proxy — duo LP trajectory">
+                <div class="lp-chart-head">
+                  <div class="lp-history-heading">
+                    <h2 class="lp-history-title-main">LP History</h2>
+                    <span class="lp-history-queue">Double Up</span>
+                  </div>
+                  <button type="button" class="btn-lp-range">Last 4 <span class="lp-range-chevron" aria-hidden="true">| ∨</span></button>
+                </div>
+                <div class="lp-chart-svg-wrap">
+                  <svg class="lp-chart-svg lp-history-svg" viewBox="0 0 640 168" preserveAspectRatio="xMidYMid meet" role="img">
+                    <title>Four duo sessions — climbs after partner sync; emerald overlay marks assist window thresholds.</title>
+                    <defs>
+                      <linearGradient id="lhZoneDoubles" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" class="lh-zone-a"/><stop offset="92%" class="lh-zone-a"/><stop offset="100%" class="lh-zone-b"/>
+                      </linearGradient>
+                    </defs>
+                    <line class="lh-grid-faint" x1="74" y1="126" x2="628" y2="126"/>
+                    <line class="lh-grid-faint" x1="74" y1="108" x2="628" y2="108"/>
+                    <line class="lh-grid-faint" x1="74" y1="93" x2="628" y2="93"/>
+                    <polygon points="74,42 628,42 628,71 74,71" fill="url(#lhZoneDoubles)"/>
+                    <line class="lh-threshold" x1="74" y1="71" x2="628" y2="71"/>
+                    <text class="lh-tier-muted" x="52" y="129" text-anchor="end">Silver+</text>
+                    <text class="lh-tier-muted" x="52" y="114" text-anchor="end">Gold+</text>
+                    <text class="lh-tier-muted" x="52" y="96" text-anchor="end">Plat+</text>
+                    <text class="lh-tier-upper" x="52" y="75" text-anchor="end">Duo crest</text>
+                    <text class="lh-tier-upper" x="52" y="57" text-anchor="end">Sync cap</text>
+                    <polyline points="134,118 278,119 394,131 596,111" class="lh-line"/>
+                    <circle cx="134" cy="118" r="4" class="lh-marker-stroke"><title>G1 · +11 with assist</title></circle>
+                    <circle cx="278" cy="119" r="4" class="lh-marker-stroke"><title>G2 · −7 trade</title></circle>
+                    <circle cx="394" cy="131" r="4" class="lh-marker-stroke"><title>G3 scratch +3</title></circle>
+                    <circle cx="596" cy="111" r="4" class="lh-marker-stroke"><title>G4 party spike +13</title></circle>
+                    <g>
+                      <g transform="translate(134 137) rotate(-40 0 0)"><text class="lh-date" x="0" y="0">12 May</text></g>
+                      <g transform="translate(278 137) rotate(-40 0 0)"><text class="lh-date" x="0" y="0">13 May</text></g>
+                      <g transform="translate(394 137) rotate(-40 0 0)"><text class="lh-date" x="0" y="0">14 May</text></g>
+                      <g transform="translate(596 137) rotate(-40 0 0)"><text class="lh-date" x="0" y="0">16 May</text></g>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+              <div class="section-head"><h2>Matches</h2><span>pair-first annotations</span></div>
+              <div class="section-rule" aria-hidden="true"></div>
+              <div class="match-stack">
+                <article class="match-card" tabindex="0" data-outcome="top">
+                  <div class="placement-badge" data-outcome="top">2</div>
+                  <div class="match-head">
+                    <p class="match-comp">Duo stabilizer · fast pivot pack</p>
+                    <div class="match-meta-line">35m · Double Up · assist: carousel · partner board tempo</div>
+                  </div>
+                  <div class="lp-cell win">
+                    +11
+                    <span class="lp-sub">ΔLP</span>
+                  </div>
+                  <div class="trait-row">
+                    <span class="trait-pill silver">Merc 5</span>
+                    <span class="trait-pill gold">Twinshot 6</span>
+                  </div>
+                  <div class="unit-row" aria-label="Board carriers (unit icons)">
+                    <div class="unit-slot" data-cost="3"><img class="unit-icon" src="../public/unit-icons/MissFortune.webp" width="22" height="22" alt="" /><span class="unit-star">2★</span></div>
+                    <div class="unit-slot" data-cost="4"><img class="unit-icon" src="../public/unit-icons/Lulu.webp" width="22" height="22" alt="" /><span class="unit-star">2★</span></div>
+                    <div class="unit-slot" data-cost="4"><img class="unit-icon" src="../public/unit-icons/Fiora.webp" width="22" height="22" alt="" /><span class="unit-star">★★★</span></div>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
+
+          <div class="when-skeleton">
+            <div class="page-header">
+              <div class="sk sk-line short"></div>
+              <div class="sk sk-line med" style="height:22px"></div>
+              <div class="sk sk-line med" style="margin-top:8px;height:14px"></div>
+              <div class="tab-row" aria-hidden="true">
+                <div class="sk" style="height:36px;width:84px;display:inline-block;margin-right:4px"></div>
+                <div class="sk" style="height:36px;width:84px;display:inline-block;margin-right:4px"></div>
+                <div class="sk" style="height:36px;width:84px;display:inline-block"></div>
+              </div>
+            </div>
+            <div class="toolbar-row">
+              <div class="seg" aria-hidden="true">
+                <div class="sk" style="height:28px;width:78px;display:inline-block;margin-right:4px"></div>
+                <div class="sk" style="height:28px;width:78px;display:inline-block;margin-right:4px"></div>
+                <div class="sk" style="height:28px;width:78px;display:inline-block"></div>
+              </div>
+              <span class="sk sk-line short" style="flex:1;min-height:12px;display:block"></span>
+            </div>
+            <div class="stat-strip">
+              <div class="sk sk-stat"></div><div class="sk sk-stat"></div><div class="sk sk-stat"></div><div class="sk sk-stat"></div>
+            </div>
+            <!-- LP chart skeleton: mirrors populated panel footprint -->
+            <div class="sk sk-lp-chart" aria-hidden="true"></div>
+            <div class="section-rule sk" style="height:1px;margin:12px 0;animation:none;background:var(--color-ally-border)"></div>
+            <div class="sk sk-match"></div><div class="sk sk-match"></div><div class="sk sk-match"></div><div class="sk sk-match"></div>
+          </div>
+
+          <div class="when-empty">
+            <header class="page-header">
+              <div class="page-kicker">desktop · match history</div>
+              <h1 class="page-title">Match blotter</h1>
+              <p class="page-sub">Filters applied — ladders returned zero rows for this pairing.</p>
+            </header>
+            <div class="empty-block">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" aria-hidden="true">
+                <path d="M4 19.5l7-8 7 8"/><path d="M4 4h16"/><path d="M9 4v6"/></svg>
+              <p class="empty-title">No games match this blotter slice</p>
+              <p class="empty-copy">Patch filter + queue pairing returned no ladder rows. Relax patch scope to Previous, confirm region shard under Settings → Summoner, or play another ranked queue so Ally captures a ledger entry.</p>
+              <button type="button" class="btn-solid">Relax patch scope</button>
+            </div>
+          </div>
+
+          <div class="when-error">
+            <header class="page-header">
+              <div class="page-kicker">desktop · match history</div>
+              <h1 class="page-title">Match blotter</h1>
+            </header>
+            <div class="alert-banner" role="alert">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h0"/><circle cx="12" cy="12" r="9"/></svg>
+              <div>
+                <p class="alert-title">Riot TFT match history degraded</p>
+                <p class="alert-copy">GET tft-match-history — HTTP 524 · CDN timeout · retries exhausted · MATCH_HISTORY_UNAVAILABLE</p>
+                <div class="btn-row">
+                  <button type="button" class="btn-solid">Retry pull</button>
+                  <button type="button" class="btn-ghost">Copy incident id</button>
+                </div>
+              </div>
+            </div>
+            <div class="empty-block" style="text-align:left">
+              <div class="page-kicker" style="letter-spacing:normal;text-transform:none">Stale cache posture</div>
+              <p class="empty-title" style="font-size:1rem">Rows frozen</p>
+              <p class="empty-copy" style="text-align:left;margin-left:0;max-width:none;margin-bottom:0">Last known block ends 02:14 UTC. New games won’t annotate until TTL clears or manual refresh succeeds.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- sidebar stacks sync via data-sync-preview; gap --space-3 matches shell/home -->
+      <aside class="sidebar" aria-label="Match history context">
+        <div class="side-stack" data-sync-preview="populated">
+          <div style="background:var(--color-surface-depth-0);border:var(--border-hairline);border-radius:var(--radius-md);padding:var(--space-3)">
+            <h3 style="margin:0 0 var(--space-2);font-family:var(--font-mono);font-size:var(--text-caption);letter-spacing:0.06em;text-transform:uppercase;color:var(--color-ally-muted)">Summoner</h3>
+            <div style="font-family:var(--font-display);font-weight:600;font-size:1rem">MaskedOracles</div>
+            <div style="font-family:var(--font-mono);font-size:var(--text-caption);color:var(--color-ally-muted);margin-top:var(--space-1)">NA1 · live</div>
+          </div>
+          <div style="background:var(--color-surface-depth-0);border:var(--border-hairline);border-radius:var(--radius-md);padding:var(--space-3)">
+            <h3 style="margin:0 0 var(--space-2);font-family:var(--font-mono);font-size:var(--text-caption);letter-spacing:0.06em;text-transform:uppercase;color:var(--color-ally-muted)">Ledger ingest</h3>
+            <div style="display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:var(--text-caption);padding:4px 8px;border-radius:var(--radius-pill);background:rgba(var(--color-placement-top4-rgb),0.12);color:var(--color-placement-top4);border:1px solid rgba(var(--color-placement-top4-rgb),0.35)">Queue healthy</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--color-ally-muted);margin-top:var(--space-2)">last ingest 54s · batch 018</div>
+          </div>
+          <div style="background:var(--color-surface-depth-0);border:var(--border-hairline);border-radius:var(--radius-md);padding:var(--space-3)">
+            <h3 style="margin:0 0 var(--space-2);font-family:var(--font-mono);font-size:var(--text-caption);letter-spacing:0.06em;text-transform:uppercase;color:var(--color-ally-muted)">Recall tip</h3>
+            <p style="margin:0;font-size:0.75rem;color:var(--color-ally-text-dim);line-height:1.35">Placement rail + ΔLP anchors first scan — drift eyes to traits for pivot memory, silhouette strip verifies item targets.</p>
+          </div>
+        </div>
+
+        <div class="side-stack" data-sync-preview="skeleton">
+          <div class="sk sk-stat" style="height:120px;border-radius:var(--radius-md)"></div>
+          <div class="sk sk-stat" style="height:72px;border-radius:var(--radius-md)"></div>
+          <div class="sk sk-stat" style="height:94px;border-radius:var(--radius-md)"></div>
+        </div>
+
+        <div class="side-stack" data-sync-preview="empty">
+          <div style="background:var(--color-surface-depth-0);border:var(--border-hairline);border-radius:var(--radius-md);padding:var(--space-3)">
+            <h3 style="margin:0 0 var(--space-2);font-family:var(--font-mono);font-size:var(--text-caption);letter-spacing:0.06em;text-transform:uppercase;color:var(--color-ally-muted)">Ledger ingest</h3>
+            <p style="margin:0;font-size:0.75rem;color:var(--color-ally-muted)">Empty slice — ingestion idle until filters relax.</p>
+          </div>
+        </div>
+
+        <div class="side-stack" data-sync-preview="error">
+          <div style="background:var(--color-surface-depth-0);border:var(--border-hairline);border-radius:var(--radius-md);padding:var(--space-3)">
+            <h3 style="margin:0 0 var(--space-2);font-family:var(--font-mono);font-size:var(--text-caption);letter-spacing:0.06em;text-transform:uppercase;color:var(--color-ally-muted)">Ledger ingest</h3>
+            <div style="display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:var(--text-caption);padding:4px 8px;border-radius:var(--radius-pill);background:var(--color-alert-bg);color:var(--color-placement-bot4);border:1px solid var(--color-alert-border)">History shard failing</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--color-ally-muted);margin-top:var(--space-2)">TTL 12m stale</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="toast" role="status" aria-live="polite">
+      <div style="font-family:var(--font-mono);font-weight:600;margin-bottom:var(--space-1)">History block hydrated</div>
+      <div style="color:var(--color-ally-text-dim)">18 TFT games · deltas reconciled vs ladder ledger</div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var frame = document.getElementById('mhFrame');
+      var previewRadios = document.querySelectorAll('input[name="preview"]');
+
+      function syncPreview() {
+        var checked = document.querySelector('input[name="preview"]:checked');
+        var state = checked ? checked.value : 'populated';
+        frame.setAttribute('data-preview', state);
+        document.querySelectorAll('[data-sync-preview]').forEach(function (el) {
+          var want = el.getAttribute('data-sync-preview');
+          el.style.display = want === state ? 'flex' : 'none';
+        });
+      }
+
+      previewRadios.forEach(function (r) {
+        r.addEventListener('change', syncPreview);
+      });
+      syncPreview();
+
+      var tabBar = document.getElementById('mhTabs');
+      function activateTab(btn) {
+        if (!tabBar) return;
+        var id = btn.getAttribute('data-tab');
+        tabBar.querySelectorAll('[role="tab"]').forEach(function (t) {
+          t.setAttribute('aria-selected', t === btn ? 'true' : 'false');
+        });
+        document.querySelectorAll('[data-tab-panel]').forEach(function (panel) {
+          panel.classList.toggle('is-active', panel.getAttribute('data-tab-panel') === id);
+        });
+      }
+
+      if (tabBar) {
+        tabBar.addEventListener('click', function (e) {
+          var t = e.target;
+          if (t.getAttribute('role') !== 'tab') return;
+          activateTab(t);
+        });
+
+        activateTab(tabBar.querySelector('[aria-selected="true"]'));
+
+        tabBar.querySelectorAll('[role="tab"]').forEach(function (tab) {
+          tab.addEventListener('keydown', function (e) {
+            if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+            var tabs = Array.prototype.slice.call(tabBar.querySelectorAll('[role="tab"]'));
+            var idx = tabs.indexOf(tab);
+            var nextIdx = e.key === 'ArrowRight' ? idx + 1 : idx - 1;
+            if (nextIdx < 0 || nextIdx >= tabs.length) return;
+            e.preventDefault();
+            tabs[nextIdx].focus();
+            activateTab(tabs[nextIdx]);
+          });
+        });
+      }
+
+      var seg = document.getElementById('patchSeg');
+      if (seg) {
+        seg.querySelectorAll('.seg-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var patch = btn.getAttribute('data-patch');
+            seg.querySelectorAll('.seg-btn').forEach(function (b) {
+              b.setAttribute('aria-pressed', b.getAttribute('data-patch') === patch ? 'true' : 'false');
+            });
+          });
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

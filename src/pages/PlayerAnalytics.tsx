@@ -1,10 +1,15 @@
 import { useState, useEffect, useMemo } from 'react'
-import type { RiotRegion, Match } from '../types/riot'
+import type { EnrichedMatch } from '@ally/shared-types'
+import type { RiotRegion } from '../types/riot'
 import { useAppStore } from '../store/useAppStore'
 import { fetchPlayerCard } from '../services/riotApiClient'
-import { fetchPlayerMatchHistory, toRiotMatchFromPersonal } from '../services/matchHistoryService'
+import { fetchEnrichedPlayerMatchHistory } from '../services/matchHistoryService'
+import { canonicalToLegacyMatch } from '@/domain/legacyAdapter'
+import { useEnrichedPersonalMatches } from '../hooks/useEnrichedPersonalMatches'
+import { PersonalMatchList } from '@/components/PersonalMatchList'
 import { getPersonalMatches } from '../services/indexedDbService'
 import { calculatePlayerStats } from '../services/playerStatsService'
+import { usePersonalTopComps } from '../hooks/usePersonalTopComps'
 import { StatCard } from '../components/StatCard'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as ReTooltip, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts'
 import { Search, Loader2, AlertCircle } from 'lucide-react'
@@ -30,13 +35,30 @@ export function PlayerAnalytics() {
   const [region, setRegion] = useState<RiotRegion>(storeRegion)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [_matches, setMatches] = useState<Match[]>([])
+  const [enrichedRiot, setEnrichedRiot] = useState<EnrichedMatch[]>([])
   const [stats, setStats] = useState<ReturnType<typeof calculatePlayerStats> | null>(null)
-  const personalAsRiotMatches = useMemo(() => personalMatches.map(toRiotMatchFromPersonal), [personalMatches])
-  const personalStats = useMemo(
-    () => (personalAsRiotMatches.length > 0 ? calculatePlayerStats(personalAsRiotMatches) : null),
-    [personalAsRiotMatches],
+  const enrichedPersonal = useEnrichedPersonalMatches(personalMatches, selectedPlayer?.name ?? null)
+  const personalLegacyMatches = useMemo(
+    () => enrichedPersonal.map((e) => canonicalToLegacyMatch(e.match)),
+    [enrichedPersonal],
   )
+  const personalStats = useMemo(
+    () => (personalLegacyMatches.length > 0 ? calculatePlayerStats(personalLegacyMatches) : null),
+    [personalLegacyMatches],
+  )
+  const incompletePersonalCount = useMemo(
+    () => enrichedPersonal.filter((e) => !e.validation.valid).length,
+    [enrichedPersonal],
+  )
+  const incompleteRiotCount = useMemo(
+    () => enrichedRiot.filter((e) => !e.validation.valid).length,
+    [enrichedRiot],
+  )
+  const personalTopComps = usePersonalTopComps(personalMatches, {
+    summonerName: selectedPlayer?.name ?? null,
+    minGames: 2,
+    windowSize: 60,
+  })
 
   useEffect(() => {
     setRegion(storeRegion)
@@ -66,14 +88,14 @@ export function PlayerAnalytics() {
     if (!query.trim()) return
     setLoading(true)
     setError(null)
-    setMatches([])
+    setEnrichedRiot([])
     setStats(null)
 
     try {
       const card = await fetchPlayerCard(query.trim(), region)
-      const history = await fetchPlayerMatchHistory(card.puuid, region, 20)
-      setMatches(history)
-      setStats(calculatePlayerStats(history))
+      const history = await fetchEnrichedPlayerMatchHistory(card.puuid, region, 20)
+      setEnrichedRiot(history)
+      setStats(calculatePlayerStats(history.map((e) => canonicalToLegacyMatch(e.match))))
     } catch (err) {
       if (err instanceof Error) setError(err.message)
       else setError('Unknown error')
@@ -135,6 +157,11 @@ export function PlayerAnalytics() {
 
       {stats && (
         <>
+          {incompleteRiotCount > 0 && (
+            <div className="font-mono text-[10px] text-ally-warning">
+              {incompleteRiotCount} of {enrichedRiot.length} searched matches have incomplete data
+            </div>
+          )}
           {/* Summary stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatCard label="Matches" value={String(stats.totalMatches)} />
@@ -221,73 +248,80 @@ export function PlayerAnalytics() {
         </>
       )}
 
+      {/* Your top comps (from cached GEP matches) */}
+      <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4">
+        <div className="text-[10px] uppercase tracking-widest text-[#a1a1a1] mb-3">Your Top Comps (evolving)</div>
+        {personalMatches.length === 0 ? (
+          <div className="text-sm text-[#a1a1a1]">
+            Play games with Ally running — match-end snapshots build your personal comp list.
+          </div>
+        ) : personalTopComps.length === 0 ? (
+          <div className="text-sm text-[#a1a1a1]">
+            Need at least 2 logged games on the same comp line to rank a build.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {personalTopComps.slice(0, 6).map((comp) => (
+              <div key={comp.compKey} className="bg-[#181818] border border-[#2a2a2a] rounded-lg p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="text-sm font-semibold text-white">{comp.displayName}</div>
+                  <div className="font-mono text-[10px] text-[#35c3e7] shrink-0">score {comp.score}</div>
+                </div>
+                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-[10px] text-[#a1a1a1]">
+                  <span>{comp.games} games</span>
+                  <span>avg {comp.avgPlacement}</span>
+                  <span>top4 {comp.top4Rate}%</span>
+                  <span>wins {comp.winRate}%</span>
+                </div>
+                {comp.coreUnits.length > 0 && (
+                  <div className="mt-2 text-[11px] text-neutral-400">
+                    Core:{' '}
+                    {comp.coreUnits
+                      .slice(0, 6)
+                      .map((u) => `${u.name} (${u.rate}%)`)
+                      .join(' · ')}
+                  </div>
+                )}
+                {comp.itemBuilds.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {comp.itemBuilds.map((build) => (
+                      <div key={build.unit} className="text-[11px] text-neutral-400">
+                        <span className="text-neutral-300">{build.unit}</span>
+                        {': '}
+                        {build.items.map((i) => `${i.name} (${i.rate}%)`).join(', ')}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Your Matches */}
       <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4">
-        <div className="text-[10px] uppercase tracking-widest text-[#a1a1a1] mb-3">Your Matches</div>
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="text-[10px] uppercase tracking-widest text-[#a1a1a1]">Your Matches</div>
+          {incompletePersonalCount > 0 && (
+            <span className="font-mono text-[10px] text-ally-warning">
+              {incompletePersonalCount} incomplete
+            </span>
+          )}
+        </div>
         {personalMatches.length === 0 ? (
           <div className="text-sm text-[#a1a1a1]">No personal matches logged yet.</div>
         ) : (
           <>
             {personalStats && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                <StatCard label="Games" value={String(personalAsRiotMatches.length)} />
+                <StatCard label="Games" value={String(personalLegacyMatches.length)} />
                 <StatCard label="Avg Place" value={personalStats.avgPlacement.toFixed(2)} />
                 <StatCard label="Top 4" value={`${personalStats.top4Rate.toFixed(1)}%`} />
                 <StatCard label="Win Rate" value={`${personalStats.winRate.toFixed(1)}%`} />
               </div>
             )}
-            <div className="space-y-2 max-h-72 overflow-auto pr-1">
-              {personalMatches.slice(0, 20).map((m) => (
-                <div key={m.id} className="bg-[#181818] border border-[#2a2a2a] rounded-lg p-3">
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="text-neutral-200">
-                      Place: <span className="text-[#35c3e7] font-semibold">{m.placement ?? '-'}</span>
-                      {' · '}
-                      Comp: <span className="text-neutral-300">{m.comp ?? 'Unknown'}</span>
-                      {m.compName && m.compName !== m.comp && (
-                        <span className="text-neutral-400 ml-1">({m.compName})</span>
-                      )}
-                    </div>
-                    <div className="text-neutral-400">
-                      {new Date(m.timestamp ?? m.createdAt).toLocaleString()}
-                      {m.duration && (
-                        <span className="text-neutral-400 ml-2"> • {m.duration}s</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="mt-1 flex flex-wrap gap-4 text-[11px]">
-                    <div className="text-neutral-400">
-                      Units: {m.units.slice(0, 4).join(', ')}${m.units.length > 4 ? ` +${m.units.length - 4}` : ''}
-                    </div>
-                    {m.summonerName && (
-                      <div className="text-neutral-400">
-                        Summoner: {m.summonerName}
-                      </div>
-                    )}
-                    {m.region && (
-                      <div className="text-neutral-400">
-                        Region: {m.region.toUpperCase()}
-                      </div>
-                    )}
-                    {m.augments.length > 0 && (
-                      <div className="text-neutral-400">
-                        Augments: {m.augments.slice(0, 2).join(', ') + (m.augments.length > 2 ? ` +${m.augments.length - 2}` : '')}
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-1 text-[10px] flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded
-                      ${m.syncStatus === 'synced' ? 'bg-green-500' :
-                        m.syncStatus === 'failed' ? 'bg-red-500' :
-                        'bg-yellow-500'}`} />
-                    <span className="text-neutral-400">
-                      {m.syncStatus === 'synced' ? 'Synced' :
-                        m.syncStatus === 'failed' ? 'Failed' : 'Pending'}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <PersonalMatchList rows={enrichedPersonal} />
           </>
         )}
       </div>

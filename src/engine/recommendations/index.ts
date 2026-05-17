@@ -24,5 +24,6 @@ export {
 export { toNormalizedSignals } from "./signals";
 export { shopRecommendations } from "./strategies/shop";
 export { itemRecommendations } from "./strategies/items";
+export { compRecommendations } from "./strategies/comp";
 export { economyRecommendations } from "./strategies/economy";
 export { buildGameStateFromBoard } from "./teamBuilderGameState";

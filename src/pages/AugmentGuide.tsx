@@ -1,19 +1,19 @@
-import { useEffect, useMemo, useState, Fragment } from 'react'
-import { useAppStore } from '@/store/useAppStore'
-import type { Augment } from '@/data/augments'
-import { augmentPortraitUrls } from '@/utils/iconResolver'
-import { IconWithFallback } from '@/components/IconWithFallback'
+import { useMemo, useState } from 'react'
+import { GameIcon } from '@/components/GameIcon'
+import { augmentIconUrl } from '@/utils/augmentDisplay'
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
-import { ReferenceDetailModal } from '@/components/ReferenceDetailModal'
+import { useTFTData } from '@/hooks/useTFTData'
+import { buildAugmentGuideEntries, type AugmentGuideEntry } from '@/lib/tftStaticMappers'
+import { TFTStaticDataBanner } from '@/components/TFTStaticDataBanner'
 
 /* ─── Design tokens ─── */
 const C = {
   bg:         '#0e0e0e',
   surface:    '#111111',
   border:     '#2a2a2a',
-  accent:     'var(--color-ally-accent)',
-  accentDim:  'color-mix(in srgb, var(--color-ally-accent) 16%, transparent)',
+  accent:     '#35c3e7',
+  accentDim:  'rgba(53, 195, 231, 0.15)',
   text:       '#ffffff',
   muted:      '#9ca3af',
   content:    '#0e0e0e',
@@ -25,6 +25,9 @@ const TIER_COLORS: Record<string, { text: string; bg: string; border: string; ac
   silver: { text: '#9aa4af', bg: 'rgba(154, 164, 175, 0.1)', border: 'rgba(154, 164, 175, 0.3)', accent: '#9aa4af', glow: 'none' }
 }
 
+type Augment = AugmentGuideEntry
+
+const AUGMENTS_PLACEHOLDER_FALLBACK = ['Gold', 'Silver', 'Combat']
 
 interface AugmentGuideProps {
   query: string
@@ -34,55 +37,47 @@ interface AugmentGuideProps {
   tagFilter: string
   setTagFilter: (value: string) => void
   onAugmentSelect: (augmentId: string) => void
-  initialAugment?: string | null
 }
 
-const AUGMENT_GUIDE_PLACEHOLDER_WORDS = ['Prismatic', 'Divine Right', 'Space Groove']
-
-export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFilter, setTagFilter, onAugmentSelect, initialAugment }: AugmentGuideProps) {
-  const augments = useAppStore((s) => s.gameData.augments)
+export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFilter, setTagFilter, onAugmentSelect }: AugmentGuideProps) {
+  const tft = useTFTData()
+  const augments = useMemo(() => buildAugmentGuideEntries(tft), [tft])
   const [selectedAugment, setSelectedAugment] = useState<Augment | null>(null)
 
-  const augmentTagOptions = useMemo(() => {
-    const tags = new Set<string>()
-    for (const a of augments) {
-      for (const t of a.tags) tags.add(t)
-    }
-    return ["all", ...[...tags].sort((a, b) => a.localeCompare(b))]
-  }, [augments])
-
-  useEffect(() => {
-    if (!initialAugment) return
-    const a = augments.find((x) => x.name === initialAugment || x.id === initialAugment)
-    if (a) setSelectedAugment(a)
-  }, [initialAugment, augments])
+  const placeholderWords = useMemo(
+    () => augments.slice(0, 10).map((a) => a.name),
+    [augments],
+  )
 
   const { placeholderAnimated: augmentsSearchPlaceholder } = useTypewriterPlaceholder(
-    augments.length > 0 ? augments.slice(0, 10).map(a => a.name) : AUGMENT_GUIDE_PLACEHOLDER_WORDS,
+    placeholderWords.length > 0 ? placeholderWords : AUGMENTS_PLACEHOLDER_FALLBACK,
     query.length > 0,
   )
 
   const filtered = useMemo(() => {
-    let list = query ? augments.filter(a =>
-      a.name.toLowerCase().includes(query.toLowerCase()) ||
-      a.description.toLowerCase().includes(query.toLowerCase()) ||
-      a.tags.some(t => t.toLowerCase().includes(query.toLowerCase()))
-    ) : [...augments]
+    let list = query
+      ? augments.filter(
+          (a) =>
+            a.name.toLowerCase().includes(query.toLowerCase()) ||
+            a.apiName.toLowerCase().includes(query.toLowerCase()) ||
+            a.description.toLowerCase().includes(query.toLowerCase()) ||
+            a.tags.some((t) => t.toLowerCase().includes(query.toLowerCase())),
+        )
+      : [...augments]
 
     if (tierFilter !== 'all') {
-      list = list.filter(a => a.tier === tierFilter)
+      list = list.filter((a) => a.tier === tierFilter)
     }
 
     if (tagFilter !== 'all') {
-      list = list.filter(a => a.tags.includes(tagFilter))
+      list = list.filter((a) => a.tags.includes(tagFilter))
     }
 
     const tierOrder = { prismatic: 0, gold: 1, silver: 2 }
-    return list.sort((a, b) => tierOrder[a.tier] - tierOrder[b.tier])
+    return list.sort((a, b) => tierOrder[a.tier] - tierOrder[b.tier] || a.name.localeCompare(b.name))
   }, [query, tierFilter, tagFilter, augments])
 
   const handleAugmentClick = (augment: Augment) => {
-    onAugmentSelect(augment.id)
     setSelectedAugment(augment)
   }
 
@@ -90,8 +85,11 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
     setSelectedAugment(null)
   }
 
+  if (selectedAugment) {
+    return <AugmentDetail augment={selectedAugment} onBack={handleBack} />
+  }
+
   return (
-    <Fragment>
     <div className="flex h-screen" style={{ animation: 'pageEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1)' }}>
       {/* Left Sidebar */}
       <div className="flex-shrink-0 flex flex-col" style={{
@@ -159,7 +157,7 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
             Tag
           </div>
           <div className="flex flex-wrap gap-2">
-            {augmentTagOptions.map((tag) => (
+            {(['all', 'trait', 'economy', 'offense', 'defense', 'AP', 'mana', 'sustain', 'utility', 'crit', 'mobility', 'range', 'support'] as const).map((tag) => (
               <button
                 key={tag}
                 onClick={() => setTagFilter(tag)}
@@ -187,11 +185,13 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
         padding: '16px',
         animation: 'contentEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.15s both',
       }}>
+        <TFTStaticDataBanner meta={tft.meta} count={filtered.length} label="augments" />
         <div className="grid grid-cols-2 gap-3">
-          {filtered.map((augment) => (
+          {filtered.map((augment, index) => (
             <AugmentCard
               key={augment.id}
               augment={augment}
+              index={index}
               onClick={() => handleAugmentClick(augment)}
             />
           ))}
@@ -208,12 +208,12 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
           to { opacity: 1; transform: translateX(0); }
         }
         @keyframes contentEnter {
-          from { opacity: 0; }
-          to { opacity: 1; }
+          from { opacity: 0; transform: translateX(20px); }
+          to { opacity: 1; transform: translateX(0); }
         }
         @keyframes cardEnter {
-          from { opacity: 0; }
-          to { opacity: 1; }
+          from { opacity: 0; transform: translateY(12px) scale(0.98); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
         }
         @keyframes detailEnter {
           from { opacity: 0; transform: translateX(20px); }
@@ -229,37 +229,34 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
         }
       `}</style>
     </div>
-
-    <ReferenceDetailModal
-      open={Boolean(selectedAugment)}
-      onClose={handleBack}
-      ariaLabel={selectedAugment ? `${selectedAugment.name} augment details` : 'Augment details'}
-    >
-      {selectedAugment ? <AugmentDetail augment={selectedAugment} onBack={handleBack} embedded /> : null}
-    </ReferenceDetailModal>
-    </Fragment>
   )
 }
 
-function AugmentCard({ augment, onClick }: { augment: Augment; onClick: () => void }) {
+function AugmentCard({ augment, index, onClick }: { augment: Augment; index: number; onClick: () => void }) {
   const tierColors = TIER_COLORS[augment.tier] ?? TIER_COLORS.silver
-  const baseShadow = augment.tier === 'prismatic' ? tierColors.glow : 'none'
 
   return (
     <div
-      className="relative cursor-pointer overflow-hidden rounded-[10px] border border-solid border-ally-border bg-ally-card p-3 transition-[transform,border-color,box-shadow] duration-150 ease-out hover:scale-[1.01]"
+      className="relative overflow-hidden cursor-pointer"
       style={{
-        animation: 'cardEnter 0.22s ease-out both',
-        boxShadow: baseShadow,
+        background: C.surface,
+        border: `1px solid ${C.border}`,
+        borderRadius: '10px',
+        padding: '12px',
+        transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+        animation: `cardEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1) ${index * 40}ms both`,
+        boxShadow: augment.tier === 'prismatic' ? tierColors.glow : 'none',
       }}
       onClick={onClick}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = tierColors.accent
         e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3)'
+        e.currentTarget.style.transform = 'scale(1.02)'
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = ''
-        e.currentTarget.style.boxShadow = baseShadow
+        e.currentTarget.style.borderColor = C.border
+        e.currentTarget.style.boxShadow = augment.tier === 'prismatic' ? tierColors.glow : 'none'
+        e.currentTarget.style.transform = 'scale(1)'
       }}
     >
       {/* Left Border Accent */}
@@ -287,17 +284,18 @@ function AugmentCard({ augment, onClick }: { augment: Augment; onClick: () => vo
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, paddingLeft: 8 }}>
-        <IconWithFallback
-          urls={augmentPortraitUrls(augment.name, augment.iconUrl)}
-          alt={augment.name}
-          size={36}
-          style={{ borderRadius: 6, flexShrink: 0 }}
+        <GameIcon
+          src={augment.iconUrl}
+          fallbackSrc={augmentIconUrl(augment.name)}
+          width={36}
+          height={36}
+          style={{ borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
         />
         <div style={{ fontSize: '13px', fontWeight: 600, color: 'white' }}>{augment.name}</div>
       </div>
 
       {/* Description */}
-      <div style={{ fontSize: '11px', color: '#555', lineHeight: '1.4', marginBottom: '8px', paddingLeft: '8px', whiteSpace: 'pre-line' }}>
+      <div style={{ fontSize: '11px', color: '#555', lineHeight: '1.4', marginBottom: '8px', paddingLeft: '8px' }}>
         {augment.description}
       </div>
 
@@ -334,42 +332,41 @@ function AugmentCard({ augment, onClick }: { augment: Augment; onClick: () => vo
   )
 }
 
-function AugmentDetail({ augment, onBack, embedded = false }: { augment: Augment; onBack: () => void; embedded?: boolean }) {
+function AugmentDetail({ augment, onBack }: { augment: Augment; onBack: () => void }) {
   const tierColors = TIER_COLORS[augment.tier] ?? TIER_COLORS.silver
 
   return (
     <div className="h-full overflow-y-auto" style={{
       background: C.content,
-      padding: embedded ? '12px 16px 20px' : '16px',
+      padding: '16px',
       animation: 'detailEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
     }}>
-      {!embedded ? (
-        <button
-          onClick={onBack}
-          style={{
-            marginBottom: '16px',
-            padding: '6px 12px',
-            fontSize: '13px',
-            fontWeight: 500,
-            borderRadius: '6px',
-            background: 'transparent',
-            border: '1px solid transparent',
-            color: '#555',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = C.accent
-            e.currentTarget.style.borderColor = C.accent
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = '#555'
-            e.currentTarget.style.borderColor = 'transparent'
-          }}
-        >
-          ← Augments
-        </button>
-      ) : null}
+      {/* Back Button */}
+      <button
+        onClick={onBack}
+        style={{
+          marginBottom: '16px',
+          padding: '6px 12px',
+          fontSize: '13px',
+          fontWeight: 500,
+          borderRadius: '6px',
+          background: 'transparent',
+          border: '1px solid transparent',
+          color: '#555',
+          cursor: 'pointer',
+          transition: 'all 0.15s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = C.accent
+          e.currentTarget.style.borderColor = C.accent
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = '#555'
+          e.currentTarget.style.borderColor = 'transparent'
+        }}
+      >
+        ← Augments
+      </button>
 
       {/* Augment Name + Tier */}
       <div className="flex items-center gap-4 mb-8" style={{ animation: 'statCardEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.1s both' }}>
@@ -381,11 +378,12 @@ function AugmentDetail({ augment, onBack, embedded = false }: { augment: Augment
             borderRadius: '2px',
           }}
         />
-        <IconWithFallback
-          urls={augmentPortraitUrls(augment.name, augment.iconUrl)}
-          alt={augment.name}
-          size={44}
-          style={{ borderRadius: 8, border: '1px solid #2a2a2a' }}
+        <GameIcon
+          src={augment.iconUrl}
+          fallbackSrc={augmentIconUrl(augment.name)}
+          width={44}
+          height={44}
+          style={{ borderRadius: 8, objectFit: 'cover', border: '1px solid #2a2a2a' }}
         />
         <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'white' }}>{augment.name}</h2>
         <div
@@ -409,7 +407,7 @@ function AugmentDetail({ augment, onBack, embedded = false }: { augment: Augment
           Description
         </div>
         <div style={{ padding: '16px', borderRadius: '8px', background: '#1a1a1a', border: '1px solid #2a2a2a' }}>
-          <div style={{ fontSize: '13px', color: '#ccc', whiteSpace: 'pre-line' }}>{augment.description}</div>
+          <div style={{ fontSize: '13px', color: '#ccc' }}>{augment.description}</div>
         </div>
       </div>
 
@@ -419,12 +417,11 @@ function AugmentDetail({ augment, onBack, embedded = false }: { augment: Augment
           Effect
         </div>
         <div style={{ padding: '16px', borderRadius: '8px', background: '#111827', border: '1px solid #16162a' }}>
-          <div style={{ fontSize: '13px', color: '#ccc', whiteSpace: 'pre-line' }}>{augment.effect}</div>
+          <div style={{ fontSize: '13px', color: '#ccc' }}>{augment.effect}</div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      {augment.winRate > 0 ? (
       <div className="grid grid-cols-3 gap-3 mb-8">
         {[
           { label: 'Win Rate', value: `${augment.winRate}%`, color: augment.winRate > 52 ? '#22c55e' : augment.winRate < 50 ? '#ef4444' : '#fbbf24' },
@@ -446,11 +443,6 @@ function AugmentDetail({ augment, onBack, embedded = false }: { augment: Augment
           </div>
         ))}
       </div>
-      ) : (
-        <div style={{ marginBottom: '32px', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', fontSize: '12px', color: '#666', textAlign: 'center' }}>
-          Real-time stats currently unavailable for this augment.
-        </div>
-      )}
 
       {/* Best Comps */}
       <div style={{ marginBottom: '32px' }}>

@@ -6,12 +6,13 @@ import type {
   RiskLevel,
   UrgencyLevel,
 } from "@ally/shared-types";
-import { SYNERGIES as BUNDLED_SYNERGIES } from "@/data/synergies";
-import { UNITS as BUNDLED_UNITS } from "@/data/units";
+import { SYNERGIES } from "@/data/synergies";
+import { UNITS } from "@/data/units";
 import { unitMatchKey } from "@/utils/unitDisplay";
 import type { ShopRecommendation } from "@/services/shopAdvisorService";
 import { analyzeShop } from "@/services/shopAdvisorService";
 import { clamp01, combineEvidenceWeighted } from "../confidence";
+import { RECOMMENDATION_THRESHOLDS } from "../thresholds";
 
 function recId(category: string, key: string, t: number): string {
   return `${category}:${key}:${t}`;
@@ -46,24 +47,15 @@ function shopPriorityToModel(
   return { confidence: base, risk, urgency };
 }
 
-const MIN_TRAIT_HISTORY_GAMES = 4;
-
 /** Early board: suggest shop cost focus from trait progress (e.g. Team Builder with no shop snapshot). */
-function traitProgressShopHint(
-  boardUnitNames: string[],
-  nowMs: number,
-  matchHistory: PlayerMatchHistorySummary,
-  contextData?: { champions?: typeof BUNDLED_UNITS; traits?: typeof BUNDLED_SYNERGIES },
-): AllyRecommendation | null {
-  const champions = contextData?.champions ?? BUNDLED_UNITS;
-  const traitRoster = contextData?.traits ?? BUNDLED_SYNERGIES;
+function traitProgressShopHint(boardUnitNames: string[], nowMs: number): AllyRecommendation | null {
   const n = boardUnitNames.length;
   if (n === 0 || n >= 4) return null;
 
   const boardSet = new Set(boardUnitNames.map((name) => unitMatchKey(name)));
   const traitCounts: Record<string, number> = {};
   for (const name of boardUnitNames) {
-    const u = champions.find((x) => unitMatchKey(x.name) === unitMatchKey(name));
+    const u = UNITS.find((x) => unitMatchKey(x.name) === unitMatchKey(name));
     if (!u) continue;
     for (const t of u.traits) {
       traitCounts[t] = (traitCounts[t] ?? 0) + 1;
@@ -73,7 +65,7 @@ function traitProgressShopHint(
   type Cand = { trait: string; need: number; nextCount: number };
   const cands: Cand[] = [];
   for (const [traitName, count] of Object.entries(traitCounts)) {
-    const syn = traitRoster.find((s) => s.name === traitName);
+    const syn = SYNERGIES.find((s) => s.name === traitName);
     if (!syn) continue;
     const next = syn.thresholds.find((th) => th.count > count);
     if (!next) continue;
@@ -85,7 +77,7 @@ function traitProgressShopHint(
   const top = cands[0];
   const have = traitCounts[top.trait] ?? 0;
 
-  const pool = champions.filter(
+  const pool = UNITS.filter(
     (u) => u.traits.includes(top.trait) && !boardSet.has(unitMatchKey(u.name)),
   );
   const costs = [...new Set(pool.map((u) => u.cost))].sort((a, b) => a - b);
@@ -98,88 +90,28 @@ function traitProgressShopHint(
 
   const examples = pool
     .slice()
-    .sort((a, b) => {
-      const ua = matchHistory.unitPerformance[a.name]?.winRate ?? 0;
-      const ub = matchHistory.unitPerformance[b.name]?.winRate ?? 0;
-      if (ub !== ua) return ub - ua;
-      return a.cost - b.cost || a.name.localeCompare(b.name);
-    })
+    .sort((a, b) => a.cost - b.cost || a.name.localeCompare(b.name))
     .slice(0, 4)
     .map((u) => u.name);
 
-  const historyKey = `${top.trait}:${top.nextCount}`;
-  const hist = matchHistory.traitThresholdHistory[historyKey];
-  let personalSuffix = "";
-  let extraConfidence = 0;
-  const evidence: AllyRecommendation["evidence"] = [
-    { source: "static_meta", weight: 0.65, note: "Trait thresholds & unit costs" },
-    { source: "heuristic", weight: 0.35, note: "Early board shop planning" },
-  ];
-  const reasoning: string[] = [
-    `Next breakpoint: ${top.nextCount} ${top.trait} (${have} on board).`,
-    ...(examples.length ? [`Examples: ${examples.join(", ")}.`] : []),
-  ];
-
-  let traitCompWinBlurb = "";
-  let bestTraitTrend: { name: string; winRate: number; n: number } | null = null;
-  for (const traitName of Object.keys(traitCounts)) {
-    const tp = matchHistory.traitPerformance[traitName];
-    if (tp && tp.playCount >= 4 && tp.winRate >= 0.35) {
-      if (!bestTraitTrend || tp.winRate > bestTraitTrend.winRate) {
-        bestTraitTrend = { name: traitName, winRate: tp.winRate, n: tp.playCount };
-      }
-    }
-  }
-  if (bestTraitTrend && bestTraitTrend.winRate >= 0.45) {
-    const pct = Math.round(bestTraitTrend.winRate * 100);
-    traitCompWinBlurb = ` You have ${pct}% win rate with ${bestTraitTrend.name} comps (${bestTraitTrend.n} games).`;
-    reasoning.push(
-      `Personal trend: ${pct}% win rate when you run boards that include ${bestTraitTrend.name}.`,
-    );
-    evidence.push({
-      source: "match_history",
-      weight: 0.35,
-      note: `${bestTraitTrend.name} trait — ${pct}% win rate`,
-    });
-  }
-
-  if (
-    hist &&
-    hist.games >= MIN_TRAIT_HISTORY_GAMES &&
-    hist.top4Rate != null &&
-    hist.avgPlacement != null
-  ) {
-    const pct = Math.round(hist.top4Rate * 100);
-    const rollTarget = examples[0] ?? costPhrase;
-    personalSuffix = ` You top-4 in ${pct}% of tracked games when you hit ${top.nextCount} ${top.trait} (${hist.games} games, avg ${hist.avgPlacement.toFixed(1)}) — prioritize rolling for ${rollTarget}.`;
-    extraConfidence = Math.min(0.2, (hist.top4Rate - 0.45) * 0.45 + 0.06);
-    evidence.push({
-      source: "match_history",
-      weight: 0.5,
-      note: `${historyKey}: ${hist.games} games, ${pct}% top-4`,
-    });
-    reasoning.push(
-      `Personal trend: ${pct}% top-4 when reaching ${top.nextCount}+ ${top.trait} across ${hist.games} logged games.`,
-    );
-  }
-
-  const detail = `You have ${have} ${top.trait} — add ${top.need} more for the ${top.nextCount}-${top.trait} bonus. In shop rolls, lean toward ${costPhrase} picks${examples.length ? ` (e.g. ${examples.join(", ")})` : ""}.${traitCompWinBlurb}${personalSuffix}`;
-
-  const title =
-    hist && hist.games >= MIN_TRAIT_HISTORY_GAMES && hist.top4Rate != null && hist.top4Rate >= 0.55
-      ? `${Math.round(hist.top4Rate * 100)}% top-4 at ${top.nextCount} ${top.trait}`
-      : `Shop focus — ${top.nextCount} ${top.trait}`;
+  const detail = `You have ${have} ${top.trait} — add ${top.need} more for the ${top.nextCount}-${top.trait} bonus. In shop rolls, lean toward ${costPhrase} picks${examples.length ? ` (e.g. ${examples.join(", ")})` : ""}.`;
 
   return {
     id: `shop:trait:${top.trait}:${nowMs}`,
     category: "shop",
-    title,
+    title: `Shop focus — ${top.nextCount} ${top.trait}`,
     detail,
-    confidence: clamp01(0.52 + extraConfidence),
+    confidence: 0.52,
     risk: "low",
     urgency: n <= 2 ? "medium" : "low",
-    reasoning,
-    evidence,
+    reasoning: [
+      `Next breakpoint: ${top.nextCount} ${top.trait} (${have} on board).`,
+      ...(examples.length ? [`Examples: ${examples.join(", ")}.`] : []),
+    ],
+    evidence: [
+      { source: "static_meta", weight: 0.65, note: "Trait thresholds & unit costs" },
+      { source: "heuristic", weight: 0.35, note: "Early board shop planning" },
+    ],
     createdAtMs: nowMs,
   };
 }
@@ -189,16 +121,15 @@ function mapShop(
   signals: NormalizedGameSignals,
   history: PlayerMatchHistorySummary,
   now: number,
-  contextData?: { champions?: typeof BUNDLED_UNITS },
 ): AllyRecommendation | null {
-  const champions = contextData?.champions ?? BUNDLED_UNITS;
   if (rec.priority === "skip") return null;
   const { confidence, risk, urgency } = shopPriorityToModel(rec, signals);
   const evidence: AllyRecommendation["evidence"] = [
     { source: "static_meta", weight: 0.55, note: `Comp graph & cost context for ${rec.name}` },
     { source: "gep", weight: 0.35, note: "Live shop & board from game events" },
   ];
-  if (history.windowSize >= 5) {
+  const shopT = RECOMMENDATION_THRESHOLDS.shop;
+  if (history.windowSize >= shopT.historyEvidenceWindowMin) {
     evidence.push({
       source: "match_history",
       weight: 0.2,
@@ -207,27 +138,12 @@ function mapShop(
         : `${history.windowSize} recent games — weak comp preference signal`,
     });
   }
-  const canon =
-    champions.find((u) => unitMatchKey(u.name) === unitMatchKey(rec.name))?.name ?? rec.name;
-  const uPerf = history.unitPerformance[canon];
-  let historyConfidenceBoost = 0;
-  const historyReason: string[] = [];
-  if (uPerf && uPerf.playCount >= 3 && uPerf.winRate >= 0.4) {
-    historyConfidenceBoost = Math.min(0.14, (uPerf.winRate - 0.35) * 0.22);
-    evidence.push({
-      source: "match_history",
-      weight: 0.45,
-      note: `${canon}: ${Math.round(uPerf.winRate * 100)}% wins in ${uPerf.playCount} games`,
-    });
-    historyReason.push(
-      `You have ${Math.round(uPerf.winRate * 100)}% win rate when fielding ${canon} across ${uPerf.playCount} recent games.`,
-    );
-  }
-
   const c = combineEvidenceWeighted([
-    { score: confidence + historyConfidenceBoost, weight: 1 },
+    { score: confidence, weight: 1 },
     ...(history.top4Rate != null ? [{ score: history.top4Rate, weight: 0.15 }] : []),
   ]);
+
+  if (c < shopT.minMappedConfidence) return null;
 
   return {
     id: recId("shop", rec.name, now),
@@ -239,7 +155,6 @@ function mapShop(
     urgency,
     reasoning: [
       rec.reason,
-      ...historyReason,
       ...(rec.bestComps.length > 0
         ? [`Paired with meta comps: ${rec.bestComps.slice(0, 3).join(", ")}`]
         : []),
@@ -250,16 +165,12 @@ function mapShop(
   };
 }
 
-export function shopRecommendations(
-  input: RecommendationEngineInput,
-  nowMs = Date.now(),
-  contextData?: { champions?: typeof BUNDLED_UNITS; traits?: typeof BUNDLED_SYNERGIES },
-): AllyRecommendation[] {
+export function shopRecommendations(input: RecommendationEngineInput, nowMs = Date.now()): AllyRecommendation[] {
   const { signals, matchHistory } = input;
   if (!signals.inGame) return [];
 
   const out: AllyRecommendation[] = [];
-  const traitHint = traitProgressShopHint(signals.boardUnitNames, nowMs, matchHistory, contextData);
+  const traitHint = traitProgressShopHint(signals.boardUnitNames, nowMs);
   if (traitHint) out.push(traitHint);
 
   if (signals.shopUnitNames.length === 0) return out;
@@ -273,8 +184,8 @@ export function shopRecommendations(
     "standard",
   );
 
-  for (const r of recs.slice(0, 6)) {
-    const m = mapShop(r, signals, matchHistory, nowMs, contextData);
+  for (const r of recs.slice(0, RECOMMENDATION_THRESHOLDS.shop.maxRecommendations)) {
+    const m = mapShop(r, signals, matchHistory, nowMs);
     if (m) out.push(m);
   }
   return out;

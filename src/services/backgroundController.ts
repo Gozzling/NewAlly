@@ -9,27 +9,40 @@ import {
   calculateItemCrafting,
   detectCompFromUnits,
 } from "@/shared/gameEngine";
+import { mergeAugmentSlots, parseAugmentList, parseAugmentsFromGepInfo } from "@/shared/augmentParse";
 import {
   TFT_LIVE_CHANNEL,
   createIpcGameStateMessage,
   createIpcGepStatusMessage,
   createIpcBackgroundErrorMessage,
   createIpcPersonalMatchMessage,
-  createIpcGameDataMessage,
-  type IpcPersonalMatchMessage,
+  createIpcPersonalMatchesHydrateMessage,
   type IpcTftPayload,
 } from "@/engine/events/ipcWire";
+import type { PersonalMatchIpcRecord } from "@ally/shared-types";
+import { extractUnitBuildsFromBoard, flattenItemsFromBuilds } from "@/engine/personalComps/unitBuilds";
 import type { MetaComp, ItemRecipes, TftGameState } from "@/types/tft";
 import { openWindow, hideWindow, getWindowId } from "./overwolfWindowService";
 import { GeppService } from "./geppService";
-import * as cdnDataService from "./cdnDataService";
-import { savePersonalMatch, markPersonalMatchSynced, type PersonalMatchRecord } from "./indexedDbService";
+import {
+  getPersonalMatches,
+  savePersonalMatch,
+  markPersonalMatchSynced,
+  type PersonalMatchRecord,
+} from "./indexedDbService";
 import { syncPersonalMatchToSupabase } from "./matchHistoryService";
 import { createMatchVisionCapture } from "./backgroundVisionCapture";
 
 const TFT_CLASS_ID = 21570;
 const REQUIRED_FEATURES = [
-  "game_info", "match_info", "active_player", "board", "shop", "roster", "items",
+  "game_info",
+  "match_info",
+  "active_player",
+  "board",
+  "shop",
+  "roster",
+  "items",
+  "augments",
 ];
 
 let metaComps: MetaComp[] = [];
@@ -61,21 +74,17 @@ function notify(state: TftGameState): void {
   broadcastPayload(createIpcGameStateMessage(state));
 }
 
-function broadcastGameData(): void {
-  const { gameData } = useAppStore.getState();
-  if (gameData.source) {
-    broadcastPayload(
-      createIpcGameDataMessage(
-        {
-          setNumber: gameData.setNumber,
-          champions: gameData.champions,
-          traits: gameData.traits,
-          items: gameData.items,
-          augments: gameData.augments,
-        },
-        gameData.source,
-      ),
-    );
+function broadcastPersonalMatch(record: PersonalMatchRecord): void {
+  broadcastPayload(createIpcPersonalMatchMessage(record as PersonalMatchIpcRecord));
+}
+
+async function broadcastPersonalMatchesHydrate(limit = 40): Promise<void> {
+  try {
+    const rows = await getPersonalMatches(limit);
+    broadcastPayload(createIpcPersonalMatchesHydrateMessage(rows as PersonalMatchIpcRecord[]));
+    console.debug("[BG] personal matches hydrate broadcast", { count: rows.length });
+  } catch (err) {
+    console.warn("[BG] personal matches hydrate failed", err);
   }
 }
 
@@ -105,16 +114,35 @@ function recalcItems(): void {
 
 // ── GEP via GeppService ────────────────────────────────────────────────────
 
+function collectLiveMatchAugments(
+  gs: TftGameState,
+  eventData?: Record<string, unknown>,
+): string[] {
+  const buckets = [
+    parseAugmentList(gs.augmentSlots),
+    parseAugmentsFromGepInfo(gs.raw?.augments),
+    parseAugmentsFromGepInfo(gs.raw?.active_player),
+    parseAugmentsFromGepInfo(eventData),
+  ];
+  let merged: string[] = [];
+  for (const bucket of buckets) {
+    if (bucket.length > 0) merged = mergeAugmentSlots(merged, bucket);
+  }
+  return merged;
+}
+
 function buildPersonalMatchRecord(eventData?: Record<string, unknown>): PersonalMatchRecord {
   const app = useAppStore.getState();
   const gs = app.gameState;
   const now = Date.now();
   const boardUnits = gs.board.units ?? [];
-  const items = boardUnits.flatMap((u) => u.items ?? []);
-  const units = boardUnits.map((u) => u.name).filter(Boolean);
+  const unitBuilds = extractUnitBuildsFromBoard(boardUnits);
+  const items = flattenItemsFromBuilds(unitBuilds);
+  const units = unitBuilds.map((u) => u.name).filter(Boolean);
   const summonerName = app.selectedPlayer?.name ?? "Unknown";
   const region = app.settings.region;
   const compDetected = detectCompFromUnits(units);
+  const augments = collectLiveMatchAugments(gs, eventData);
 
   return {
     id: `match-${now}-${summonerName}`,
@@ -127,7 +155,8 @@ function buildPersonalMatchRecord(eventData?: Record<string, unknown>): Personal
     placement: gs.roster.find((p) => p.isLocalPlayer)?.rank ?? null,
     units,
     items,
-    augments: gs.augmentSlots ?? [],
+    unitBuilds,
+    augments,
     comp: compDetected || (gs.activeCompTracker.bestMatchName ?? null),
     compName: compDetected || (gs.activeCompTracker.bestMatchName ?? null),
     duration: eventData?.duration ? Number(eventData.duration) : null,
@@ -136,28 +165,10 @@ function buildPersonalMatchRecord(eventData?: Record<string, unknown>): Personal
       eventData: eventData ?? {},
       round_type: gs.round_type,
       gold: gs.gold,
+      augmentSlots: gs.augmentSlots,
+      augments: gs.raw?.augments,
+      active_player: gs.raw?.active_player,
     },
-  };
-}
-
-function personalMatchForIpc(r: PersonalMatchRecord): IpcPersonalMatchMessage["match"] {
-  return {
-    id: r.id,
-    createdAt: r.createdAt,
-    timestamp: r.timestamp,
-    summonerName: r.summonerName,
-    region: r.region,
-    syncedAt: r.syncedAt,
-    isSynced: r.isSynced,
-    syncStatus: r.syncStatus,
-    placement: r.placement,
-    units: r.units,
-    items: r.items,
-    augments: r.augments,
-    comp: r.comp,
-    compName: r.compName ?? null,
-    duration: r.duration,
-    source: r.source,
   };
 }
 
@@ -167,7 +178,7 @@ async function persistAndSyncPersonalMatch(eventData?: Record<string, unknown>):
   try {
     await savePersonalMatch(record);
     useAppStore.getState().addPersonalMatch(record);
-    broadcastPayload(createIpcPersonalMatchMessage(personalMatchForIpc(record)));
+    broadcastPersonalMatch(record);
     console.debug("[BG][match_end] personal match saved", { id: record.id });
   } catch (e) {
     console.error("[BG][match_end] failed to save IndexedDB match", e);
@@ -178,10 +189,18 @@ async function persistAndSyncPersonalMatch(eventData?: Record<string, unknown>):
     await syncPersonalMatchToSupabase(record);
     await markPersonalMatchSynced(record.id, true);
     useAppStore.getState().updatePersonalMatchSyncStatus(record.id, "synced", Date.now());
+    const synced = useAppStore
+      .getState()
+      .personalMatches.find((m) => m.id === record.id);
+    if (synced) broadcastPersonalMatch(synced);
     console.debug("[BG][match_end] personal match synced", { id: record.id });
   } catch (e) {
     await markPersonalMatchSynced(record.id, false);
     useAppStore.getState().updatePersonalMatchSyncStatus(record.id, "failed");
+    const failed = useAppStore
+      .getState()
+      .personalMatches.find((m) => m.id === record.id);
+    if (failed) broadcastPersonalMatch(failed);
     console.warn("[BG][match_end] personal match sync failed", e);
   }
 }
@@ -202,15 +221,30 @@ function setupGepService(): void {
     const gs = useAppStore.getState().gameState;
     const activePlayer = info?.active_player as Record<string, unknown> | undefined;
     const gold = activePlayer?.gold;
-    const augmentSlotsRaw = activePlayer?.augmentSlots;
-    const augmentSlots = Array.isArray(augmentSlotsRaw) ? augmentSlotsRaw.map(String) : [];
-    if (gold !== undefined || augmentSlots.length > 0) {
+    const parsedAugments = parseAugmentList(
+      activePlayer?.augmentSlots ?? activePlayer?.augments ?? activePlayer?.picked_augments,
+    );
+    const augmentSlots =
+      parsedAugments.length > 0 ? mergeAugmentSlots(gs.augmentSlots, parsedAugments) : gs.augmentSlots;
+    if (gold !== undefined || parsedAugments.length > 0) {
       setState({
         gold: gold !== undefined ? Number(gold) : gs.gold,
         augmentSlots,
         raw: { ...gs.raw, active_player: info },
       });
     }
+  });
+
+  geppService.onInfoUpdate("augments", (info) => {
+    const gs = useAppStore.getState().gameState;
+    const parsed = parseAugmentsFromGepInfo(info);
+    if (parsed.length === 0) return;
+    const augmentSlots = mergeAugmentSlots(gs.augmentSlots, parsed);
+    console.debug("[BG][augments] picked", { count: augmentSlots.length, augments: augmentSlots });
+    setState({
+      augmentSlots,
+      raw: { ...gs.raw, augments: info },
+    });
   });
 
   geppService.onInfoUpdate("match_info", (info) => {
@@ -277,7 +311,7 @@ function setupGepService(): void {
 
   // New events
   geppService.onNewEvent("match_start", () => {
-    setState({ isInGame: true });
+    setState({ isInGame: true, augmentSlots: [] });
     matchVision.start();
     hideLobby();
     showOverlay();
@@ -348,23 +382,6 @@ function onHotkeyPressed(e: any): void {
 export async function initBackgroundController(): Promise<void> {
   console.log("[BG] TFT Companion starting...");
 
-  // Trigger global game data load (CDN -> Cache -> Bundled)
-  void useAppStore.getState().loadGameData().then(() => {
-    const state = useAppStore.getState();
-    const preload = (cdnDataService as any).preloadCommonIcons;
-    if (typeof preload === 'function') {
-      preload(state.gameData.champions);
-    }
-    broadcastGameData();
-    // Re-calculate state after data loads to ensure comp/item matching is accurate
-    const currentBoard = useAppStore.getState().gameState.board.units;
-    if (currentBoard.length > 0) {
-      const activeCompTracker = calculateBestCompMatch(currentBoard, metaComps);
-      setState({ activeCompTracker });
-      recalcItems();
-    }
-  });
-
   let metaBootstrapError: string | null = null;
   try {
     const [comps, recipes] = await Promise.all([
@@ -396,6 +413,8 @@ export async function initBackgroundController(): Promise<void> {
   const desktop = getWindowId("desktop");
   if (!desktop) await openWindow("desktop");
   desktopId = getWindowId("desktop");
+
+  await broadcastPersonalMatchesHydrate();
 
   if (metaBootstrapError) {
     broadcastPayload(createIpcBackgroundErrorMessage("meta_load", metaBootstrapError));

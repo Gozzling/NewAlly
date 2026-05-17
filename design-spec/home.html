@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=900" />
+  <title>TFT Ally — Home design spec (900px)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /*
+      Chromium 91-safe: hex + rgba(var(--*-rgb), a) only.
+      Structural surfaces: flat. Skeleton shimmer gradient is confined to `.sk`, not chrome.
+      Home extends shell tokens — no duplicated hex outside :root definitions.
+    */
+    :root {
+      --color-ally-bg: #181818;
+      --color-ally-card: #1f1f1f;
+      --color-ally-accent: #35c3e7;
+      --color-ally-accent-rgb: 53, 195, 231;
+      --color-ally-text: #ffffff;
+      --color-ally-text-dim: #e0e0e0;
+      --color-ally-muted: #a1a1a1;
+      --color-ally-border: #2a2a2a;
+      --color-ally-hover: #252525;
+
+      --color-surface-depth-0: var(--color-ally-bg);
+      --color-surface-depth-1: var(--color-ally-card);
+      --color-surface-depth-2: #242424;
+
+      --color-ally-accent-soft: rgba(var(--color-ally-accent-rgb), 0.10);
+      --color-ally-accent-muted: rgba(var(--color-ally-accent-rgb), 0.18);
+      --color-ally-accent-border: rgba(var(--color-ally-accent-rgb), 0.28);
+      --color-ally-accent-glow: rgba(var(--color-ally-accent-rgb), 0.35);
+      --focus-ring: 0 0 0 1px rgba(var(--color-ally-accent-rgb), 0.45);
+
+      --color-placement-first: #d4a520;
+      --color-placement-first-rgb: 212, 165, 32;
+      --color-placement-top4: #10b981;
+      --color-placement-top4-rgb: 16, 185, 129;
+      --color-placement-bot4: #dc2626;
+      --color-placement-bot4-rgb: 220, 38, 38;
+
+      --font-display: "Chakra Petch", "Rajdhani", sans-serif;
+      --font-body: "Manrope", system-ui, sans-serif;
+      --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+      --text-display: 1.375rem;
+      --text-title: 1.125rem;
+      --text-body: 0.8125rem;
+      --text-caption: 0.6875rem;
+      --text-mono: 0.75rem;
+
+      --shell-width: 900px;
+      --topbar-height: 44px;
+      --rail-width: 52px;
+      --right-sidebar-width: 200px;
+
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-pill: 999px;
+      --border-hairline: 1px solid var(--color-ally-border);
+      --border-focus: 1px solid var(--color-ally-accent-border);
+
+      --motion-skeleton-duration: 1.15s;
+      --motion-skeleton-ease: linear;
+
+      --color-trait-bronze-fg: #d4a574;
+      --color-trait-bronze-bg: rgba(180, 120, 60, 0.15);
+      --color-trait-bronze-border: rgba(180, 120, 60, 0.35);
+      --color-trait-silver-fg: #c8d0d8;
+      --color-trait-silver-bg: rgba(180, 190, 200, 0.12);
+      --color-trait-silver-border: rgba(180, 190, 200, 0.35);
+      --color-trait-prismatic-fg: #c4b5fd;
+      --color-trait-prismatic-bg: rgba(167, 139, 250, 0.12);
+      --color-trait-prismatic-border: rgba(139, 92, 246, 0.4);
+      --color-danger-soft: #f87171;
+
+      --color-alert-bg: rgba(var(--color-placement-bot4-rgb), 0.10);
+      --color-alert-border: rgba(var(--color-placement-bot4-rgb), 0.40);
+
+      --color-shell-backdrop: #0d0d0d;
+      --color-spec-toolbar-bg: #111111;
+      --color-spec-toolbar-border: #333333;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      line-height: 1.45;
+      color: var(--color-ally-text);
+      background: var(--color-shell-backdrop);
+    }
+
+    .spec-toolbar {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--color-ally-muted);
+      background: var(--color-spec-toolbar-bg);
+      border-bottom: 1px solid var(--color-spec-toolbar-border);
+      padding: var(--space-2) var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+    }
+    .spec-toolbar strong { color: var(--color-ally-text-dim); }
+    .spec-toolbar label { display: inline-flex; align-items: center; gap: var(--space-1); cursor: pointer; user-select: none; }
+    .spec-toolbar input { accent-color: var(--color-ally-accent); }
+
+    .app-frame {
+      width: var(--shell-width);
+      max-width: 100%;
+      margin: 0 auto;
+      background: var(--color-surface-depth-0);
+      border: 1px solid var(--color-ally-border);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: var(--topbar-height);
+      min-height: var(--topbar-height);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 0 var(--space-3) 0 var(--space-2);
+      background: var(--color-surface-depth-1);
+      border-bottom: var(--border-hairline);
+      flex-shrink: 0;
+    }
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 0 var(--space-2);
+      flex-shrink: 0;
+    }
+    .topbar-logo-mark {
+      width: 26px;
+      height: 26px;
+      border-radius: var(--radius-sm);
+      border: var(--border-focus);
+      background: var(--color-surface-depth-0);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 12px var(--color-ally-accent-glow);
+    }
+    .topbar-logo-mark svg { width: 14px; height: 14px; fill: var(--color-ally-accent); }
+    .topbar-logo-type {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .topbar-search {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      height: 30px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(var(--color-ally-accent-rgb), 0.22);
+      background: var(--color-surface-depth-0);
+      padding: 0 var(--space-3);
+      gap: var(--space-2);
+    }
+    .topbar-search svg { flex-shrink: 0; opacity: 0.55; }
+    .topbar-search input {
+      flex: 1;
+      min-width: 0;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--color-ally-text);
+      font-family: var(--font-body);
+      font-size: 0.8125rem;
+    }
+    .topbar-search input::placeholder { color: var(--color-ally-muted); }
+    .topbar-search:focus-within { box-shadow: var(--focus-ring); }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .win-btn {
+      width: 36px;
+      height: 28px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--color-ally-muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+    .win-btn:hover { background: var(--color-ally-hover); color: var(--color-ally-text); }
+    .win-btn.close:hover { background: rgba(var(--color-placement-bot4-rgb), 0.2); color: var(--color-danger-soft); }
+
+    .shell-body {
+      display: flex;
+      min-height: 560px;
+      height: min(720px, calc(100vh - 120px));
+    }
+
+    .rail {
+      width: var(--rail-width);
+      flex-shrink: 0;
+      background: var(--color-surface-depth-1);
+      border-right: var(--border-hairline);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--space-2) 0;
+      gap: var(--space-1);
+    }
+    .rail-btn {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: var(--radius-md);
+      background: transparent;
+      color: var(--color-ally-muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+    .rail-btn:hover { background: var(--color-ally-hover); color: var(--color-ally-text-dim); }
+    .rail-btn.active {
+      background: var(--color-surface-depth-0);
+      color: var(--color-ally-accent);
+      border: var(--border-focus);
+      box-shadow: inset 0 0 12px var(--color-ally-accent-soft);
+    }
+    .rail-btn svg { width: 22px; height: 22px; }
+
+    .main-scroll {
+      flex: 1;
+      min-width: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: var(--color-surface-depth-0);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(var(--color-ally-accent-rgb), 0.35) var(--color-surface-depth-1);
+    }
+    .main-scroll::-webkit-scrollbar { width: 6px; }
+    .main-scroll::-webkit-scrollbar-track { background: var(--color-surface-depth-1); }
+    .main-scroll::-webkit-scrollbar-thumb {
+      background: rgba(var(--color-ally-accent-rgb), 0.35);
+      border-radius: var(--radius-pill);
+    }
+
+    .main-inner {
+      padding: var(--space-4);
+      max-width: 100%;
+    }
+
+    .sidebar {
+      width: var(--right-sidebar-width);
+      flex-shrink: 0;
+      background: var(--color-surface-depth-1);
+      border-left: var(--border-hairline);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+
+    .page-header { margin-bottom: var(--space-4); }
+    .page-kicker {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-ally-muted);
+      margin-bottom: var(--space-1);
+    }
+    .page-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: var(--text-display);
+      letter-spacing: 0.02em;
+      line-height: 1.15;
+      margin: 0 0 var(--space-2);
+    }
+    .page-sub {
+      margin: 0;
+      font-size: 0.8125rem;
+      color: var(--color-ally-muted);
+      max-width: 52ch;
+    }
+    .tab-row {
+      display: flex;
+      gap: var(--space-1);
+      border-bottom: var(--border-hairline);
+      margin-top: var(--space-2);
+      flex-wrap: wrap;
+    }
+    .tab {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      padding: var(--space-2) var(--space-3);
+      border: none;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      background: transparent;
+      color: var(--color-ally-muted);
+      cursor: pointer;
+      margin-bottom: -1px;
+    }
+    .tab:hover { color: var(--color-ally-text-dim); background: var(--color-ally-hover); }
+    .tab[aria-selected="true"] {
+      color: var(--color-ally-accent);
+      background: var(--color-surface-depth-2);
+      border: var(--border-hairline);
+      border-bottom-color: var(--color-surface-depth-2);
+    }
+
+    .tab-panel { display: none; margin-top: var(--space-4); }
+    .tab-panel.is-active { display: block; }
+
+    .stat-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-2);
+      margin-bottom: var(--space-4);
+    }
+    .stat-cell {
+      background: var(--color-surface-depth-1);
+      border: var(--border-hairline);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+      min-width: 0;
+    }
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--color-ally-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: var(--space-1);
+    }
+    .stat-value {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-delta {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      margin-top: var(--space-1);
+    }
+    .stat-delta.pos { color: var(--color-placement-top4); }
+    .stat-delta.neg { color: var(--color-placement-bot4); }
+    .stat-delta.flat { color: var(--color-ally-muted); }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-3);
+      margin: var(--space-5) 0 var(--space-2);
+    }
+    .section-head h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: var(--text-title);
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+    .section-head span {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--color-ally-muted);
+    }
+    .section-rule {
+      height: 1px;
+      background: var(--color-ally-border);
+      margin-bottom: var(--space-3);
+    }
+
+    /* Placement strip: data glyph — colored cells only (no structural gradient) —— */
+    .placement-strip {
+      display: flex;
+      gap: 3px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .placement-cell {
+      width: 18px;
+      height: 18px;
+      border-radius: 2px;
+      border: 1px solid transparent;
+      flex-shrink: 0;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 600;
+      display: grid;
+      place-items: center;
+    }
+    .placement-cell.is-first {
+      background: rgba(var(--color-placement-first-rgb), 0.18);
+      color: var(--color-placement-first);
+      border-color: rgba(var(--color-placement-first-rgb), 0.45);
+    }
+    .placement-cell.is-top {
+      background: rgba(var(--color-placement-top4-rgb), 0.12);
+      color: var(--color-placement-top4);
+      border-color: rgba(var(--color-placement-top4-rgb), 0.35);
+    }
+    .placement-cell.is-bot {
+      background: rgba(var(--color-placement-bot4-rgb), 0.14);
+      color: var(--color-placement-bot4);
+      border-color: rgba(var(--color-placement-bot4-rgb), 0.35);
+    }
+
+    /* Inline LP spark SVG: gradient allowed inside chart geometry only —— */
+    .chart-wrap {
+      background: var(--color-surface-depth-1);
+      border: var(--border-hairline);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+    .chart-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-3);
+      gap: var(--space-2);
+      min-width: 0;
+    }
+    .chart-head h3 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 0.9375rem;
+      font-weight: 600;
+    }
+    .chart-caption {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--color-ally-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Coach queue — monospace labels, accent rail —— */
+    .coach-stack { display: flex; flex-direction: column; gap: var(--space-2); }
+    .coach-card {
+      display: grid;
+      grid-template-columns: 4px minmax(0, 1fr);
+      gap: var(--space-3);
+      background: var(--color-surface-depth-1);
+      border: var(--border-hairline);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+      align-items: start;
+    }
+    .coach-rail {
+      background: var(--color-ally-accent);
+      border-radius: 2px;
+      min-height: 40px;
+    }
+    .coach-kicker {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-ally-muted);
+      margin-bottom: var(--space-1);
+    }
+    .coach-title { font-weight: 600; font-size: 0.8125rem; margin-bottom: var(--space-1); min-width: 0; }
+    .coach-detail {
+      font-size: 0.75rem;
+      color: var(--color-ally-text-dim);
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    .pill {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-ally-border);
+      white-space: nowrap;
+    }
+    .pill-gold {
+      background: rgba(var(--color-placement-first-rgb), 0.15);
+      color: var(--color-placement-first);
+      border-color: rgba(var(--color-placement-first-rgb), 0.4);
+    }
+
+    /* Meta deltas — Bloomberg-like compact table —— */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--text-mono);
+      background: var(--color-surface-depth-1);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: var(--border-hairline);
+    }
+    .data-table th,
+    .data-table td {
+      padding: var(--space-2) var(--space-3);
+      text-align: left;
+      border-bottom: var(--border-hairline);
+    }
+    .data-table th {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-ally-muted);
+      background: var(--color-surface-depth-0);
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+    .num.up { color: var(--color-placement-top4); }
+    .num.down { color: var(--color-placement-bot4); }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+      min-width: 0;
+    }
+    @media (max-width: 720px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    /* Error / alert — semantic red from placement bot4 —— */
+    .alert-banner {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-alert-border);
+      background: var(--color-alert-bg);
+      padding: var(--space-3);
+      margin-bottom: var(--space-4);
+      display: flex;
+      gap: var(--space-3);
+      align-items: flex-start;
+    }
+    .alert-banner svg { flex-shrink: 0; color: var(--color-placement-bot4); }
+    .alert-title {
+      margin: 0 0 var(--space-1);
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: var(--text-mono);
+    }
+    .alert-copy {
+      margin: 0 0 var(--space-3);
+      font-size: 0.75rem;
+      color: var(--color-ally-text-dim);
+      line-height: 1.4;
+      font-family: var(--font-mono);
+      word-break: break-word;
+    }
+    .btn-row { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+    /* Empty —— */
+    .empty-block {
+      border: 1px dashed var(--color-ally-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-6);
+      text-align: center;
+      background: var(--color-surface-depth-1);
+    }
+    .empty-block svg { margin-bottom: var(--space-3); opacity: 0.45; }
+    .empty-title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: var(--text-title);
+      margin: 0 0 var(--space-2);
+    }
+    .empty-copy {
+      font-size: 0.8125rem;
+      color: var(--color-ally-muted);
+      margin: 0 0 var(--space-4);
+      max-width: 360px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .btn-ghost {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-sm);
+      border: var(--border-focus);
+      background: transparent;
+      color: var(--color-ally-accent);
+      cursor: pointer;
+    }
+    .btn-ghost:hover { background: var(--color-ally-accent-soft); }
+    .btn-solid {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-sm);
+      border: none;
+      background: rgba(var(--color-ally-accent-rgb), 0.22);
+      color: var(--color-ally-accent);
+      cursor: pointer;
+      border: 1px solid var(--color-ally-accent-border);
+    }
+    .btn-solid:hover { background: rgba(var(--color-ally-accent-rgb), 0.28); }
+
+    @keyframes skeleton-shimmer {
+      0% { background-position: 0 0; }
+      100% { background-position: 200px 0; }
+    }
+    .sk {
+      border-radius: var(--radius-sm);
+      background: linear-gradient(
+        90deg,
+        var(--color-surface-depth-2) 0px,
+        rgba(var(--color-ally-accent-rgb), 0.07) 80px,
+        var(--color-surface-depth-2) 160px
+      );
+      background-size: 200px 100%;
+      animation: skeleton-shimmer var(--motion-skeleton-duration) var(--motion-skeleton-ease) infinite;
+    }
+    .sk-line { height: 12px; margin-bottom: var(--space-2); }
+    .sk-line.short { width: 40%; }
+    .sk-line.med { width: 72%; }
+    .sk-stat { height: 44px; border-radius: var(--radius-md); }
+    .sk-row { height: 56px; border-radius: var(--radius-md); margin-bottom: var(--space-2); }
+    .sk-card { height: 88px; border-radius: var(--radius-md); margin-bottom: var(--space-2); }
+
+    [data-preview="populated"] .when-populated,
+    [data-preview="skeleton"] .when-skeleton,
+    [data-preview="empty"] .when-empty,
+    [data-preview="error"] .when-error { display: block; }
+    [data-preview="populated"] .when-skeleton,
+    [data-preview="populated"] .when-empty,
+    [data-preview="populated"] .when-error,
+    [data-preview="skeleton"] .when-populated,
+    [data-preview="skeleton"] .when-empty,
+    [data-preview="skeleton"] .when-error,
+    [data-preview="empty"] .when-populated,
+    [data-preview="empty"] .when-skeleton,
+    [data-preview="empty"] .when-error,
+    [data-preview="error"] .when-populated,
+    [data-preview="error"] .when-skeleton,
+    [data-preview="error"] .when-empty { display: none !important; }
+
+    .side-stack {
+      display: none;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .toast {
+      position: absolute;
+      right: var(--space-4);
+      bottom: var(--space-4);
+      width: 280px;
+      padding: var(--space-3);
+      background: var(--color-surface-depth-2);
+      border: var(--border-hairline);
+      border-left: 3px solid var(--color-ally-accent);
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      font-size: 0.75rem;
+      z-index: 20;
+      display: none;
+    }
+    [data-preview="populated"] .toast { display: block; }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      border: 0;
+    }
+
+    /* Target grid helpers — Overview tab extras —— */
+    .tgt-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
+      gap: var(--space-2);
+    }
+    .tgt-chip {
+      background: var(--color-surface-depth-1);
+      border: var(--border-hairline);
+      border-radius: var(--radius-md);
+      padding: var(--space-2) var(--space-3);
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--color-ally-text-dim);
+    }
+    .tgt-chip span { display: block; color: var(--color-ally-muted); font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <!--
+    RATIONALE — Home vs generic shell chrome:
+    - Same 900 − 52 − 200 = 648px content column — Home stacks an extra “signals” tier: headline stats → session placements → coached actions → ranked meta deltas without duplicating Match History drill-down.
+    - Tab panels isolate mental models (Overview scans, Targets freezes goals, Alerts surfaces risks) — one primary idea per panel; density comes from monospace tabular lanes, not extra chrome.
+    - Placement strip replaces a decorative hero — each cell maps to semantic placement tokens so outcome colors train the eye away from cyan accent misuse.
+    - LP spark uses a translucent accent area fill + mono-contrast stroke — token-bound rgba only inside the svg geometry so chrome stays flat.
+    - Sidebar stays glanceable summary; error state degrades gracefully with shard status pill + stalled timestamps.
+  -->
+
+  <div class="spec-toolbar">
+    <strong>Design spec</strong>
+    <span>design-spec/home.html · state preview only</span>
+    <label><input type="radio" name="preview" value="populated" checked /> Populated</label>
+    <label><input type="radio" name="preview" value="skeleton" /> Skeleton</label>
+    <label><input type="radio" name="preview" value="empty" /> Empty</label>
+    <label><input type="radio" name="preview" value="error" /> Error</label>
+  </div>
+
+  <div class="app-frame" id="appFrame" data-preview="populated">
+    <header class="topbar">
+      <!-- topbar vertical rhythm: icons 26×26 mark, search 30px tall — spans full 900 width — -->
+      <div class="topbar-logo">
+        <div class="topbar-logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L12 6M12 18L12 22M2 12L6 12M18 12L22 12M4.2 4.2L7 7M17 17L19.8 19.8M19.8 4.2L17 7M7 17L4.2 19.8M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+        </div>
+        <span class="topbar-logo-type">Ally</span>
+      </div>
+      <div class="topbar-search" role="search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input type="search" placeholder="Search summoners, units, traits…" aria-label="Global search" />
+      </div>
+      <div class="topbar-actions" aria-label="Window controls">
+        <button type="button" class="win-btn" title="Minimize" aria-label="Minimize">
+          <svg width="10" height="10" viewBox="0 0 10 10"><rect y="4" width="10" height="2" fill="currentColor"/></svg>
+        </button>
+        <button type="button" class="win-btn" title="Maximize" aria-label="Maximize">
+          <svg width="10" height="10" viewBox="0 0 10 10"><rect width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        </button>
+        <button type="button" class="win-btn close" title="Close" aria-label="Close">
+          <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.5"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="shell-body">
+      <nav class="rail" aria-label="Primary navigation">
+        <button type="button" class="rail-btn active" title="Home" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 11.5L12 4l8 7.5V20a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-8.5z"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Match history">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 6h16M4 12h10M4 18h16"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Units">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2M16 11v2M19 11v2"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Traits">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 3l7 4v10l-7 4-7-4V7l7-4z"/><path d="M12 3v18"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Items">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Augments">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 2l2 4 4 2-4 2-2 4-2-4-4-2 4-2 2-4z"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Comps">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        </button>
+      </nav>
+
+      <main class="main-scroll" aria-label="Home content">
+        <div class="main-inner">
+
+          <!-- —— POPULATED: padding main-inner uses --space-4 (16px) —— -->
+          <div class="when-populated">
+            <header class="page-header">
+              <div class="page-kicker">desktop · home</div>
+              <h1 class="page-title">Command center</h1>
+              <p class="page-sub">Rolling performance, session queue, and meta movers — calibrated for scans between rounds.</p>
+              <!-- tab bar: mono caption, --space-2 vertical padding hits ~32px control height — -->
+              <div class="tab-row" id="homeTabs" role="tablist" aria-label="Home views">
+                <button type="button" class="tab" role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="true" data-tab="overview">Overview</button>
+                <button type="button" class="tab" role="tab" id="tab-targets" aria-controls="panel-targets" aria-selected="false" data-tab="targets">Targets</button>
+                <button type="button" class="tab" role="tab" id="tab-alerts" aria-controls="panel-alerts" aria-selected="false" data-tab="alerts">Alerts</button>
+              </div>
+            </header>
+
+            <div id="panel-overview" class="tab-panel is-active" role="tabpanel" aria-labelledby="tab-overview" data-tab-panel="overview">
+              <!-- stat-strip: grid gap --space-2, 4 cols @ min 648 — still 4-up with min-width 0 ellipsis — -->
+              <div class="stat-strip">
+                <div class="stat-cell">
+                  <div class="stat-label">Rolling 20 avg</div>
+                  <div class="stat-value">4.05</div>
+                  <div class="stat-delta pos">Δ −0.4 vs last block</div>
+                </div>
+                <div class="stat-cell">
+                  <div class="stat-label">Top-4</div>
+                  <div class="stat-value">60%</div>
+                  <div class="stat-delta pos">Δ +7pp ladder</div>
+                </div>
+                <div class="stat-cell">
+                  <div class="stat-label">Session LP</div>
+                  <div class="stat-value">+36</div>
+                  <div class="stat-delta flat">today</div>
+                </div>
+                <div class="stat-cell">
+                  <div class="stat-label">Streak honesty</div>
+                  <div class="stat-value">W4</div>
+                  <div class="stat-delta neg">after 8th streak break</div>
+                </div>
+              </div>
+
+              <div class="chart-wrap">
+                <div class="chart-head">
+                  <h3>Session LP</h3>
+                  <span class="chart-caption">last 24h · deltas per game · not MMR inferred</span>
+                </div>
+                <!-- svg height 72 preserves vertical rhythm w/ mono caption — gradient only in fill defs — -->
+                <!-- Svg uses rgba(var accent rgb)) inside style="" so defs stay token-bound; vertical gradient removed for Blink 91 stop-color quirks — fills still read as data glyph only -->
+                <svg width="100%" height="72" viewBox="0 0 600 72" preserveAspectRatio="none" aria-label="LP over last games stub chart">
+                  <path
+                    d="M0 62 L54 54 L108 52 L162 56 L216 42 L270 46 L324 44 L378 52 L432 42 L486 52 L540 54 L594 54 L594 74 L0 74 Z"
+                    style="fill: rgba(var(--color-ally-accent-rgb), 0.14)"
+                  />
+                  <polyline
+                    fill="none"
+                    stroke="rgba(var(--color-ally-accent-rgb), 0.92)"
+                    stroke-width="2"
+                    points="0,62 54,54 108,52 162,56 216,42 270,46 324,44 378,52 432,42 486,52 540,54 594,54"
+                  />
+                </svg>
+              </div>
+
+              <div class="section-head">
+                <h2>Last 12 placements</h2>
+                <span>ordinal read left→right · oldest → newest</span>
+              </div>
+              <div class="section-rule" aria-hidden="true"></div>
+              <!-- placement cells 18×18, 3px gap — outcome colors from semantic tokens — -->
+              <div class="placement-strip" aria-label="Recent placements legend via color">
+                <div class="placement-cell is-bot">8</div>
+                <div class="placement-cell is-top">3</div>
+                <div class="placement-cell is-first">1</div>
+                <div class="placement-cell is-top">4</div>
+                <div class="placement-cell is-bot">7</div>
+                <div class="placement-cell is-top">4</div>
+                <div class="placement-cell is-bot">8</div>
+                <div class="placement-cell is-top">4</div>
+                <div class="placement-cell is-bot">7</div>
+                <div class="placement-cell is-bot">8</div>
+                <div class="placement-cell is-bot">8</div>
+                <div class="placement-cell is-bot">8</div>
+              </div>
+
+              <div class="section-head">
+                <h2>Coach queue</h2>
+                <span>highest ROI next clicks</span>
+              </div>
+              <div class="section-rule" aria-hidden="true"></div>
+              <!-- coach-cards: left rail width 4px accent + padding --space-3 — -->
+              <div class="coach-stack">
+                <article class="coach-card">
+                  <div class="coach-rail" aria-hidden="true"></div>
+                  <div>
+                    <div class="coach-kicker">Econ checkpoint</div>
+                    <div class="coach-title"><span class="pill pill-gold">Stage 3-7</span> roll window vs stabilized board</div>
+                    <p class="coach-detail">Bench has two pairs with no natural level spike — clarify whether you're saving streak health or sinking two rolls for one vertical.</p>
+                  </div>
+                </article>
+                <article class="coach-card">
+                  <div class="coach-rail" aria-hidden="true"></div>
+                  <div>
+                    <div class="coach-kicker">Scouting</div>
+                    <div class="coach-title">Two lobbies slammed <span style="white-space:nowrap">Bilge 7 · same carousel priority</span></div>
+                    <p class="coach-detail">If both hit before Krugs, carousel contested — plan pivot cost before augments reroll.</p>
+                  </div>
+                </article>
+              </div>
+            </div>
+
+            <div id="panel-targets" class="tab-panel" role="tabpanel" aria-labelledby="tab-targets" data-tab-panel="targets">
+              <!-- Targets tab: freezes macro goals separate from reactive queue -->
+              <div class="stat-strip">
+                <div class="stat-cell"><div class="stat-label">Climb horizon</div><div class="stat-value">+180</div><div class="stat-delta flat">LP to Master</div></div>
+                <div class="stat-cell"><div class="stat-label">Focus comp</div><div class="stat-value" style="font-size:1rem">Tempo duelist</div><div class="stat-delta flat">chosen build</div></div>
+                <div class="stat-cell"><div class="stat-label">Augment bans</div><div class="stat-value">2</div><div class="stat-delta neg">risk flags</div></div>
+                <div class="stat-cell"><div class="stat-label">Review cadence</div><div class="stat-value">3</div><div class="stat-delta pos">reviews / day</div></div>
+              </div>
+              <div class="section-head"><h2>Skill targets</h2><span>pin for post-game audits</span></div>
+              <div class="section-rule" aria-hidden="true"></div>
+              <!-- tgt-chip min-width in grid avoids orphan columns at 616px usable — -->
+              <div class="tgt-grid">
+                <div class="tgt-chip"><span>Item slam</span>Carry-ready by Stage 4-1 · no dead components.</div>
+                <div class="tgt-chip"><span>Scout cadence</span>Every carousel + stage-up.</div>
+                <div class="tgt-chip"><span>Augment veto</span>Skip grief augments flagged in playbook.</div>
+                <div class="tgt-chip"><span>Pivot ledger</span>One contingency line drafted pre-3-2.</div>
+              </div>
+            </div>
+
+            <div id="panel-alerts" class="tab-panel" role="tabpanel" aria-labelledby="tab-alerts" data-tab-panel="alerts">
+              <div class="section-head"><h2>Meta movers</h2><span>tournament + ladder blend</span></div>
+              <div class="section-rule" aria-hidden="true"></div>
+              <table class="data-table" aria-label="Trait prevalence deltas">
+                <thead>
+                  <tr>
+                    <th scope="col">Trait</th>
+                    <th scope="col" class="num">Δ pick%</th>
+                    <th scope="col" class="num">Δ top·4%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Bilgewater</td><td class="num up">+8.6</td><td class="num up">+1.9</td></tr>
+                  <tr><td>Clockwork</td><td class="num down">−4.1</td><td class="num flat" style="color:var(--color-ally-muted)">0.2</td></tr>
+                  <tr><td>Edgelord</td><td class="num up">+5.9</td><td class="num down">−0.6</td></tr>
+                  <tr><td>Space Groove</td><td class="num down">−3.0</td><td class="num flat" style="color:var(--color-ally-muted)">−0.1</td></tr>
+                </tbody>
+              </table>
+              <div class="section-head" style="margin-top:var(--space-5)"><h2>Patch ingest</h2><span>b / hotfix-aware</span></div>
+              <div class="section-rule" aria-hidden="true"></div>
+              <!-- meta table uses hairline separators only — no zebra stripes — Bloomberg-like rhythm -->
+              <p class="coach-detail">Patch ingestion delayed when shard cache invalidates — deltas below assume build <span style="font-family:var(--font-mono);color:var(--color-ally-text)">live</span> from last successful pull.</p>
+            </div>
+          </div>
+
+          <!-- skeleton — mirrored stack heights match populated vertical rhythm -->
+          <div class="when-skeleton">
+            <div class="page-header">
+              <div class="sk sk-line short" style="margin-bottom:12px"></div>
+              <div class="sk sk-line med" style="height:22px"></div>
+              <div class="sk sk-line med" style="margin-top:8px;height:14px"></div>
+              <div class="tab-row" aria-hidden="true">
+                <div class="sk" style="height:36px;width:78px;display:inline-block;vertical-align:top"></div>
+                <div class="sk" style="height:36px;width:78px;display:inline-block;vertical-align:top;margin-left:4px"></div>
+                <div class="sk" style="height:36px;width:78px;display:inline-block;vertical-align:top;margin-left:4px"></div>
+              </div>
+            </div>
+            <div class="stat-strip">
+              <div class="sk sk-stat"></div><div class="sk sk-stat"></div><div class="sk sk-stat"></div><div class="sk sk-stat"></div>
+            </div>
+            <div class="sk sk-card" style="height:132px;margin-bottom:var(--space-4)"></div>
+            <div class="sk sk-line short"></div>
+            <div class="section-rule sk" style="height:1px;animation:none;background:var(--color-ally-border)"></div>
+            <div class="sk sk-row"></div><div class="sk sk-card"></div><div class="sk sk-card"></div>
+          </div>
+
+          <div class="when-empty">
+            <header class="page-header">
+              <div class="page-kicker">desktop · home</div>
+              <h1 class="page-title">Command center</h1>
+              <p class="page-sub">Link a ladder profile so Ally can build your session lens.</p>
+            </header>
+            <div class="empty-block">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V7l-8-5-8 5v5c0 6 8 10 8 10z"/>
+              </svg>
+              <p class="empty-title">No ranked signal yet</p>
+              <p class="empty-copy">Open Settings → Summoner sync, verify region shard, then play at least one ladder game with Ally awake. Coaches stay blank until ladders resolve.</p>
+              <button type="button" class="btn-ghost">Open Settings</button>
+            </div>
+          </div>
+
+          <!-- error stack: destructive semantic token only for banner chrome + pill — accent unused here -->
+          <div class="when-error">
+            <header class="page-header">
+              <div class="page-kicker">desktop · home</div>
+              <h1 class="page-title">Command center</h1>
+            </header>
+            <div class="alert-banner" role="alert">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h0"/><circle cx="12" cy="12" r="9"/></svg>
+              <div>
+                <p class="alert-title">Histories unreachable</p>
+                <p class="alert-copy">GET /riot/lol/x/match-history — timeout after 8200 ms · stale cache retained · code MATCH_HISTORY_UNAVAILABLE</p>
+                <div class="btn-row">
+                  <button type="button" class="btn-solid">Retry sync</button>
+                  <button type="button" class="btn-ghost">Open status</button>
+                </div>
+              </div>
+            </div>
+            <div class="empty-block" style="text-align:left">
+              <div class="page-kicker" style="letter-spacing:normal;text-transform:none">Fallback view</div>
+              <p class="empty-title" style="font-size:1rem">Operational view paused</p>
+              <p class="empty-copy" style="text-align:left;margin-left:0;max-width:none;margin-bottom:0">Once the shard reconnects we repopulate session LP deltas and trait movers. Coach queue hides to avoid hallucinated deltas.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <aside class="sidebar" aria-label="Home context">
+        <!-- sidebar card stack uses --space-3 vertical rhythm gap — -->
+        <div class="side-stack" data-sync-preview="populated" style="display:flex">
+          <div style="background:var(--color-surface-depth-0);border:var(--border-hairline);border-radius:var(--radius-md);padding:var(--space-3)">
+            <h3 style="margin:0 0 var(--space-2);font-family:var(--font-mono);font-size:var(--text-caption);letter-spacing:0.06em;text-transform:uppercase;color:var(--color-ally-muted)">Summoner</h3>
+            <div style="font-family:var(--font-display);font-weight:600;font-size:1rem">MaskedOracles</div>
+            <div style="font-family:var(--font-mono);font-size:var(--text-caption);color:var(--color-ally-muted);margin-top:var(--space-1)">NA1 · live</div>
+            <div style="display:flex;justify-content:space-between;margin-top:var(--space-3);font-family:var(--font-mono);font-size:var(--text-mono)">
+              <span style="color:var(--color-ally-text-dim)">Rank</span><span style="color:var(--color-placement-first)">Diamond II</span>
+            </div>
+          </div>
+          <div style="background:var(--color-surface-depth-0);border:var(--border-hairline);border-radius:var(--radius-md);padding:var(--space-3)">
+            <h3 style="margin:0 0 var(--space-2);font-family:var(--font-mono);font-size:var(--text-caption);letter-spacing:0.06em;text-transform:uppercase;color:var(--color-ally-muted)">Queues</h3>
+            <div style="display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:var(--text-caption);padding:4px 8px;border-radius:var(--radius-pill);background:rgba(var(--color-placement-top4-rgb),0.12);color:var(--color-placement-top4);border:1px solid rgba(var(--color-placement-top4-rgb),0.35)">Ranked TFT online</div>
+          </div>
+          <div style="background:var(--color-surface-depth-0);border:var(--border-hairline);border-radius:var(--radius-md);padding:var(--space-3)">
+            <h3 style="margin:0 0 var(--space-2);font-family:var(--font-mono);font-size:var(--text-caption);letter-spacing:0.06em;text-transform:uppercase;color:var(--color-ally-muted)">Tip</h3>
+            <p style="margin:0;font-size:0.75rem;color:var(--color-ally-text-dim);line-height:1.4">Home is calibrated for fifteen-second audits — Targets tab freezes goals Alerts tab tracks macro drift.</p>
+          </div>
+        </div>
+
+        <div class="side-stack" data-sync-preview="skeleton">
+          <div class="sk sk-stat" style="height:120px"></div>
+          <div class="sk sk-stat" style="height:64px"></div>
+          <div class="sk sk-stat" style="height:88px"></div>
+        </div>
+
+        <div class="side-stack" data-sync-preview="empty">
+          <div style="background:var(--color-surface-depth-0);border:var(--border-hairline);border-radius:var(--radius-md);padding:var(--space-3)">
+            <h3 style="margin:0 0 var(--space-2);font-family:var(--font-mono);font-size:var(--text-caption);letter-spacing:0.06em;text-transform:uppercase;color:var(--color-ally-muted)">Summoner</h3>
+            <p style="margin:0;font-size:0.75rem;color:var(--color-ally-muted)">Not linked · sidebar stays minimal.</p>
+          </div>
+        </div>
+
+        <div class="side-stack" data-sync-preview="error">
+          <div style="background:var(--color-surface-depth-0);border:var(--border-hairline);border-radius:var(--radius-md);padding:var(--space-3)">
+            <h3 style="margin:0 0 var(--space-2);font-family:var(--font-mono);font-size:var(--text-caption);letter-spacing:0.06em;text-transform:uppercase;color:var(--color-ally-muted)">Summoner</h3>
+            <div style="font-family:var(--font-display);font-weight:600;font-size:1rem">MaskedOracles</div>
+            <div style="font-family:var(--font-mono);font-size:var(--text-caption);color:var(--color-ally-muted);margin-top:var(--space-1)">Cache stale · 18m ago</div>
+          </div>
+          <div style="background:var(--color-surface-depth-0);border:var(--border-hairline);border-radius:var(--radius-md);padding:var(--space-3)">
+            <h3 style="margin:0 0 var(--space-2);font-family:var(--font-mono);font-size:var(--text-caption);letter-spacing:0.06em;text-transform:uppercase;color:var(--color-ally-muted)">Shards</h3>
+            <div style="display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:var(--text-caption);padding:4px 8px;border-radius:var(--radius-pill);background:var(--color-alert-bg);color:var(--color-placement-bot4);border:1px solid var(--color-alert-border)">Historical API failing</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="toast" role="status" aria-live="polite">
+      <div style="font-family:var(--font-mono);font-weight:600;margin-bottom:var(--space-1)">Home deltas refreshed</div>
+      <div style="color:var(--color-ally-text-dim)">Rolling window recalibrated · placements +12</div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var frame = document.getElementById('appFrame');
+      var previewRadios = document.querySelectorAll('input[name="preview"]');
+
+      function syncPreview() {
+        var checked = document.querySelector('input[name="preview"]:checked');
+        var state = checked ? checked.value : 'populated';
+        frame.setAttribute('data-preview', state);
+        document.querySelectorAll('[data-sync-preview]').forEach(function (el) {
+          el.style.display = el.getAttribute('data-sync-preview') === state ? 'flex' : 'none';
+        });
+      }
+
+      previewRadios.forEach(function (r) {
+        r.addEventListener('change', syncPreview);
+      });
+      syncPreview();
+
+      var tabBar = document.getElementById('homeTabs');
+      if (!tabBar) return;
+
+      function activateTab(btn) {
+        var id = btn.getAttribute('data-tab');
+        tabBar.querySelectorAll('[role="tab"]').forEach(function (t) {
+          t.setAttribute('aria-selected', t === btn ? 'true' : 'false');
+        });
+        document.querySelectorAll('[data-tab-panel]').forEach(function (panel) {
+          var on = panel.getAttribute('data-tab-panel') === id;
+          panel.classList.toggle('is-active', on);
+        });
+      }
+
+      tabBar.addEventListener('click', function (e) {
+        var t = e.target;
+        if (t.getAttribute('role') !== 'tab') return;
+        activateTab(t);
+      });
+
+      activateTab(tabBar.querySelector('[aria-selected="true"]'));
+
+      tabBar.querySelectorAll('[role="tab"]').forEach(function (tab) {
+        tab.addEventListener('keydown', function (e) {
+          if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+          var tabs = Array.prototype.slice.call(tabBar.querySelectorAll('[role="tab"]'));
+          var idx = tabs.indexOf(tab);
+          var nextIdx = e.key === 'ArrowRight' ? idx + 1 : idx - 1;
+          if (nextIdx < 0 || nextIdx >= tabs.length) return;
+          e.preventDefault();
+          tabs[nextIdx].focus();
+          activateTab(tabs[nextIdx]);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

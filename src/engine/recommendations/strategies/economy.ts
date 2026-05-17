@@ -1,14 +1,21 @@
 import type { AllyRecommendation, RecommendationEngineInput } from "@ally/shared-types";
+import { RECOMMENDATION_THRESHOLDS } from "../thresholds";
 
 export function economyRecommendations(input: RecommendationEngineInput, nowMs = Date.now()): AllyRecommendation[] {
   const { signals, matchHistory } = input;
   if (!signals.inGame) return [];
 
+  const t = RECOMMENDATION_THRESHOLDS.economy;
   const out: AllyRecommendation[] = [];
   const gold = signals.gold;
   const hp = signals.localPlayerHealth;
 
-  if (gold != null && hp != null && hp > 40 && gold < 50) {
+  if (
+    gold != null &&
+    hp != null &&
+    hp > t.interestBuildHpMin &&
+    gold < t.interestBuildGoldMax
+  ) {
     out.push({
       id: `economy:interest-build:${nowMs}`,
       category: "economy",
@@ -29,24 +36,29 @@ export function economyRecommendations(input: RecommendationEngineInput, nowMs =
 
   if (
     gold != null &&
-    gold >= 50 &&
+    gold >= t.bankGoldMin &&
     hp != null &&
-    hp > 40 &&
+    hp > t.bankHpMin &&
+    matchHistory.windowSize >= t.bankHistoryWindowMin &&
     matchHistory.avgPlacement != null &&
-    matchHistory.avgPlacement > 5.2
+    matchHistory.avgPlacement > t.bankAvgPlacementMin
   ) {
+    const favorite = matchHistory.favoriteComp?.trim() || null;
+    const favoriteLine = favorite
+      ? ` You often place well on ${favorite} — bank toward that line unless you are fully committed elsewhere.`
+      : "";
     out.push({
       id: `economy:bank:${nowMs}`,
       category: "economy",
       title: "Consider banking interest",
-      detail:
-        "Strong gold with healthy HP — recent placements suggest stabilizing econ before greeding rolls.",
-      confidence: 0.55,
+      detail: `Strong gold with healthy HP — recent placements suggest stabilizing econ before greeding rolls.${favoriteLine}`,
+      confidence: favorite ? 0.58 : 0.55,
       risk: "low",
       urgency: "low",
       reasoning: [
         `Recent avg placement ≈ ${matchHistory.avgPlacement.toFixed(1)} over ${matchHistory.windowSize} games.`,
         `Gold ${gold} at HP ${hp}: interest breakpoints often matter more than one extra shop roll.`,
+        ...(favorite ? [`History favorite comp: ${favorite}.`] : []),
       ],
       evidence: [
         { source: "match_history", weight: 0.45, note: "Personal placement trend" },
@@ -57,7 +69,7 @@ export function economyRecommendations(input: RecommendationEngineInput, nowMs =
     });
   }
 
-  if (hp != null && hp <= 25 && gold != null && gold >= 0) {
+  if (hp != null && hp <= t.rollHpMax && gold != null && gold >= t.rollGoldMin) {
     out.push({
       id: `economy:rolldown:${nowMs}`,
       category: "economy",

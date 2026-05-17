@@ -76,6 +76,21 @@ export interface MatchDetail {
   info: TftMatchInfo
 }
 
+/** Trait breakpoint row preserved when parsing Riot match details (optional on cached `Match`). */
+export interface MatchTraitLine {
+  rawId: string
+  numUnits: number
+  tierCurrent?: number
+  tierTotal?: number
+}
+
+/** Per-unit build preserved when parsing Riot match details (optional on cached `Match`). */
+export interface MatchUnitBuild {
+  name: string
+  starLevel?: number | null
+  items: string[]
+}
+
 export interface Match {
   matchId: string
   placement: number
@@ -89,6 +104,10 @@ export interface Match {
   augments: string[]
   traits: string[]
   comp: string | null
+  /** Rich unit rows (items + stars) when parsed from Riot match detail. */
+  unitBuilds?: MatchUnitBuild[]
+  /** Active trait breakpoints when parsed from Riot match detail. */
+  traitLines?: MatchTraitLine[]
   // Optional: Real LP gain/loss from ranked games
   // Not currently populated by Riot API — would require live event tracking
   lpChange?: number

@@ -15,6 +15,7 @@ export class GeppService {
   private registrationListeners: Array<(o: GepRegistrationOutcome) => void> = [];
   private registrationSettled = false;
   private disposed = false;
+  private gepListenersBound = false;
   private retries = 0;
   private readonly maxRetries = 10;
   private readonly retryDelay = 2000;
@@ -127,8 +128,32 @@ export class GeppService {
       }
       this.retries = 0;
       console.log("[GEPP] GEP registered:", this.requiredFeatures);
+      this._bindOverwolfListeners();
       this._emitRegistration({ status: "ready" });
     });
+  }
+
+  private _bindOverwolfListeners(): void {
+    if (this.gepListenersBound || this.disposed) return;
+    this.gepListenersBound = true;
+
+    overwolf.games.events.onInfoUpdates2.addListener((update: { feature?: string; info?: unknown }) => {
+      if (this.disposed) return;
+      const feature = update?.feature;
+      if (!feature || update.info == null) return;
+      this._dispatchInfoUpdate(feature, update.info);
+    });
+
+    overwolf.games.events.onNewEvents.addListener((payload: { events?: Array<{ name?: string; data?: unknown }> }) => {
+      if (this.disposed) return;
+      const events = payload?.events;
+      if (!Array.isArray(events)) return;
+      for (const ev of events) {
+        if (ev?.name) this._dispatchNewEvent(ev.name, ev.data);
+      }
+    });
+
+    console.log("[GEPP] Overwolf GEP listeners bound");
   }
 
   // These are called by the background controller (or any consumer) to dispatch to listeners

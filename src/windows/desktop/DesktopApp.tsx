@@ -25,6 +25,7 @@ import { UnitGuide } from '@/pages/UnitGuide';
 import { SynergyGuide } from '@/pages/SynergyGuide';
 import { ItemsGuide } from '@/pages/ItemsGuide';
 import { AugmentGuide } from '@/pages/AugmentGuide';
+import { GodBoonsGuide } from '@/pages/GodBoonsGuide';
 import { Settings } from '@/pages/Settings';
 import { DataErrorBoundary } from '@/components/DataErrorBoundary';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -126,6 +127,23 @@ const NAV_TABS = [
         <path d="M12 2L2 7l10 5 10-5-10-5z" />
         <path d="M2 17l10 5 10-5" />
         <path d="M2 12l10 5 10-5" />
+      </svg>
+    ),
+  },
+  {
+    id: 'god-boons',
+    label: 'God Boons',
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2" />
+        <path d="M12 20v2" />
+        <path d="m4.93 4.93 1.41 1.41" />
+        <path d="m17.66 17.66 1.41 1.41" />
+        <path d="M2 12h2" />
+        <path d="M20 12h2" />
+        <path d="m4.93 19.07 1.41-1.41" />
+        <path d="m17.66 6.34 1.41-1.41" />
       </svg>
     ),
   },
@@ -763,6 +781,10 @@ export function DesktopApp() {
   const [augmentQuery, setAugmentQuery] = useState('');
   const [augmentTierFilter, setAugmentTierFilter] = useState('all');
   const [augmentTagFilter, setAugmentTagFilter] = useState('all');
+
+  // God Boons Guide filters
+  const [godBoonQuery, setGodBoonQuery] = useState('');
+  const [godBoonGodFilter, setGodBoonGodFilter] = useState('all');
   const sortedMetaComps = useMemo(() => {
     return META_COMPS.map((comp, index) => {
       const tier = index < 2 ? 'S' : index < 6 ? 'A' : index < 8 ? 'B' : index < 9 ? 'C' : 'D';
@@ -1168,7 +1190,7 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
 
         {/* Page Content */}
         <div key={activePage} className={`ally-page-surface flex-1 min-h-0 h-full overflow-y-auto bg-[#0d0d0d] custom-scrollbar ${
-          ['units','traits','items','augments','team-builder','match-history'].includes(activePage)
+          ['units','traits','items','augments','god-boons','team-builder','match-history'].includes(activePage)
             ? ''
             : 'px-8 py-6'
         }`}>
@@ -1248,6 +1270,13 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
               setTagFilter={setAugmentTagFilter}
               onAugmentSelect={(augmentId) => console.log('Selected augment:', augmentId)}
               initialAugment={selectedAugmentId}
+            />
+          ) : activePage === 'god-boons' ? (
+            <GodBoonsGuide
+              query={godBoonQuery}
+              setQuery={setGodBoonQuery}
+              godFilter={godBoonGodFilter}
+              setGodFilter={setGodBoonGodFilter}
             />
           ) : activePage === 'settings' ? (
             <Settings />

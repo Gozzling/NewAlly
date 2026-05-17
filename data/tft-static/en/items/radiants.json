@@ -1,0 +1,156 @@
+[
+  {
+    "apiName": "TFT17_Item_PsyOps_GrenadeMod_Radiant",
+    "name": "Biomatter Preserver",
+    "description": "Gain @PctMaxHP*100%@ max Health and deploy Life Orbs. Every seconds of combat, one drops restoring of the holder's missing Health.\n\nAt (4): If the holder is Psionic, they gain increased healing from all sources.\n\nRecommended user: Gragas.",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT17_PsyOps_Mod_GrenadeMod.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft17_psyops_mod_grenademod.tft_set17.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "{99c995ab}",
+      "{6ef5c598}"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  },
+  {
+    "apiName": "TFT17_Item_PsyOps_DroneMod_Radiant",
+    "name": "Drone Uplink",
+    "description": "A drone repeats of damage from the holder's attacks and Abilities to the same targets every seconds.\n\nAt (4): If the holder is Psionic, gain an additional mini-drone that repeats of damage.\n\nRecommended users: Sona and Viktor.",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT17_PsyOps_Mod_DroneMod.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft17_psyops_mod_dronemod.tft_set17.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "{99c995ab}",
+      "{6ef5c598}"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  },
+  {
+    "apiName": "TFT17_Item_Artifact_KayleArtifact_Radiant",
+    "name": "Kayle's Radiant Exaltation",
+    "description": "Behold, the righteous flame!",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT17_Item_Artifact_KayleGreatsword.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft17_item_artifact_kaylegreatsword.tft_set17.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "{6ef5c598}",
+      "{ec243f6b}"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  },
+  {
+    "apiName": "TFT17_Item_PsyOps_ChemicalCapacitorMod_Radiant",
+    "name": "Malware Matrix",
+    "description": "Dealing physical damage to an enemy reduces the target's Armor by . (Ability Damage Cooldown: seconds)\n\nAt (4): If the holder is Psionic, every rd attack cleaves, dealing () physical damage to nearby enemies.\n\nRecommended users: Master Yi and Pyke.",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT17_PsyOps_Mod_ChemicalCapacitorMod.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft17_psyops_mod_chemicalcapacitormod.tft_set17.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "{99c995ab}",
+      "{6ef5c598}"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  },
+  {
+    "apiName": "TFT17_AnimaSquadItem_Tier2_RadiantField",
+    "name": "Radiant Field",
+    "description": "Gain max health. Every second, deal magic damage in a -hex radius equal to of the holder's max Health. Radius increases every seconds.\n\nRecommended Roles: Attack or Magic Tank",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT17_AnimaSquadItem_RadiantField_T2.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft17_animasquaditem_radiantfield_t2.tft_set17.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "{d8d00bcc}",
+      "{da8d43eb}"
+    ],
+    "unique": false,
+    "associatedTraits": [
+      "TFT17_AnimaSquad"
+    ]
+  },
+  {
+    "apiName": "TFT5_Item_StatikkShivRadiant",
+    "name": "Radiant Void Staff",
+    "description": "Damage from attacks and Abilities Shred the target for the rest of combat. This effect does not stack.\n\nShred: Reduce Magic Resist",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT5_Item_VoidStaffRadiant.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft5_item_voidstaffradiant.tft_set17.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "{6ef5c598}",
+      "{ec243f6b}"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  },
+  {
+    "apiName": "TFT17_Item_PsyOps_SemiconductorMod_Radiant",
+    "name": "Semiconductor",
+    "description": "Every attacks and every times being attacked, zap the nearest enemies, dealing of enemy Health as magic damage.\n\nRecommended users: Gragas and Master Yi.",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT17_PsyOps_Mod_SemiconductorMod.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft17_psyops_mod_semiconductormod.tft_set17.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "{99c995ab}",
+      "{6ef5c598}"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  },
+  {
+    "apiName": "TFT17_AnimaSquadItem_Tier3_RadiantField",
+    "name": "Solar Eclipse",
+    "description": "Gain max Health. Every second, deal magic damage in a hex radius equal to of the holder's max Health, and gain max Health equal to of damage dealt. Radius increases every seconds.\n\nRecommended Roles: Attack or Magic Tank",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT17_AnimaSquadItem_RadiantField_T3.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft17_animasquaditem_radiantfield_t3.tft_set17.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "{d8d00bcc}",
+      "{da8d43eb}"
+    ],
+    "unique": false,
+    "associatedTraits": [
+      "TFT17_AnimaSquad"
+    ]
+  },
+  {
+    "apiName": "TFT17_Item_PsyOps_SympatheticImplantMod_Radiant",
+    "name": "Sympathetic Implant",
+    "description": "Every seconds, gain additional Mana Per Second. \n\nAt (4): If the holder is Psionic, their abilities deal of their ability damage as true damage instead.\n\nRecommended users: Sona and Viktor.",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT17_PsyOps_Mod_SympatheticImplantMod.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft17_psyops_mod_sympatheticimplantmod.tft_set17.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "{99c995ab}",
+      "{6ef5c598}"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  },
+  {
+    "apiName": "TFT17_Item_PsyOps_TargetlockMod_Radiant",
+    "name": "Target-Lock Optics",
+    "description": "The holder's first attack on each enemy deals () additional damage.\n\nAt (4): If the holder is Psionic, they heal of their max Health whenever their target dies.\n\nRecommended users: Pyke and Master Yi",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT17_PsyOps_Mod_TargetLockMod.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft17_psyops_mod_targetlockmod.tft_set17.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "{99c995ab}",
+      "{6ef5c598}"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  }
+]

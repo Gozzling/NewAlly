@@ -7,6 +7,7 @@ import type { Unit } from "@/data/units";
 import type { Synergy } from "@/data/synergies";
 import type { PersonalMatchRecord } from "@/services/indexedDbService";
 import type { TftGameState } from "@/types/tft";
+import { compRecommendations } from "./strategies/comp";
 import { economyRecommendations } from "./strategies/economy";
 import { itemRecommendations } from "./strategies/items";
 import { shopRecommendations } from "./strategies/shop";
@@ -35,6 +36,7 @@ export function runRecommendationEngine(
   const combined = [
     ...shopRecommendations(input, nowMs, contextData),
     ...itemRecommendations(input, nowMs),
+    ...compRecommendations(input, nowMs),
     ...economyRecommendations(input, nowMs),
   ];
   return sortRecommendations(combined);

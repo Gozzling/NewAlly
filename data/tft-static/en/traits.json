@@ -1,0 +1,1431 @@
+[
+  {
+    "apiName": "TFT17_AnimaSquad",
+    "name": "Anima",
+    "description": "After losing a player combat, gain Tech, plus additional Tech equal to times the length of your loss streak. Additionally, gain Tech per Anima takedown.\n\nEach time Animas get Tech, they prototype new Anima Weapons. You can take them, or save your Tech to get more powerful weapons next time.\n\n Start Researching! \n\n After each player combat, gain loot!\n\nGain Tech from losing if your partner wins a combat in Double Up.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_AnimaTech.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_animatech.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 3,
+        "maxUnits": 5,
+        "style": 1,
+        "variables": {
+          "TechBreakpoint": 100,
+          "TechPerCombat": 20,
+          "TechPerCombat_DU": 20,
+          "TechPerDeath_PVE": 1,
+          "TechPerKill": 2,
+          "TechPerLoss": 5,
+          "TechPerLoss_DU": 5,
+          "TechPerRound_PVE": 20,
+          "{18a09431}": 0.8500000238418579
+        }
+      },
+      {
+        "minUnits": 6,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "TechBreakpoint": 100,
+          "TechPerCombat": 20,
+          "TechPerCombat_DU": 20,
+          "TechPerDeath_PVE": 1,
+          "TechPerKill": 2,
+          "TechPerLoss": 5,
+          "TechPerLoss_DU": 5,
+          "TechPerRound_PVE": 20,
+          "{18a09431}": 0.8500000238418579
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_ADMIN",
+    "name": "Arbiter",
+    "description": "Scribe a unique divine law, allowing you to choose an effect to apply to Arbiters when a chosen cause occurs.\n\n Choose a cause and effect for your law\n\n Effects are stronger.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Arbiter.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_arbiter.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 2,
+        "maxUnits": 2,
+        "style": 1,
+        "variables": {
+          "DamageInstances": 10,
+          "HealthThreshold": 0.4000000059604645,
+          "ManaToSpend": 50,
+          "NumAttacks": 3,
+          "NumSeconds": 4,
+          "ShieldDuration": 4,
+          "{fefec6fb}": 1
+        }
+      },
+      {
+        "minUnits": 3,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "DamageInstances": 10,
+          "HealthThreshold": 0.4000000059604645,
+          "ManaToSpend": 50,
+          "NumAttacks": 3,
+          "NumSeconds": 4,
+          "ShieldDuration": 4,
+          "{fefec6fb}": 1
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_ResistTank",
+    "name": "Bastion",
+    "description": "Your team gains Armor and Magic Resist.\n\nBastions gain more, and the value doubles in the first seconds of combat.\n\n \n\n \n\n ; Non-Bastions gain an additional .",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_9_Bastion.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_9_bastion.tex",
+    "thresholds": [
+      {
+        "minUnits": 2,
+        "maxUnits": 3,
+        "style": 1,
+        "variables": {
+          "BonusArmor": 16,
+          "BonusMR": 16,
+          "Duration": 10,
+          "EnhancedTeamwideArmor": 20,
+          "StatMultiplier": 2,
+          "TeamwideResists": 15
+        }
+      },
+      {
+        "minUnits": 4,
+        "maxUnits": 5,
+        "style": 3,
+        "variables": {
+          "BonusArmor": 40,
+          "BonusMR": 40,
+          "Duration": 10,
+          "EnhancedTeamwideArmor": 20,
+          "StatMultiplier": 2,
+          "TeamwideResists": 15
+        }
+      },
+      {
+        "minUnits": 6,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "BonusArmor": 60,
+          "BonusMR": 60,
+          "Duration": 10,
+          "EnhancedTeamwideArmor": 20,
+          "StatMultiplier": 2,
+          "TeamwideResists": 15
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_HPTank",
+    "name": "Brawler",
+    "description": "Your team gains Health. Brawlers gain more.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_Brawler.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_brawler.tex",
+    "thresholds": [
+      {
+        "minUnits": 2,
+        "maxUnits": 3,
+        "style": 1,
+        "variables": {
+          "HealthBonus": 0.25,
+          "TeamwideBonus": 0.05000000074505806
+        }
+      },
+      {
+        "minUnits": 4,
+        "maxUnits": 5,
+        "style": 3,
+        "variables": {
+          "HealthBonus": 0.44999998807907104,
+          "TeamwideBonus": 0.05000000074505806
+        }
+      },
+      {
+        "minUnits": 6,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "HealthBonus": 0.6499999761581421,
+          "TeamwideBonus": 0.05000000074505806
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_ShenUniqueTrait",
+    "name": "Bulwark",
+    "description": "Summon a placeable relic. At the start of combat, it grants adjacent allies a max Health shield and Attack Speed.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Bulwark.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_bulwark.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 1,
+        "maxUnits": 25000,
+        "style": 4,
+        "variables": {
+          "AttackSpeed": 0.10000000149011612,
+          "AttackSpeedDuration": 60,
+          "PercentHealthShield": 0.10000000149011612,
+          "ShieldDuration": 60
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_ASTrait",
+    "name": "Challenger",
+    "description": "Your team gains Attack Speed. Challengers gain bonus Attack Speed. When their target dies, Challengers dash to a new target and increase their Attack Speed bonus by for seconds.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Challenger.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_challenger.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 2,
+        "maxUnits": 2,
+        "style": 1,
+        "variables": {
+          "AttackSpeedPercent": 0.15000000596046448,
+          "BurstDuration": 2.5,
+          "BurstPercent": 0.5,
+          "DamageReduction": null,
+          "TeamwideAS": 0.10000000149011612
+        }
+      },
+      {
+        "minUnits": 3,
+        "maxUnits": 3,
+        "style": 3,
+        "variables": {
+          "AttackSpeedPercent": 0.2199999988079071,
+          "BurstDuration": 2.5,
+          "BurstPercent": 0.5,
+          "DamageReduction": null,
+          "TeamwideAS": 0.10000000149011612
+        }
+      },
+      {
+        "minUnits": 4,
+        "maxUnits": 4,
+        "style": 3,
+        "variables": {
+          "AttackSpeedPercent": 0.4000000059604645,
+          "BurstDuration": 2.5,
+          "BurstPercent": 0.5,
+          "DamageReduction": null,
+          "TeamwideAS": 0.10000000149011612
+        }
+      },
+      {
+        "minUnits": 5,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "AttackSpeedPercent": 0.550000011920929,
+          "BurstDuration": 2.5,
+          "BurstPercent": 0.5,
+          "DamageReduction": null,
+          "TeamwideAS": 0.10000000149011612
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_MissFortuneUndeterminedTrait",
+    "name": "Choose Trait",
+    "description": "When you field Miss Fortune, choose between Conduit Mode, Challenger Mode, and Replicator Mode. Miss Fortune has a unique ability based on her mode and gains the associated trait.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_MissFortuneUndetermindedTrait.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_missfortuneundetermindedtrait.tft_set17.tex",
+    "thresholds": []
+  },
+  {
+    "apiName": "TFT17_SonaUniqueTrait",
+    "name": "Commander",
+    "description": "Sona gives you a random Command Mod every rounds which allows you to alter the way an ally behaves during combat. Command Mods last player combats even if they are not equipped.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Commander.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_commander.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 1,
+        "maxUnits": 25000,
+        "style": 4,
+        "variables": {
+          "AS": 0.15000000596046448,
+          "HealthRatio": 0.15000000596046448,
+          "RoundsPerMod": 2
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_ManaTrait",
+    "name": "Conduit",
+    "description": "Innate: Conduits gain additional Mana from all sources.\n\nYour team gains Mana Regen, increased for Conduits.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Channeler.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_channeler.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 2,
+        "maxUnits": 2,
+        "style": 1,
+        "variables": {
+          "ChannelerManaRegen": 3,
+          "InnateManaGain": 0.20000000298023224,
+          "TeamManaRegen": 1
+        }
+      },
+      {
+        "minUnits": 3,
+        "maxUnits": 3,
+        "style": 3,
+        "variables": {
+          "ChannelerManaRegen": 5,
+          "InnateManaGain": 0.20000000298023224,
+          "TeamManaRegen": 1
+        }
+      },
+      {
+        "minUnits": 4,
+        "maxUnits": 4,
+        "style": 3,
+        "variables": {
+          "ChannelerManaRegen": 7,
+          "InnateManaGain": 0.20000000298023224,
+          "TeamManaRegen": 2
+        }
+      },
+      {
+        "minUnits": 5,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "ChannelerManaRegen": 9,
+          "InnateManaGain": 0.20000000298023224,
+          "TeamManaRegen": 3
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_MorganaUniqueTrait",
+    "name": "Dark Lady",
+    "description": "Your team gains Durability, increased to when Morgana is in her Dark Form.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_DarkLady.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_darklady.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 1,
+        "maxUnits": 1,
+        "style": 4,
+        "variables": {
+          "Durability": 0.03999999910593033,
+          "{816175b9}": 0.10000000149011612
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_DarkStar",
+    "name": "Dark Star",
+    "description": "Dark Stars create a black hole that consumes enemies at max health.\n\n AND they gain .\n\n AND the strongest Dark Star unit goes supermassive, gaining effectiveness from Dark Star, and creates 2 minor Black Holes.\n\n All Dark Stars are supermassive. At level 10, CONSUME EVERYONE.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_DarkStar.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_darkstar.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 2,
+        "maxUnits": 3,
+        "style": 1,
+        "variables": {
+          "ADAP": 45,
+          "ExecuteHPPercent": 0.07999999821186066,
+          "PercentHealth": 0.30000001192092896,
+          "SupermassivePercentBonus": 0.8500000238418579
+        }
+      },
+      {
+        "minUnits": 4,
+        "maxUnits": 5,
+        "style": 3,
+        "variables": {
+          "ADAP": 45,
+          "ExecuteHPPercent": 0.07999999821186066,
+          "PercentHealth": 0.30000001192092896,
+          "SupermassivePercentBonus": 0.8500000238418579
+        }
+      },
+      {
+        "minUnits": 6,
+        "maxUnits": 8,
+        "style": 5,
+        "variables": {
+          "ADAP": 45,
+          "ExecuteHPPercent": 0.07999999821186066,
+          "PercentHealth": 0.30000001192092896,
+          "SupermassivePercentBonus": 0.8500000238418579
+        }
+      },
+      {
+        "minUnits": 9,
+        "maxUnits": 25000,
+        "style": 6,
+        "variables": {
+          "ADAP": 45,
+          "ExecuteHPPercent": 0.07999999821186066,
+          "PercentHealth": 0.30000001192092896,
+          "SupermassivePercentBonus": 0.8500000238418579
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_FioraUniqueTrait",
+    "name": "Divine Duelist",
+    "description": "Your Tactician heals for of player damage dealt from winning.\n\nFiora always wins a one on one duel.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_DivineDuelist.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_divineduelist.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 1,
+        "maxUnits": 25000,
+        "style": 4,
+        "variables": {
+          "DUHeal": 1,
+          "PVEHP": 1,
+          "PVENumWins": 4,
+          "PlayerOmnivamp": 0.15000000596046448
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_VexUniqueTrait",
+    "name": "Doomer",
+    "description": "Combat Start: Mark all enemies with Doom.\n\nThe first time enemies are damaged each combat, their Doom is consumed, stealing Attack Damage and Ability Power from them and granting it to your strongest Vex.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Doomer.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_doomer.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 1,
+        "maxUnits": 25000,
+        "style": 4,
+        "variables": {
+          "ADAP1": 12
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_JhinUniqueTrait",
+    "name": "Eradicator",
+    "description": "Enemies have less Armor and Magic Resist.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Singularity.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_singularity.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 1,
+        "maxUnits": 1,
+        "style": 4,
+        "variables": {
+          "PctResists": 0.10000000149011612
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_GravesTrait",
+    "name": "Factory New",
+    "description": "After participating in combat, open an armory to purchase a permanent upgrade for your strongest Graves.\n\nEvery upgrades, future upgrades will take an additional round.\n\nNext Upgrade: Rounds.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_FactoryNew.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_factorynew.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 1,
+        "maxUnits": 25000,
+        "style": 4,
+        "variables": {
+          "NumberOfUpgradesBeforeRoundCostIncrease": 3
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_Fateweaver",
+    "name": "Fateweaver",
+    "description": "Innate: Fateweavers have Precision.\n\n Chance effects on abilities are Lucky.\n\n Gain Crit Chance and Crit Damage. Critical strikes are also Lucky.\n\n{{TFT_Keyword_Precision}}\nLucky: Check twice and take the better outcome.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Fateweaver.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_fateweaver.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 2,
+        "maxUnits": 3,
+        "style": 1,
+        "variables": {
+          "CritDamage": null
+        }
+      },
+      {
+        "minUnits": 4,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "CritChance": 0.20000000298023224,
+          "CritDamage": 20
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_ZedUniqueTrait",
+    "name": "Galaxy Hunter",
+    "description": "Zed is obtained from the Invader Zed augment.\n\nWhile at least one clone is alive, Zed gains bonus Attack Damage.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_GalaxyHunter.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_galaxyhunter.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 1,
+        "maxUnits": 25000,
+        "style": 4,
+        "variables": {
+          "BonusAD": 0.4000000059604645
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_MissFortuneUniqueTrait",
+    "name": "Gun Goddess",
+    "description": "When you field Miss Fortune, choose between Conduit Mode, Challenger Mode, and Replicator Mode. Miss Fortune has a unique ability based on her mode and gains the associated trait.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_GunGoddess.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_gungoddess.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 1,
+        "maxUnits": 25000,
+        "style": 4,
+        "variables": {
+          "Allies": 2,
+          "DamageAmp": 0.009999999776482582,
+          "FlatDamage": 100,
+          "Mana": 2,
+          "NumAttacks": 3
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_MeleeTrait",
+    "name": "Marauder",
+    "description": "Your team gains Omnivamp. Marauders gain more Omnivamp, Attack Damage, and their Omnivamp overhealing is converted into Shield (up to max Health.) , , , .",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_16_Slayer.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_16_slayer.tex",
+    "thresholds": [
+      {
+        "minUnits": 2,
+        "maxUnits": 3,
+        "style": 1,
+        "variables": {
+          "AD": 0.18000000715255737,
+          "MaxPercentHealthShield": 0.25,
+          "Omnivamp": 0.05000000074505806,
+          "ShieldAD": null,
+          "TeamwideBonus": 0.05000000074505806
+        }
+      },
+      {
+        "minUnits": 4,
+        "maxUnits": 5,
+        "style": 3,
+        "variables": {
+          "AD": 0.3499999940395355,
+          "MaxPercentHealthShield": 0.25,
+          "Omnivamp": 0.07000000029802322,
+          "ShieldAD": null,
+          "TeamwideBonus": 0.05000000074505806
+        }
+      },
+      {
+        "minUnits": 6,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "AD": 0.550000011920929,
+          "MaxPercentHealthShield": 0.25,
+          "Omnivamp": 0.10000000149011612,
+          "ShieldAD": 0.20000000298023224,
+          "TeamwideBonus": 0.05000000074505806
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_Mecha",
+    "name": "Mecha",
+    "description": "Innate: Mecha units can transform into their Ultimate form, upgrading their ability and gaining Health. Transformed Mechas take up two team slots and count twice for the Mecha trait.\n\n Energy Cells: Mechas gain .\n\n Overclocked Cells: Increased to .\n\n Precision Engineering: + max team size\n\nUse the Mecha-Former item to toggle the forms of your Mecha units",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Mecha.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_mecha.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 3,
+        "maxUnits": 3,
+        "style": 1,
+        "variables": {
+          "AD": 0.25,
+          "AP": 25,
+          "TeamSize": 1,
+          "TransformedPercentHealth": 0.4000000059604645
+        }
+      },
+      {
+        "minUnits": 4,
+        "maxUnits": 5,
+        "style": 3,
+        "variables": {
+          "AD": 0.44999998807907104,
+          "AP": 45,
+          "TeamSize": 1,
+          "TransformedPercentHealth": 0.4000000059604645
+        }
+      },
+      {
+        "minUnits": 6,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "AD": 0.3499999940395355,
+          "AP": 35,
+          "TeamSize": 1,
+          "TransformedPercentHealth": 0.4000000059604645
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_Astronaut",
+    "name": "Meeple",
+    "description": "Meeple attract Meeps that empower Meeple abilities in meepy ways. They also gain bonus Health.\n\n , \n\n , \n\n , . Create a Cloning Slot on your bench. Gain gold and a 1-star copy of the champion placed there when cloning completes.\n\n , . SUMMON THE FOUR MEEPLORDS!\n\nCloning time = Champion cost",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Astronaut.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_astronaut.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 3,
+        "maxUnits": 4,
+        "style": 1,
+        "variables": {
+          "BonusHealth": 100,
+          "Meeps": 2
+        }
+      },
+      {
+        "minUnits": 5,
+        "maxUnits": 6,
+        "style": 3,
+        "variables": {
+          "BonusHealth": 400,
+          "Meeps": 3
+        }
+      },
+      {
+        "minUnits": 7,
+        "maxUnits": 9,
+        "style": 5,
+        "variables": {
+          "BonusHealth": 400,
+          "Meeps": 4
+        }
+      },
+      {
+        "minUnits": 10,
+        "maxUnits": 25000,
+        "style": 6,
+        "variables": {
+          "BonusHealth": 500,
+          "Meeps": 6
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_DRX",
+    "name": "N.O.V.A.",
+    "description": "seconds into combat, N.O.V.A. grant a power surge to allies based on champions.\n\n Gain a Striker selector. The chosen N.O.V.A. activates their Strike during the power surge.\n\nAatrox: Ally Damage Shred and Sunders enemiesAatrox: Shred and Sunder enemies\nCaitlyn: Grant allies Attack SpeedCaitlyn: Grant Attack Speed\nAkali: Allies gain PrecisionAkali: Allies gain Precision\nMaokai: Allies heal max HealthMaokai: Heal allies\nKindred: Shield the strongest Tank for Kindred: Shield an ally\nEmblem: Allies deal stacking bonus true damageEmblem: Deal bonus true damage",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_NOVA.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_nova.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 2,
+        "maxUnits": 4,
+        "style": 1,
+        "variables": {
+          "AS": 0.20000000298023224,
+          "BonusTrueDamage": 0.10000000149011612,
+          "Heal": 0.11999999731779099,
+          "ShieldValue": 800,
+          "ShredAndSunder": 0.30000001192092896,
+          "TeamAttackDelay": 6
+        }
+      },
+      {
+        "minUnits": 5,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "AS": 0.20000000298023224,
+          "BonusTrueDamage": 0.10000000149011612,
+          "Heal": 0.11999999731779099,
+          "ShieldValue": 800,
+          "ShredAndSunder": 0.30000001192092896,
+          "TeamAttackDelay": 6
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_TahmKenchUniqueTrait",
+    "name": "Oracle",
+    "description": "Every rounds, Tahm Kench grants a reward!\n\nRounds Remaining: \nLast Reward:",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_12_Arcana.TFT_Set12.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_12_arcana.tft_set12.tex",
+    "thresholds": [
+      {
+        "minUnits": 1,
+        "maxUnits": 25000,
+        "style": 4,
+        "variables": {
+          "rounds": 3
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_BlitzcrankUniqueTrait",
+    "name": "Party Animal",
+    "description": "Once per combat, after falling below percent Health, become untargetable and repair max Health per second. Upon reaching full Health, or when no other allies remain, return to combat. If fully healed, for the rest of combat Blitzcrank is in {{TFT17_SpaceGroove_TheGroove}} and Party Crasher's passive fires bolts four times as fast.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_PartyAnimal.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_partyanimal.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 1,
+        "maxUnits": 25000,
+        "style": 4,
+        "variables": {
+          "HealthThreshold": 0.44999998807907104,
+          "PercentHealthHeal": 0.15000000596046448
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_Primordian",
+    "name": "Primordian",
+    "description": "Dealing damage spawns Swarmlings based on unique Primordian star level.\n\n Spawn more Swarmlings! After each player combat, gain a random 1 or 2-cost champion. of damage taken contributes to damage dealt.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Primordian.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_primordian.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 2,
+        "maxUnits": 2,
+        "style": 1,
+        "variables": {
+          "DamageMultiplier": 1,
+          "DamageTakenPercentModifier": 0.07999999821186066,
+          "PercentMoreSwarmlings": 45,
+          "{3ed71f24}": 6
+        }
+      },
+      {
+        "minUnits": 3,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "DamageMultiplier": 1.4500000476837158,
+          "DamageTakenPercentModifier": 0.07999999821186066,
+          "PercentMoreSwarmlings": 45,
+          "{3ed71f24}": 6
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_PsyOps",
+    "name": "Psionic",
+    "description": "Gain Psionic items that can be equipped to any ally.\n\n Gain the \n\n Gain the , Psionic items gain extra effects on Psionic units",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_PsyOps.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_psyops.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 2,
+        "maxUnits": 3,
+        "style": 1,
+        "variables": {
+          "{1b889d1c}": null
+        }
+      },
+      {
+        "minUnits": 4,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "{1b889d1c}": 50
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_RhaastUniqueTrait",
+    "name": "Redeemer",
+    "description": "For each non-unique trait you have active, your team gains /%/ Attack Speed, and // Armor and Magic Resist.\n\nTeamwide Attack Speed: Teamwide Resists:",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Redeemer.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_redeemer.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 1,
+        "maxUnits": 25000,
+        "style": 4,
+        "variables": {
+          "BonusDefensiveStat1": 2,
+          "BonusDefensiveStat2": 2.5,
+          "BonusDefensiveStat3": 3,
+          "BonusOffensiveStat1": 0.019999999552965164,
+          "BonusOffensiveStat2": 0.02500000037252903,
+          "BonusOffensiveStat3": 0.029999999329447746
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_APTrait",
+    "name": "Replicator",
+    "description": "Replicator abilities occur a second time at reduced effectiveness.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Replicator.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_replicator.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 2,
+        "maxUnits": 3,
+        "style": 1,
+        "variables": {
+          "Effectiveness": 0.2199999988079071
+        }
+      },
+      {
+        "minUnits": 4,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "Effectiveness": 0.44999998807907104
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_AssassinTrait",
+    "name": "Rogue",
+    "description": "Rogues gain Attack Damage and Ability Power. The first time they fall below health, they slip into shadows. Enemies targeting them are redirected to a nearby unit, preferring Tanks.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Rogue.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_rogue.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 2,
+        "maxUnits": 2,
+        "style": 1,
+        "variables": {
+          "AD": 0.11999999731779099,
+          "AP": 12,
+          "Duration": 3,
+          "HealthThreshold": 0.5
+        }
+      },
+      {
+        "minUnits": 3,
+        "maxUnits": 3,
+        "style": 3,
+        "variables": {
+          "AD": 0.25,
+          "AP": 25,
+          "Duration": 3,
+          "HealthThreshold": 0.5
+        }
+      },
+      {
+        "minUnits": 4,
+        "maxUnits": 4,
+        "style": 3,
+        "variables": {
+          "AD": 0.4000000059604645,
+          "AP": 40,
+          "Duration": 3,
+          "HealthThreshold": 0.5
+        }
+      },
+      {
+        "minUnits": 5,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "AD": 0.550000011920929,
+          "AP": 55,
+          "Duration": 3,
+          "HealthThreshold": 0.5
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_SummonTrait",
+    "name": "Shepherd",
+    "description": "Shepherds summon the Bond of the Stars to aid them in battle.\n\n Summon Bia\n\n Summon Bayin\n\n Bia and Bayin's bond grows deeper\n\nBia and Bayin's power are increased by the total star level of all Shepherds.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Shepherd.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_shepherd.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 3,
+        "maxUnits": 4,
+        "style": 1,
+        "variables": {}
+      },
+      {
+        "minUnits": 5,
+        "maxUnits": 6,
+        "style": 3,
+        "variables": {}
+      },
+      {
+        "minUnits": 7,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {}
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_RangedTrait",
+    "name": "Sniper",
+    "description": "Snipers gain Damage Amp, increased against targets farther away. ; + per hex ; + per hex ; + per hex",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_6_Sniper.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_6_sniper.tex",
+    "thresholds": [
+      {
+        "minUnits": 2,
+        "maxUnits": 2,
+        "style": 1,
+        "variables": {
+          "PerHexIncrease": 2,
+          "PercentDamageIncrease": 18
+        }
+      },
+      {
+        "minUnits": 3,
+        "maxUnits": 3,
+        "style": 3,
+        "variables": {
+          "PerHexIncrease": 3,
+          "PercentDamageIncrease": 24
+        }
+      },
+      {
+        "minUnits": 4,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "PerHexIncrease": 4,
+          "PercentDamageIncrease": 28
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_SpaceGroove",
+    "name": "Space Groove",
+    "description": "Groovians can enter {{TFT17_SpaceGroove_TheGroove}}. While in it, they gain Attack Speed and max Health Regen, increased per Groovian on your team.\n\n All Groovians start combat in {{TFT17_SpaceGroove_TheGroove}} for seconds.\n\n Each second spent in {{TFT17_SpaceGroove_TheGroove}} grants stacking Attack Damage and Ability Power.\n\n Increase these effects by !\n\n {{TFT17_SpaceGroove_Groove}}\n\n{{TFT17_SpaceGroove_TheGroove}}: @TFTUnitProperty.:TFT17_SpaceGroove_AS*100@ , @TFTUnitProperty.:TFT17_SpaceGroove_HealthRegen*100@",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_SpaceGroove.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_spacegroove.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 1,
+        "maxUnits": 2,
+        "style": 1,
+        "variables": {
+          "ADAPPerSecond": null,
+          "EffectBonus": null,
+          "StartOfCombatDuration": null
+        }
+      },
+      {
+        "minUnits": 3,
+        "maxUnits": 4,
+        "style": 3,
+        "variables": {
+          "ADAPPerSecond": null,
+          "EffectBonus": null,
+          "StartOfCombatDuration": 3
+        }
+      },
+      {
+        "minUnits": 5,
+        "maxUnits": 6,
+        "style": 3,
+        "variables": {
+          "ADAPPerSecond": 5,
+          "EffectBonus": null,
+          "StartOfCombatDuration": 3
+        }
+      },
+      {
+        "minUnits": 7,
+        "maxUnits": 9,
+        "style": 5,
+        "variables": {
+          "ADAPPerSecond": 5,
+          "EffectBonus": 10,
+          "StartOfCombatDuration": 3
+        }
+      },
+      {
+        "minUnits": 10,
+        "maxUnits": 25000,
+        "style": 6,
+        "variables": {
+          "ADAPPerSecond": 10,
+          "EffectBonus": 500,
+          "StartOfCombatDuration": 60,
+          "{32ed1fda}": 800,
+          "{3e46e556}": 1500
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_Stargazer",
+    "name": "Stargazer",
+    "description": "Stargazers chart a different constellation every game.\n\nStargazers in empowered hexes gain various bonuses, starting at units.\n\nMore hexes reveal at each player level.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Stargazer.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_stargazer.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 3,
+        "maxUnits": 4,
+        "style": 1,
+        "variables": {
+          "Family_BaseSharePercent": 0.10000000149011612,
+          "Family_HexesToReveal_TOOLTIPONLY": 3,
+          "Family_Stats": 10,
+          "Huntress_AS": 0.30000001192092896,
+          "Huntress_AS_Teamwide": 0.15000000596046448,
+          "Huntress_Heal": 0.05000000074505806,
+          "MaxStacks": null,
+          "Medallion_DA": 0.20000000298023224,
+          "Medallion_IncreasePer3Star": 20,
+          "Mountain_Health": 0.20000000298023224,
+          "Mountain_RoundsPerEmblem": 5,
+          "NumMarks": 3,
+          "Serpent_DR": 0.15000000596046448,
+          "Serpent_DR_Teamwide": 0.07999999821186066,
+          "Serpent_Duration": 3,
+          "Serpent_Poison": 0.30000001192092896,
+          "Shield_AS_Teamwide": 8,
+          "Shield_CashoutAS": 18,
+          "Shield_CashoutHP": 20,
+          "Shield_Duration": 10,
+          "Shield_Health_Teamwide": 8,
+          "Shield_NumDeaths": 60,
+          "Wolf_ADAP": 10,
+          "Wolf_Gold": 1,
+          "Wolf_Health": 0.019999999552965164,
+          "Wolf_Health_Teamwide": 0.07999999821186066,
+          "{13a2a786}": 2,
+          "{326db998}": 0.15000000596046448,
+          "{37204635}": 10,
+          "{3b1fef00}": 1,
+          "{3d49cc86}": 20,
+          "{457fd35a}": 1,
+          "{56df89e0}": 1000,
+          "{57ccf261}": 0.25,
+          "{74ccce14}": 0.07999999821186066,
+          "{a6419a0b}": 0.5,
+          "{aa686d69}": 10,
+          "{abed8603}": 1.2999999523162842,
+          "{b44d11c3}": 0.10000000149011612,
+          "{c32af02f}": 0.05000000074505806,
+          "{d7e6d620}": 0.019999999552965164,
+          "{e5275a69}": 0.019999999552965164,
+          "{e8338a44}": 0.15000000596046448,
+          "{f2840aed}": 0.03999999910593033
+        }
+      },
+      {
+        "minUnits": 5,
+        "maxUnits": 6,
+        "style": 3,
+        "variables": {
+          "Family_BaseSharePercent": 0.10000000149011612,
+          "Family_HexesToReveal_TOOLTIPONLY": 2,
+          "Family_Stats": 35,
+          "Huntress_AS": 0.44999998807907104,
+          "Huntress_AS_Teamwide": 0.15000000596046448,
+          "Huntress_Heal": 0.07999999821186066,
+          "MaxStacks": null,
+          "Medallion_DA": 0.30000001192092896,
+          "Medallion_IncreasePer3Star": 20,
+          "Mountain_ADAP": 0.11999999731779099,
+          "Mountain_Health": 0.30000001192092896,
+          "Mountain_RoundsPerEmblem": 5,
+          "NumMarks": 5,
+          "Serpent_DR": 0.20000000298023224,
+          "Serpent_DR_Teamwide": 0.07999999821186066,
+          "Serpent_Duration": 3,
+          "Serpent_Poison": 0.44999998807907104,
+          "Shield_AS_Teamwide": 8,
+          "Shield_Duration": 10,
+          "Shield_Health_Teamwide": 8,
+          "Shield_NumDeaths": 60,
+          "Wolf_ADAP": 15,
+          "Wolf_Gold": 2,
+          "Wolf_Health": 0.07999999821186066,
+          "Wolf_Health_Teamwide": 0.07999999821186066,
+          "{13a2a786}": 4,
+          "{326db998}": 0.25,
+          "{37204635}": 10,
+          "{3b1fef00}": 1,
+          "{3d49cc86}": 30,
+          "{457fd35a}": 2,
+          "{56df89e0}": 1000,
+          "{57ccf261}": 0.3499999940395355,
+          "{74ccce14}": 0.07999999821186066,
+          "{a6419a0b}": 0.5,
+          "{aa686d69}": 10,
+          "{abed8603}": 1.5,
+          "{b44d11c3}": 0.10000000149011612,
+          "{c32af02f}": 0.05000000074505806,
+          "{d7e6d620}": 0.019999999552965164,
+          "{e5275a69}": 0.029999999329447746,
+          "{e8338a44}": 0.15000000596046448,
+          "{f2840aed}": 0.03999999910593033
+        }
+      },
+      {
+        "minUnits": 7,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "Family_BaseSharePercent": 0.10000000149011612,
+          "Family_EmpoweredSharePercent": 0.30000001192092896,
+          "Family_Stats": 35,
+          "Huntress_AS": 0.6000000238418579,
+          "Huntress_AS_Teamwide": 0.15000000596046448,
+          "Huntress_Heal": 0.10000000149011612,
+          "MaxStacks": null,
+          "Medallion_DA": 0.4000000059604645,
+          "Medallion_IncreasePer3Star": 20,
+          "Mountain_AS": null,
+          "Mountain_DR": null,
+          "Mountain_Health": 0.44999998807907104,
+          "Mountain_Resists": 12,
+          "Mountain_RoundsPerEmblem": 5,
+          "Mountain_StatIncrease": null,
+          "NumMarks": 7,
+          "Serpent_DR": 0.25,
+          "Serpent_DR_Teamwide": 0.07999999821186066,
+          "Serpent_Duration": 3,
+          "Serpent_Poison": 0.6000000238418579,
+          "Shield_AS_Teamwide": 8,
+          "Shield_Duration": 10,
+          "Shield_Health_Teamwide": 8,
+          "Shield_NumDeaths": 60,
+          "Wolf_ADAP": 25,
+          "Wolf_Gold": 4,
+          "Wolf_Health": 0.15000000596046448,
+          "Wolf_Health_Teamwide": 0.07999999821186066,
+          "{13a2a786}": 4,
+          "{326db998}": 0.3499999940395355,
+          "{37204635}": 10,
+          "{3b1fef00}": 1,
+          "{3d49cc86}": 40,
+          "{457fd35a}": 3,
+          "{4f055cc9}": 0.009999999776482582,
+          "{56df89e0}": 1000,
+          "{57ccf261}": 0.44999998807907104,
+          "{74ccce14}": 0.07999999821186066,
+          "{a6419a0b}": 0.5,
+          "{aa686d69}": 10,
+          "{abed8603}": 1.75,
+          "{b44d11c3}": 0.10000000149011612,
+          "{c32af02f}": 0.05000000074505806,
+          "{c4d51662}": 2,
+          "{d7e6d620}": 0.019999999552965164,
+          "{e5275a69}": 0.03999999910593033,
+          "{e8338a44}": 0.15000000596046448,
+          "{f2840aed}": 0.03999999910593033
+        }
+      },
+      {
+        "minUnits": 8,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "Family_BaseSharePercent": 0.10000000149011612,
+          "Huntress_AS_Teamwide": 0.15000000596046448,
+          "MaxStacks": null,
+          "Medallion_IncreasePer3Star": 20,
+          "Mountain_ADAP": null,
+          "Mountain_AS": null,
+          "Mountain_DR": null,
+          "Mountain_Resists": null,
+          "Mountain_RoundsPerEmblem": 5,
+          "Mountain_StatIncrease": null,
+          "NumMarks": 3,
+          "Serpent_DR_Teamwide": 0.07999999821186066,
+          "Serpent_Duration": 3,
+          "Shield_AS_Teamwide": 8,
+          "Shield_CashoutAS": 18,
+          "Shield_CashoutHP": 20,
+          "Shield_Duration": 10,
+          "Shield_Health_Teamwide": 8,
+          "Shield_NumDeaths": 60,
+          "Wolf_ADAP": 10,
+          "Wolf_Gold": 1,
+          "Wolf_Health": 0.019999999552965164,
+          "Wolf_Health_Teamwide": 0.07999999821186066,
+          "{37204635}": 10,
+          "{3b1fef00}": 1,
+          "{56df89e0}": 1000,
+          "{74ccce14}": 0.07999999821186066,
+          "{a6419a0b}": 0.5,
+          "{aa686d69}": 10,
+          "{b44d11c3}": 0.10000000149011612,
+          "{c32af02f}": 0.05000000074505806,
+          "{d7e6d620}": 0.019999999552965164,
+          "{e8338a44}": 0.15000000596046448,
+          "{f2840aed}": 0.03999999910593033
+        }
+      },
+      {
+        "minUnits": 9,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "Family_BaseSharePercent": 0.10000000149011612,
+          "Huntress_AS_Teamwide": 0.15000000596046448,
+          "MaxStacks": null,
+          "Medallion_IncreasePer3Star": 20,
+          "Mountain_ADAP": 0.11999999731779099,
+          "Mountain_AS": 0.11999999731779099,
+          "Mountain_DR": 0.05999999865889549,
+          "Mountain_Health": 0.11999999731779099,
+          "Mountain_Resists": 12,
+          "Mountain_RoundsPerEmblem": 5,
+          "Mountain_StatIncrease": null,
+          "Serpent_DR_Teamwide": 0.07999999821186066,
+          "Serpent_Duration": 3,
+          "Shield_AS_Teamwide": 8,
+          "Shield_Duration": 10,
+          "Shield_Health_Teamwide": 8,
+          "Shield_NumDeaths": 60,
+          "Wolf_Health_Teamwide": 0.07999999821186066,
+          "{37204635}": 10,
+          "{3b1fef00}": 1,
+          "{56df89e0}": 1000,
+          "{74ccce14}": 0.07999999821186066,
+          "{a6419a0b}": 0.5,
+          "{aa686d69}": 10,
+          "{b44d11c3}": 0.10000000149011612,
+          "{c32af02f}": 0.05000000074505806,
+          "{d7e6d620}": 0.019999999552965164,
+          "{e8338a44}": 0.15000000596046448,
+          "{f2840aed}": 0.03999999910593033
+        }
+      },
+      {
+        "minUnits": 10,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "Family_BaseSharePercent": 0.10000000149011612,
+          "Huntress_AS_Teamwide": 0.15000000596046448,
+          "MaxStacks": null,
+          "Medallion_IncreasePer3Star": 20,
+          "Mountain_ADAP": 0.11999999731779099,
+          "Mountain_AS": 0.11999999731779099,
+          "Mountain_DR": 0.05999999865889549,
+          "Mountain_Health": 0.11999999731779099,
+          "Mountain_Resists": 12,
+          "Mountain_RoundsPerEmblem": 5,
+          "Mountain_StatIncrease": 0.10000000149011612,
+          "Serpent_DR_Teamwide": 0.07999999821186066,
+          "Serpent_Duration": 3,
+          "Shield_AS_Teamwide": 8,
+          "Shield_Duration": 10,
+          "Shield_Health_Teamwide": 8,
+          "Shield_NumDeaths": 60,
+          "Wolf_Health_Teamwide": 0.07999999821186066,
+          "{37204635}": 10,
+          "{3b1fef00}": 1,
+          "{56df89e0}": 1000,
+          "{74ccce14}": 0.07999999821186066,
+          "{a6419a0b}": 0.5,
+          "{aa686d69}": 10,
+          "{b44d11c3}": 0.10000000149011612,
+          "{c32af02f}": 0.05000000074505806,
+          "{d7e6d620}": 0.019999999552965164,
+          "{e8338a44}": 0.15000000596046448,
+          "{f2840aed}": 0.03999999910593033
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_Timebreaker",
+    "name": "Timebreaker",
+    "description": "Allies gain Attack Speed.\n\n AND When you lose, gain free rerolls. When you win, store XP in a Temporal Core (scales with stage).\n\n AND Timebreakers gain an additional Attack Speed\n\nRerolls on Loss: @TFTUnitProperty.:TFT17_Timebreaker_NumRerollsTooltip@\nXP on Win: @TFTUnitProperty.:TFT17_Timebreaker_NumXPTooltip@",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Timebreaker.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_timebreaker.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 2,
+        "maxUnits": 2,
+        "style": 1,
+        "variables": {
+          "AttackSpeed": 0.15000000596046448,
+          "TimebreakerAdditionalAS": null,
+          "{aaae13a0}": null
+        }
+      },
+      {
+        "minUnits": 3,
+        "maxUnits": 3,
+        "style": 3,
+        "variables": {
+          "AttackSpeed": 0.15000000596046448,
+          "TimebreakerAdditionalAS": null,
+          "{aaae13a0}": 1
+        }
+      },
+      {
+        "minUnits": 4,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "AttackSpeed": 0.15000000596046448,
+          "TimebreakerAdditionalAS": 0.5,
+          "{aaae13a0}": 1
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_ShieldTank",
+    "name": "Vanguard",
+    "description": "Vanguards gain Durability while Shielded. \n\nCombat start and Health: Gain a max Health Shield for seconds. max Health max Health max Health; while Shielded",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_12_Vanguard.TFT_Set12.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_12_vanguard.tft_set12.tex",
+    "thresholds": [
+      {
+        "minUnits": 2,
+        "maxUnits": 3,
+        "style": 1,
+        "variables": {
+          "DamageReductionPct": 0.05000000074505806,
+          "EnhancedDurability": 0.07999999821186066,
+          "HealthThreshold": 0.5,
+          "ShieldDuration": 10,
+          "ShieldPercentAmount": 0.1599999964237213
+        }
+      },
+      {
+        "minUnits": 4,
+        "maxUnits": 5,
+        "style": 3,
+        "variables": {
+          "DamageReductionPct": 0.05000000074505806,
+          "EnhancedDurability": 0.07999999821186066,
+          "HealthThreshold": 0.5,
+          "ShieldDuration": 10,
+          "ShieldPercentAmount": 0.30000001192092896
+        }
+      },
+      {
+        "minUnits": 6,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "DamageReductionPct": 0.05000000074505806,
+          "EnhancedDurability": 0.07999999821186066,
+          "HealthThreshold": 0.5,
+          "ShieldDuration": 10,
+          "ShieldPercentAmount": 0.4000000059604645
+        }
+      }
+    ]
+  },
+  {
+    "apiName": "TFT17_FlexTrait",
+    "name": "Voyager",
+    "description": "Combat Start: Your Tanks gain a Shield for seconds. Your other allies gain Damage Amp. \n\nVoyagers gain double.",
+    "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Voyager.TFT_Set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_voyager.tft_set17.tex",
+    "thresholds": [
+      {
+        "minUnits": 2,
+        "maxUnits": 2,
+        "style": 1,
+        "variables": {
+          "BonusDA": 0.09000000357627869,
+          "ShieldDuration": 15,
+          "ShieldHP": 175,
+          "{2ad3e251}": 2
+        }
+      },
+      {
+        "minUnits": 3,
+        "maxUnits": 3,
+        "style": 3,
+        "variables": {
+          "BonusDA": 0.15000000596046448,
+          "ShieldDuration": 15,
+          "ShieldHP": 250,
+          "{2ad3e251}": 2
+        }
+      },
+      {
+        "minUnits": 4,
+        "maxUnits": 4,
+        "style": 3,
+        "variables": {
+          "BonusDA": 0.18000000715255737,
+          "ShieldDuration": 15,
+          "ShieldHP": 350,
+          "{2ad3e251}": 2
+        }
+      },
+      {
+        "minUnits": 5,
+        "maxUnits": 5,
+        "style": 3,
+        "variables": {
+          "BonusDA": 0.2199999988079071,
+          "ShieldDuration": 15,
+          "ShieldHP": 500,
+          "{2ad3e251}": 2
+        }
+      },
+      {
+        "minUnits": 6,
+        "maxUnits": 25000,
+        "style": 5,
+        "variables": {
+          "BonusDA": 0.27000001072883606,
+          "ShieldDuration": 15,
+          "ShieldHP": 700,
+          "{2ad3e251}": 2
+        }
+      }
+    ]
+  }
+]

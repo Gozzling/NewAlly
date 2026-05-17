@@ -1,4 +1,9 @@
+import type { EnrichedMatch } from '@ally/shared-types'
 import type { Match, MatchDetail, RiotRegion } from '../types/riot'
+import { pipelineLegacyRiotMatch, pipelinePersonalMatch, pipelineRiotMatchDetail } from '@/domain/pipeline'
+import { canonicalToLegacyMatch } from '@/domain/legacyAdapter'
+import { normalizeAugmentDisplayName } from '@/shared/augmentParse'
+import { normalizeChampionId, normalizeItemId } from '@/shared/gameEngine'
 import { fetchMatchIds, fetchMatchDetail, regionToMatchRegion, RiotApiError } from './riotApiClient'
 import { getCache, setCache, removeCache, ONE_DAY } from './storageService'
 import { supabase, hasSupabase } from './supabaseClient'
@@ -139,7 +144,6 @@ function parseMatch(detail: MatchDetail, puuid: string): Match {
       date: new Date(info.game_datetime),
       gameLength: info.game_length,
       gameType: info.tft_game_type,
-      setNumber: info.tft_set_number,
       units: [],
       augments: [],
       traits: [],
@@ -147,15 +151,24 @@ function parseMatch(detail: MatchDetail, puuid: string): Match {
     }
   }
 
-  const unitNames = me.units.map((u) => {
-    const id = u.character_id
-    return id.startsWith('TFT') ? id.split('_').pop() ?? id : id
-  })
+  const unitBuilds = me.units.map((u) => ({
+    name: normalizeChampionId(u.character_id || u.name || ''),
+    starLevel: u.tier > 0 ? u.tier : null,
+    items: (u.itemNames ?? []).map((raw) => normalizeItemId(raw)).filter(Boolean),
+  }))
+  const unitNames = unitBuilds.map((u) => u.name)
 
-  const traits = me.traits
+  const traitLines = me.traits
     .filter((t) => t.num_units > 0)
     .sort((a, b) => b.num_units - a.num_units)
-    .map((t) => t.name)
+    .map((t) => ({
+      rawId: t.name,
+      numUnits: t.num_units,
+      tierCurrent: t.tier_current,
+      tierTotal: t.tier_total,
+    }))
+
+  const traits = traitLines.map((t) => t.rawId)
 
   const match = {
     matchId: detail.metadata.match_id,
@@ -164,9 +177,10 @@ function parseMatch(detail: MatchDetail, puuid: string): Match {
     date: new Date(info.game_datetime),
     gameLength: info.game_length,
     gameType: info.tft_game_type,
-    setNumber: info.tft_set_number,
     units: unitNames,
-    augments: me.augments,
+    unitBuilds,
+    traitLines,
+    augments: (me.augments ?? []).map((a) => normalizeAugmentDisplayName(a)).filter(Boolean),
     traits,
     comp: normalizeCompName(me.traits),
   }
@@ -175,6 +189,65 @@ function parseMatch(detail: MatchDetail, puuid: string): Match {
 }
 
 // ── Cache Management ───────────────────────────────────────────────────────
+
+/** Must match `storageService` PREFIX — logical keys are `history:*` / `history-enriched:*`. */
+const STORAGE_PREFIX = 'tft-ally::'
+const LEGACY_HISTORY_KEY_PREFIX = 'history:'
+const ENRICHED_HISTORY_KEY_PREFIX = 'history-enriched:'
+
+function isMatchHistoryLogicalKey(key: string): boolean {
+  return (
+    key.startsWith(LEGACY_HISTORY_KEY_PREFIX) ||
+    key.startsWith(ENRICHED_HISTORY_KEY_PREFIX)
+  )
+}
+
+function listMatchHistoryStorageKeys(): string[] {
+  const keys: string[] = []
+  for (let i = 0; i < localStorage.length; i++) {
+    const fullKey = localStorage.key(i)
+    if (!fullKey?.startsWith(STORAGE_PREFIX)) continue
+    const logical = fullKey.slice(STORAGE_PREFIX.length)
+    if (isMatchHistoryLogicalKey(logical)) keys.push(fullKey)
+  }
+  return keys
+}
+
+function isPlayerMatchHistoryLogicalKey(
+  logicalKey: string,
+  region: RiotRegion,
+  puuid: string,
+): boolean {
+  const legacyPrefix = `${LEGACY_HISTORY_KEY_PREFIX}${region}:${puuid}:`
+  const enrichedPrefix = `${ENRICHED_HISTORY_KEY_PREFIX}${region}:${puuid}:`
+  return logicalKey.startsWith(legacyPrefix) || logicalKey.startsWith(enrichedPrefix)
+}
+
+function isValidStoredCacheEntry(raw: string | null): boolean {
+  if (!raw) return false
+  try {
+    const entry = JSON.parse(raw) as { value?: unknown; expiresAt?: number; data?: unknown }
+    if (typeof entry.expiresAt === 'number' && Date.now() > entry.expiresAt) return false
+    const payload = entry.value ?? entry.data
+    return Array.isArray(payload) && payload.length > 0
+  } catch {
+    return false
+  }
+}
+
+function bucketForLogicalKey(logicalKey: string): 'legacy' | 'enriched' | null {
+  if (logicalKey.startsWith(ENRICHED_HISTORY_KEY_PREFIX)) return 'enriched'
+  if (logicalKey.startsWith(LEGACY_HISTORY_KEY_PREFIX)) return 'legacy'
+  return null
+}
+
+export type MatchHistoryCacheStats = {
+  total: number
+  valid: number
+  invalid: number
+  legacy: { total: number; valid: number; invalid: number }
+  enriched: { total: number; valid: number; invalid: number }
+}
 
 function validateCacheEntry(matches: Match[]): boolean {
   if (!matches || matches.length === 0) {
@@ -191,34 +264,39 @@ function validateCacheEntry(matches: Match[]): boolean {
 }
 
 function clearAllMatchHistoryCache(): void {
-  // Clear all match history cache entries
-  const keys = Object.keys(localStorage).filter(key => key.startsWith('history:'))
-  keys.forEach(key => localStorage.removeItem(key))
+  const keys = listMatchHistoryStorageKeys()
+  keys.forEach((key) => localStorage.removeItem(key))
   console.log('[MH] Cleared ' + keys.length + ' match history cache entries')
 }
 
-function getCacheStats(): { total: number; valid: number; invalid: number } {
-  const keys = Object.keys(localStorage).filter(key => key.startsWith('history:'))
-  let valid = 0
-  let invalid = 0
+function getCacheStats(): MatchHistoryCacheStats {
+  const emptyBucket = { total: 0, valid: 0, invalid: 0 }
+  const stats: MatchHistoryCacheStats = {
+    total: 0,
+    valid: 0,
+    invalid: 0,
+    legacy: { ...emptyBucket },
+    enriched: { ...emptyBucket },
+  }
 
-  keys.forEach(key => {
-    try {
-      const cached = localStorage.getItem(key)
-      if (cached) {
-        const parsed = JSON.parse(cached)
-        if (parsed.data && parsed.data.length > 0) {
-          valid++
-        } else {
-          invalid++
-        }
-      }
-    } catch {
-      invalid++
+  for (const fullKey of listMatchHistoryStorageKeys()) {
+    const logical = fullKey.slice(STORAGE_PREFIX.length)
+    const bucket = bucketForLogicalKey(logical)
+    if (!bucket) continue
+
+    stats.total++
+    stats[bucket].total++
+
+    if (isValidStoredCacheEntry(localStorage.getItem(fullKey))) {
+      stats.valid++
+      stats[bucket].valid++
+    } else {
+      stats.invalid++
+      stats[bucket].invalid++
     }
-  })
+  }
 
-  return { total: keys.length, valid, invalid }
+  return stats
 }
 
 export async function fetchPlayerMatchHistory(
@@ -319,18 +397,6 @@ export async function fetchPlayerMatchHistory(
 
     return matches
   } catch (error) {
-    if (error instanceof RiotApiError) {
-      if (error.code === 'BACKEND_REQUIRED') {
-        throw new MatchHistoryError(error.message, 'BACKEND_REQUIRED', false, error)
-      }
-      if (error.code === 'BACKEND_DOWN') {
-        throw new ServiceUnavailableError(error.message)
-      }
-      if (error.code === 'NOT_FOUND') {
-        throw new InvalidPlayerError('Player not found. Please check the summoner name and region.')
-      }
-    }
-
     // Enhance error messages based on error type
     if (error instanceof Error) {
       // Check for network-related errors
@@ -385,7 +451,6 @@ function pageEntirelyOlderSets(pageMatches: Match[], targetSet: number): boolean
 /**
  * Paginates match-v5 history and returns every game played on `targetSetNumber`
  * (e.g. current set from static meta), up to {@link SET_HISTORY_MAX_PAGES} × page size ID slots.
- * Not cached as aggressively as {@link fetchPlayerMatchHistory} — callers should prefer infrequent use.
  */
 export async function fetchPlayerMatchHistoryForSet(
   puuid: string,
@@ -467,7 +532,12 @@ export async function fetchPlayerMatchHistoryForSet(
   } catch (error) {
     if (error instanceof MatchHistoryError || error instanceof RiotApiError) throw error
     if (error instanceof Error) {
-      throw new MatchHistoryError(`Failed to load set-scoped match history: ${error.message}`, 'UNKNOWN_ERROR', true, error)
+      throw new MatchHistoryError(
+        `Failed to load set-scoped match history: ${error.message}`,
+        'UNKNOWN_ERROR',
+        true,
+        error,
+      )
     }
     throw error
   }
@@ -476,23 +546,140 @@ export async function fetchPlayerMatchHistoryForSet(
   return collected
 }
 
-export function toRiotMatchFromPersonal(record: PersonalMatchRecord): Match {
-  return {
-    matchId: record.id,
-    placement: record.placement ?? 0,
-    level: 0,
-    date: new Date(record.createdAt),
-    gameLength: record.duration ?? 0,
-    gameType: 'standard',
-    setNumber: (() => {
-      const r = record.raw as { tft_set_number?: number } | undefined
-      return typeof r?.tft_set_number === 'number' ? r.tft_set_number : undefined
-    })(),
-    units: record.units,
-    augments: record.augments,
-    traits: [],
-    comp: record.comp,
+/** Riot match history via normalize → enrich → validate pipeline (canonical shape for UI). */
+export async function fetchEnrichedPlayerMatchHistory(
+  puuid: string,
+  region: RiotRegion,
+  count = 20,
+  offset = 0,
+  logFn?: (msg: string) => void,
+  options: { forceRefresh?: boolean; offlineMode?: boolean } = {},
+): Promise<EnrichedMatch[]> {
+  const log = logFn ?? console.log
+  const { forceRefresh = false, offlineMode = false } = options
+  const cacheKey = `history-enriched:${region}:${puuid}:${count}:${offset}`
+
+  if (!forceRefresh) {
+    const cached = getCache<EnrichedMatch[]>(cacheKey)
+    if (cached && cached.length > 0) {
+      log('[MH] Returning cached enriched matches: ' + cached.length)
+      return cached
+    }
   }
+
+  if (offlineMode) {
+    throw new NetworkError('No cached enriched history available. You appear to be offline.')
+  }
+
+  removeCache(cacheKey)
+
+  const matchRegion = regionToMatchRegion(region)
+  const matchIds = await retryWithBackoff(
+    () => fetchMatchIds(puuid, region, matchRegion, count, offset, log),
+    DEFAULT_RETRY_CONFIG,
+    log,
+  )
+
+  if (matchIds.length === 0) {
+    if (offset === 0) {
+      throw new NoMatchHistoryError('No match history found for this player')
+    }
+    return []
+  }
+
+  const CONCURRENCY_LIMIT = 10
+  const details: (MatchDetail | null)[] = []
+
+  for (let i = 0; i < matchIds.length; i += CONCURRENCY_LIMIT) {
+    const batch = matchIds.slice(i, i + CONCURRENCY_LIMIT)
+    const batchDetails = await Promise.all(
+      batch.map(async (id) => {
+        try {
+          return await retryWithBackoff(
+            () => fetchMatchDetail(id, matchRegion),
+            DEFAULT_RETRY_CONFIG,
+            log,
+          )
+        } catch {
+          return null
+        }
+      }),
+    )
+    details.push(...batchDetails)
+  }
+
+  const enriched = details
+    .filter((d): d is MatchDetail => d !== null)
+    .map((d) => pipelineRiotMatchDetail(d, puuid))
+
+  if (enriched.length > 0) {
+    setCache(cacheKey, enriched, ONE_DAY)
+  }
+
+  return enriched
+}
+
+/**
+ * Legacy `Match[]` API backed by the canonical pipeline (normalize → enrich → validate).
+ * Prefer this over `fetchPlayerMatchHistory` for pages that still render `Match` / `MatchTable`.
+ */
+export async function fetchPlayerMatchHistoryViaPipeline(
+  puuid: string,
+  region: RiotRegion,
+  count = 20,
+  offset = 0,
+  logFn?: (msg: string) => void,
+  options: { forceRefresh?: boolean; offlineMode?: boolean } = {},
+): Promise<Match[]> {
+  const enriched = await fetchEnrichedPlayerMatchHistory(
+    puuid,
+    region,
+    count,
+    offset,
+    logFn,
+    options,
+  )
+  return enriched.map((e) => canonicalToLegacyMatch(e.match))
+}
+
+/** Read cached history as enriched rows (enriched cache first, then legacy cache upgraded). */
+export function getCachedEnrichedMatchHistory(
+  puuid: string,
+  region: RiotRegion,
+  count = 20,
+  offset = 0,
+): EnrichedMatch[] | null {
+  const enrichedKey = `${ENRICHED_HISTORY_KEY_PREFIX}${region}:${puuid}:${count}:${offset}`
+  const cached = getCache<EnrichedMatch[]>(enrichedKey)
+  if (cached && cached.length > 0) return cached
+
+  const legacy = getCachedMatchHistory(puuid, region, count, offset)
+  if (legacy && legacy.length > 0) return enrichCachedLegacyMatches(legacy)
+
+  return null
+}
+
+/** Legacy `Match[]` from cache (enriched bucket first, then legacy `history:` keys). */
+export function getCachedMatchHistoryViaPipeline(
+  puuid: string,
+  region: RiotRegion,
+  count = 20,
+  offset = 0,
+): Match[] | null {
+  const enriched = getCachedEnrichedMatchHistory(puuid, region, count, offset)
+  if (enriched?.length) {
+    return enriched.map((e) => canonicalToLegacyMatch(e.match))
+  }
+  return null
+}
+
+/** Convert cached legacy `Match[]` rows to enriched canonical matches. */
+export function enrichCachedLegacyMatches(matches: Match[]): EnrichedMatch[] {
+  return matches.map((m) => pipelineLegacyRiotMatch(m))
+}
+
+export function toRiotMatchFromPersonal(record: PersonalMatchRecord): Match {
+  return canonicalToLegacyMatch(pipelinePersonalMatch(record).match)
 }
 
 export async function syncPersonalMatchToSupabase(record: PersonalMatchRecord): Promise<void> {
@@ -507,6 +694,8 @@ export async function syncPersonalMatchToSupabase(record: PersonalMatchRecord): 
     placement: record.placement ?? 8,
     comp_name: record.compName ?? record.comp ?? null,
     units: record.units,
+    items: record.items ?? [],
+    unit_builds: record.unitBuilds ?? null,
     augments: record.augments,
     timestamp: record.timestamp ?? record.createdAt,
     duration: record.duration,
@@ -566,12 +755,12 @@ export function hasCachedMatchHistory(
   puuid: string,
   region: RiotRegion
 ): boolean {
-  // Check if we have any cached data for this player
-  const keys = Object.keys(localStorage).filter(key =>
-    key.startsWith(`history:${region}:${puuid}:`)
-  )
-
-  return keys.length > 0
+  for (const fullKey of listMatchHistoryStorageKeys()) {
+    const logical = fullKey.slice(STORAGE_PREFIX.length)
+    if (!isPlayerMatchHistoryLogicalKey(logical, region, puuid)) continue
+    if (isValidStoredCacheEntry(localStorage.getItem(fullKey))) return true
+  }
+  return false
 }
 
 export function isOnline(): boolean {
@@ -603,10 +792,6 @@ export function getUserFriendlyErrorMessage(error: Error): string {
     return error.message
   }
 
-  if (error instanceof RiotApiError) {
-    return error.message
-  }
-
   // Generic fallback
   return 'An unexpected error occurred. Please try again.'
 }
@@ -632,16 +817,11 @@ export function getErrorActionText(error: Error): string {
     return 'Riot servers are temporarily unavailable'
   }
 
-  if (error instanceof MatchHistoryError && error.code === 'BACKEND_REQUIRED') {
-    return 'Use the production build with Supabase configured, or enable the developer Riot key flag only for local testing'
-  }
-
   return 'Try refreshing the page'
 }
 
 export function isRetryableError(error: Error): boolean {
   if (error instanceof MatchHistoryError) {
-    if (error.code === 'BACKEND_REQUIRED') return false
     return error.retryable
   }
   return true

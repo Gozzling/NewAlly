@@ -6,26 +6,39 @@ import { OverlayTraitPanel } from './components/OverlayTraitPanel'
 import { OverlayItemPanel } from './components/OverlayItemPanel'
 import { OverlayMiniBoard } from './components/OverlayMiniBoard'
 import { OverlayShopGuide } from './components/OverlayShopGuide'
-import { OverlayCoachTips } from './components/OverlayCoachTips'
+import { OverlayCoachPanel } from './components/OverlayCoachPanel'
+import { useOverlayRecommendations } from '@/hooks/useOverlayRecommendations'
+import type { TftGameState } from '@/types/tft'
 
-function HudBar({ gold, roundType, stage, health }: { gold?: number; roundType?: string; stage?: string; health?: number }) {
+function HudBar({
+  gold,
+  roundType,
+  stage,
+  health,
+}: {
+  gold?: number | null
+  roundType?: string | null
+  stage?: string | null
+  health?: number | null
+}) {
   return (
-    <div className="flex items-center gap-2 bg-ally-card/90 border border-ally-border rounded-lg px-3 py-1.5 text-caption pointer-events-none shadow-card">
-      <span className="text-yellow-400 font-semibold font-numbers">G: {gold ?? '–'}</span>
-      <span className="text-ally-muted">|</span>
-      <span className="text-ally-text font-display uppercase tracking-wider">{stage ?? '–'}</span>
-      <span className="text-ally-muted">|</span>
-      <span className="text-ally-accent font-display uppercase font-bold">{roundType ?? '–'}</span>
-      <span className="text-ally-muted">|</span>
-      <span className="text-ally-error font-semibold font-numbers">HP: {health ?? '–'}</span>
+    <div className="flex items-center gap-2 bg-[#1f1f1f]/90 border border-[#2a2a2a] rounded-lg px-3 py-1.5 text-[10px] pointer-events-none">
+      <span className="text-yellow-400 font-semibold">G: {gold ?? '–'}</span>
+      <span className="text-neutral-500">|</span>
+      <span className="text-white">{stage ?? '–'}</span>
+      <span className="text-neutral-500">|</span>
+      <span className="text-[#35c3e7]">{roundType ?? '–'}</span>
+      <span className="text-neutral-500">|</span>
+      <span className="text-red-400">HP: {health ?? '–'}</span>
     </div>
   )
 }
 
 export function OverlayApp() {
-  const state = useAppStore((s: any) => s.gameState)
-const guideModeEnabled = useAppStore((s) => s.guideModeEnabled);
-const toggleGuideMode = useAppStore((s) => s.toggleGuideMode);
+  const state = useAppStore((s) => s.gameState) as TftGameState
+  const guideModeEnabled = useAppStore((s) => s.guideModeEnabled)
+  const toggleGuideMode = useAppStore((s) => s.toggleGuideMode)
+  const { recommendations } = useOverlayRecommendations(state)
 
   useEffect(() => {
     return subscribeToStateSnapshots()
@@ -34,7 +47,7 @@ const toggleGuideMode = useAppStore((s) => s.toggleGuideMode);
   if (!state?.isInGame) {
     return (
       <div className="w-full h-full flex items-center justify-center pointer-events-none">
-        <div className="bg-ally-card/90 border border-ally-border rounded-lg px-4 py-2 text-caption text-ally-muted font-display uppercase tracking-widest animate-pulse">
+        <div className="bg-[#1f1f1f]/90 border border-[#2a2a2a] rounded-lg px-4 py-2 text-[10px] text-neutral-500">
           Waiting for TFT...
         </div>
       </div>
@@ -44,17 +57,21 @@ const toggleGuideMode = useAppStore((s) => s.toggleGuideMode);
   return (
     <div className="w-full h-full relative pointer-events-none">
       <div className="flex items-center justify-between mb-2">
-        <HudBar gold={state.gold} roundType={state.round_type} stage={state.stage} health={state.health} />
-        <button onClick={() => toggleGuideMode(!guideModeEnabled)} className="text-xs bg-ally-accent/20 hover:bg-ally-accent/30 text-ally-accent hover:text-white transition-colors px-2 py-1 rounded pointer-events-auto">
+        <HudBar
+          gold={state.gold}
+          roundType={state.round_type}
+          health={state.roster.find((p) => p.isLocalPlayer)?.health ?? null}
+        />
+        <button onClick={() => toggleGuideMode(!guideModeEnabled)} className="text-xs bg-[#35c3e7]/20 hover:bg-[#35c3e7]/30 text-[#35c3e7] hover:text-white transition-colors px-2 py-1 rounded">
           Guide Mode: {guideModeEnabled ? 'On' : 'Off'}
         </button>
       </div>
       <div className="absolute top-14 left-0 w-64 flex flex-col gap-2 p-2 font-sans text-xs pointer-events-none">
+        <OverlayCoachPanel recommendations={recommendations} />
         <OverlayCompTracker />
         <OverlayTraitPanel />
         <OverlayMiniBoard />
         <OverlayItemPanel />
-        <OverlayCoachTips />
         {guideModeEnabled && <OverlayShopGuide />}
       </div>
     </div>

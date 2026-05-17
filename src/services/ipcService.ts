@@ -4,17 +4,14 @@ import {
   emitAllyEvent,
   isIpcBackgroundErrorMessage,
   isIpcCaptureStatusMessage,
-  isIpcCoachMatchHistoryMessage,
   isIpcGameStateMessage,
   isIpcGepStatusMessage,
   isIpcPersonalMatchMessage,
-  isIpcGameDataMessage,
+  isIpcPersonalMatchesHydrateMessage,
 } from "@/engine/events";
-import { persistCachedCoachSummary } from "@/hooks/useCoachMatchHistory";
 import type { PersonalMatchRecord } from "@/services/indexedDbService";
 import { useAppStore } from "@/store/useAppStore";
 import type { TftGameState } from "@/types/tft";
-import type { PlayerMatchHistorySummary } from "@ally/shared-types";
 
 /**
  * Subscribe to payloads broadcast from the background controller on `TFT_LIVE_CHANNEL`.
@@ -43,28 +40,6 @@ export function subscribeToStateSnapshots(): () => void {
   const handleMessage = (msg: unknown) => {
     const raw = msg as { content?: unknown } | null | undefined;
     const payload = raw?.content ?? raw;
-
-    if (isIpcPersonalMatchMessage(payload)) {
-      useAppStore.getState().addPersonalMatch(payload.match as PersonalMatchRecord);
-      return;
-    }
-
-    if (isIpcGameDataMessage(payload)) {
-      useAppStore.getState().setGameData(payload.data as any, payload.source);
-      return;
-    }
-
-    if (isIpcCoachMatchHistoryMessage(payload)) {
-      const summary = payload.summary as PlayerMatchHistorySummary;
-      useAppStore.getState().setCoachMatchHistory(summary);
-      const app = useAppStore.getState();
-      const region = app.settings.region;
-      const puuid = app.selectedPlayer?.puuid;
-      if (region && puuid) {
-        persistCachedCoachSummary(region, puuid, summary);
-      }
-      return;
-    }
 
     if (isIpcGameStateMessage(payload)) {
       const state = payload.state as TftGameState;
@@ -115,6 +90,18 @@ export function subscribeToStateSnapshots(): () => void {
         framesThisSession: payload.framesThisSession,
         timestampMs: Date.now(),
       });
+      return;
+    }
+
+    if (isIpcPersonalMatchMessage(payload)) {
+      useAppStore.getState().addPersonalMatch(payload.record as PersonalMatchRecord);
+      return;
+    }
+
+    if (isIpcPersonalMatchesHydrateMessage(payload)) {
+      useAppStore
+        .getState()
+        .setPersonalMatches(payload.matches as PersonalMatchRecord[]);
     }
   };
 

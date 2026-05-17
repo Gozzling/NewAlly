@@ -3,22 +3,27 @@ import type {
   IpcBackgroundErrorMessage,
   IpcCaptureStatusMessage,
   IpcCoachMatchHistoryMessage,
+  IpcGameDataMessage,
   IpcGameStateMessage,
   IpcGepStatusMessage,
   IpcPersonalMatchMessage,
-  IpcGameDataMessage,
+  IpcPersonalMatchesHydrateMessage,
   IpcTftPayload,
+  PersonalMatchIpcRecord,
 } from "@ally/shared-types";
+import { isPersonalMatchIpcRecord } from "./personalMatchGuard";
 
 export type {
   IpcBackgroundErrorMessage,
   IpcCaptureStatusMessage,
   IpcCoachMatchHistoryMessage,
+  IpcGameDataMessage,
   IpcGameStateMessage,
   IpcGepStatusMessage,
   IpcPersonalMatchMessage,
-  IpcGameDataMessage,
+  IpcPersonalMatchesHydrateMessage,
   IpcTftPayload,
+  PersonalMatchIpcRecord,
 } from "@ally/shared-types";
 export { TFT_LIVE_CHANNEL } from "@ally/shared-types";
 
@@ -73,16 +78,20 @@ export function isIpcPersonalMatchMessage(payload: unknown): payload is IpcPerso
   if (!payload || typeof payload !== "object") return false;
   const p = payload as Record<string, unknown>;
   if (p.kind !== "personal_match") return false;
-  const m = p.match;
-  if (!m || typeof m !== "object") return false;
-  const row = m as Record<string, unknown>;
-  if (typeof row.id !== "string" || typeof row.createdAt !== "number") return false;
-  if (!Array.isArray(row.units) || !row.units.every((u) => typeof u === "string")) return false;
-  if (row.placement != null && typeof row.placement !== "number") return false;
-  if (!Array.isArray(row.items) || !Array.isArray(row.augments)) return false;
-  if (!["pending", "synced", "failed"].includes(String(row.syncStatus))) return false;
-  if (row.source !== "gep_match_end") return false;
-  return true;
+  if (isPersonalMatchIpcRecord(p.record)) return true;
+  const legacy = p.match;
+  if (!legacy || typeof legacy !== "object") return false;
+  const row = legacy as Record<string, unknown>;
+  return typeof row.id === "string" && typeof row.createdAt === "number";
+}
+
+export function isIpcPersonalMatchesHydrateMessage(
+  payload: unknown,
+): payload is IpcPersonalMatchesHydrateMessage {
+  if (!payload || typeof payload !== "object") return false;
+  const p = payload as Record<string, unknown>;
+  if (p.kind !== "personal_matches_hydrate" || !Array.isArray(p.matches)) return false;
+  return p.matches.every(isPersonalMatchIpcRecord);
 }
 
 export function isIpcGameDataMessage(payload: unknown): payload is IpcGameDataMessage {
@@ -98,6 +107,7 @@ export function isIpcTftPayload(payload: unknown): payload is IpcTftPayload {
     isIpcBackgroundErrorMessage(payload) ||
     isIpcCaptureStatusMessage(payload) ||
     isIpcPersonalMatchMessage(payload) ||
+    isIpcPersonalMatchesHydrateMessage(payload) ||
     isIpcCoachMatchHistoryMessage(payload) ||
     isIpcGameDataMessage(payload)
   );
@@ -122,8 +132,16 @@ export function createIpcCaptureStatusMessage(
   return { kind: "capture_status", running, framesThisSession };
 }
 
-export function createIpcPersonalMatchMessage(match: IpcPersonalMatchMessage["match"]): IpcPersonalMatchMessage {
-  return { kind: "personal_match", match };
+export function createIpcPersonalMatchMessage(
+  record: PersonalMatchIpcRecord,
+): IpcPersonalMatchMessage {
+  return { kind: "personal_match", record };
+}
+
+export function createIpcPersonalMatchesHydrateMessage(
+  matches: PersonalMatchIpcRecord[],
+): IpcPersonalMatchesHydrateMessage {
+  return { kind: "personal_matches_hydrate", matches };
 }
 
 export function createIpcCoachMatchHistoryMessage(summary: unknown): IpcCoachMatchHistoryMessage {

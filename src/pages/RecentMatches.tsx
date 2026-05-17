@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAppStore } from '@/store/useAppStore'
-import { fetchPlayerMatchHistory } from '@/services/matchHistoryService'
+import { fetchPlayerMatchHistoryViaPipeline } from '@/services/matchHistoryService'
 import type { Match } from '@/types/riot'
 
 /* ─── Design tokens ─── */
@@ -430,7 +430,7 @@ export function RecentMatches() {
       setError(null)
 
       try {
-        const history = await fetchPlayerMatchHistory(
+        const history = await fetchPlayerMatchHistoryViaPipeline(
           selectedPlayer.puuid,
           storeRegion,
           INITIAL_LIMIT,
@@ -461,7 +461,7 @@ export function RecentMatches() {
 
     try {
       const offset = matches.length
-      const history = await fetchPlayerMatchHistory(
+      const history = await fetchPlayerMatchHistoryViaPipeline(
         selectedPlayer.puuid,
         storeRegion,
         LOAD_MORE_LIMIT,

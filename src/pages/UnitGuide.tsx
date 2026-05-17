@@ -1,10 +1,11 @@
-import { useMemo, useState, useEffect, Fragment } from 'react'
-import type { Unit } from '../data/units'
-import { useAppStore } from '@/store/useAppStore'
-import { UnitPortrait } from '@/components/UnitPortrait'
+import { useMemo, useState, useEffect } from 'react'
+import { GameIcon } from '@/components/GameIcon'
+import { unitIconUrl } from '@/utils/unitDisplay'
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
-import { ReferenceDetailModal } from '@/components/ReferenceDetailModal'
+import { useTFTData } from '@/hooks/useTFTData'
+import { buildUnitGuideEntries, type UnitGuideEntry } from '@/lib/tftStaticMappers'
+import { TFTStaticDataBanner } from '@/components/TFTStaticDataBanner'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -46,35 +47,41 @@ interface UnitGuideProps {
 
 const UNIT_GUIDE_PLACEHOLDER_WORDS = ['Ahri', 'Jinx', 'Aatrox', 'Samira', 'Jhin', 'Fiora', "Kai'Sa"]
 
-const UNIT_GRID_COLS = 4
-
 export function UnitGuide({ query, setQuery, costFilter, setCostFilter, tierFilter, setTierFilter, onUnitSelect, initialUnit }: UnitGuideProps) {
-  const champions = useAppStore((s) => s.gameData.champions)
-  const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null)
-  const [kbIndex, setKbIndex] = useState<number | null>(null)
+  const tft = useTFTData()
+  const units = useMemo(() => buildUnitGuideEntries(tft), [tft])
+  const [selectedUnit, setSelectedUnit] = useState<UnitGuideEntry | null>(null)
 
   // Set initial unit when provided
   useEffect(() => {
     if (initialUnit) {
-      const unit = champions.find(u => u.name === initialUnit || u.id === initialUnit)
+      const unit = units.find(
+        (u) => u.name === initialUnit || u.id === initialUnit || u.apiName === initialUnit,
+      )
       if (unit) setSelectedUnit(unit)
     }
-  }, [initialUnit, champions])
+  }, [initialUnit, units])
 
   const { placeholderAnimated: unitsSearchPlaceholder } = useTypewriterPlaceholder(
-    champions.length > 0 ? champions.slice(0, 10).map(u => u.name) : UNIT_GUIDE_PLACEHOLDER_WORDS,
+    UNIT_GUIDE_PLACEHOLDER_WORDS,
     query.length > 0,
   )
 
   const filtered = useMemo(() => {
-    let list = query ? champions.filter((u) => u.name.toLowerCase().includes(query.toLowerCase()) || u.traits.some((t) => t.toLowerCase().includes(query.toLowerCase()))) : champions
+    let list = query
+      ? units.filter(
+          (u) =>
+            u.name.toLowerCase().includes(query.toLowerCase()) ||
+            u.apiName.toLowerCase().includes(query.toLowerCase()) ||
+            u.traits.some((t) => t.toLowerCase().includes(query.toLowerCase())),
+        )
+      : units
     if (costFilter !== 'all') list = list.filter((u) => u.cost === costFilter)
     if (tierFilter !== 'all') list = list.filter((u) => u.tier === tierFilter)
     return list.sort((a, b) => b.cost - a.cost)
-  }, [query, costFilter, tierFilter, champions])
+  }, [query, costFilter, tierFilter, units])
 
-  const handleUnitClick = (unit: Unit) => {
-    onUnitSelect(unit.id)
+  const handleUnitClick = (unit: UnitGuideEntry) => {
     setSelectedUnit(unit)
   }
 
@@ -82,67 +89,11 @@ export function UnitGuide({ query, setQuery, costFilter, setCostFilter, tierFilt
     setSelectedUnit(null)
   }
 
-  useEffect(() => {
-    if (kbIndex == null) return
-    if (filtered.length === 0) {
-      setKbIndex(null)
-      return
-    }
-    setKbIndex((i) => (i == null ? null : Math.min(i, filtered.length - 1)))
-  }, [filtered.length, kbIndex])
-
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      const t = e.target as HTMLElement | null
-      if (t?.closest('input, textarea, select, [contenteditable="true"]')) return
-
-      if (e.key === 'Escape' && selectedUnit) {
-        e.preventDefault()
-        handleBack()
-        return
-      }
-      if (selectedUnit) return
-
-      const len = filtered.length
-      if (len === 0) return
-
-      if (e.key === 'Enter' && kbIndex !== null) {
-        e.preventDefault()
-        handleUnitClick(filtered[kbIndex])
-        return
-      }
-
-      if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return
-
-      e.preventDefault()
-      const cols = UNIT_GRID_COLS
-      if (kbIndex === null) {
-        setKbIndex(0)
-        return
-      }
-      const row = Math.floor(kbIndex / cols)
-      const col = kbIndex % cols
-      let next = kbIndex
-      if (e.key === 'ArrowRight') next = Math.min(len - 1, kbIndex + 1)
-      else if (e.key === 'ArrowLeft') next = Math.max(0, kbIndex - 1)
-      else if (e.key === 'ArrowDown') {
-        const nr = row + 1
-        const nextRowStart = nr * cols
-        if (nextRowStart >= len) return
-        next = Math.min(len - 1, nextRowStart + col)
-      } else if (e.key === 'ArrowUp') {
-        const nr = row - 1
-        if (nr < 0) return
-        next = Math.min(len - 1, nr * cols + col)
-      }
-      setKbIndex(next)
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [filtered, kbIndex, selectedUnit])
+  if (selectedUnit) {
+    return <UnitDetail unit={selectedUnit} onBack={handleBack} />
+  }
 
   return (
-    <Fragment>
     <div className="flex h-screen" style={{ animation: 'pageEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1)' }}>
       {/* Left Sidebar */}
       <div className="flex-shrink-0 flex flex-col" style={{
@@ -158,10 +109,7 @@ export function UnitGuide({ query, setQuery, costFilter, setCostFilter, tierFilt
         {/* Search Input */}
         <SearchInputWithSuggestions
           value={query}
-          onChange={(v) => {
-            setQuery(v)
-            setKbIndex(null)
-          }}
+          onChange={setQuery}
           placeholder={unitsSearchPlaceholder || 'Search units…'}
           kinds={['unit']}
           wrapperClassName="w-full mb-6"
@@ -241,17 +189,14 @@ export function UnitGuide({ query, setQuery, costFilter, setCostFilter, tierFilt
         padding: '16px',
         animation: 'contentEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.15s both',
       }}>
+        <TFTStaticDataBanner meta={tft.meta} count={filtered.length} label="units" />
         <div className="grid grid-cols-4 gap-2">
           {filtered.map((unit, index) => (
             <UnitCard
               key={unit.id}
               unit={unit}
               index={index}
-              keyboardFocus={kbIndex === index}
-              onClick={() => {
-                setKbIndex(index)
-                handleUnitClick(unit)
-              }}
+              onClick={() => handleUnitClick(unit)}
             />
           ))}
         </div>
@@ -288,29 +233,10 @@ export function UnitGuide({ query, setQuery, costFilter, setCostFilter, tierFilt
         }
       `}</style>
     </div>
-
-    <ReferenceDetailModal
-      open={Boolean(selectedUnit)}
-      onClose={handleBack}
-      ariaLabel={selectedUnit ? `${selectedUnit.name} details` : 'Unit details'}
-    >
-      {selectedUnit ? <UnitDetail unit={selectedUnit} onBack={handleBack} embedded /> : null}
-    </ReferenceDetailModal>
-    </Fragment>
   )
 }
 
-function UnitCard({
-  unit,
-  index,
-  keyboardFocus,
-  onClick,
-}: {
-  unit: Unit
-  index: number
-  keyboardFocus?: boolean
-  onClick: () => void
-}) {
+function UnitCard({ unit, index, onClick }: { unit: UnitGuideEntry; index: number; onClick: () => void }) {
   const tierColors = TIER_COLORS[unit.tier] ?? TIER_COLORS.C
 
   return (
@@ -318,12 +244,7 @@ function UnitCard({
       className="relative overflow-hidden cursor-pointer"
       style={{
         background: 'var(--color-ally-card)',
-        border: keyboardFocus
-          ? '1px solid var(--color-ally-accent)'
-          : '1px solid var(--color-ally-border)',
-        boxShadow: keyboardFocus
-          ? '0 0 0 2px color-mix(in srgb, var(--color-ally-accent) 35%, transparent)'
-          : undefined,
+        border: '1px solid var(--color-ally-border)',
         borderRadius: '10px',
         padding: '0',
         transition: 'all 0.15s ease',
@@ -349,11 +270,13 @@ function UnitCard({
           background: '#111827',
         }}
       >
-        <UnitPortrait
-          name={unit.name}
-          size="100%"
-          radius={0}
-          style={{ height: '100%', objectPosition: 'top' }}
+        <GameIcon
+          src={unit.iconUrl}
+          fallbackSrc={unitIconUrl(unit.name)}
+          alt={unit.name}
+          width={120}
+          height={120}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
         />
       </div>
 
@@ -397,51 +320,64 @@ function UnitCard({
   )
 }
 
-function UnitDetail({ unit, onBack, embedded = false }: { unit: Unit; onBack: () => void; embedded?: boolean }) {
+function UnitDetail({ unit, onBack }: { unit: UnitGuideEntry; onBack: () => void }) {
   const tierColors = TIER_COLORS[unit.tier] ?? TIER_COLORS.C
 
   return (
     <div className="h-full overflow-y-auto" style={{
       background: C.content,
-      padding: embedded ? '12px 16px 20px' : '16px',
+      padding: '16px',
       animation: 'detailEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
     }}>
-      {!embedded ? (
-        <button
-          onClick={onBack}
-          style={{
-            marginBottom: '16px',
-            padding: '6px 12px',
-            fontSize: '13px',
-            fontWeight: 500,
-            borderRadius: '6px',
-            background: 'transparent',
-            border: '1px solid transparent',
-            color: '#555',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = C.accent
-            e.currentTarget.style.borderColor = C.accent
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = '#555'
-            e.currentTarget.style.borderColor = 'transparent'
-          }}
-        >
-          ← Units
-        </button>
-      ) : null}
+      {/* Back Button */}
+      <button
+        onClick={onBack}
+        style={{
+          marginBottom: '16px',
+          padding: '6px 12px',
+          fontSize: '13px',
+          fontWeight: 500,
+          borderRadius: '6px',
+          background: 'transparent',
+          border: '1px solid transparent',
+          color: '#555',
+          cursor: 'pointer',
+          transition: 'all 0.15s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = C.accent
+          e.currentTarget.style.borderColor = C.accent
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = '#555'
+          e.currentTarget.style.borderColor = 'transparent'
+        }}
+      >
+        ← Units
+      </button>
 
       {/* Hero Section */}
       <div className="flex gap-6 mb-8" style={{ animation: 'statCardEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.1s both' }}>
-        <UnitPortrait
-          name={unit.name}
-          size={120}
-          radius={10}
-          className="shrink-0 border border-ally-border"
-        />
+        <div
+          style={{
+            width: '120px',
+            height: '120px',
+            borderRadius: '10px',
+            overflow: 'hidden',
+            flexShrink: 0,
+            background: '#1a1a1a',
+            border: '1px solid #2a2a2a',
+          }}
+        >
+          <GameIcon
+            src={unit.iconUrl}
+            fallbackSrc={unitIconUrl(unit.name)}
+            alt={unit.name}
+            width={120}
+            height={120}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        </div>
         <div style={{ flex: 1 }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'white', marginBottom: '8px' }}>{unit.name}</h2>
           <div className="flex items-center gap-3 mb-2">

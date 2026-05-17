@@ -1,3 +1,5 @@
+import type { PersonalMatchUnitBuild } from "./personalMatch";
+
 /**
  * Canonical Overwolf desktop IPC payloads on TFT_LIVE_CHANNEL.
  * Game state `state` is app-typed at the edge (GEP today; + vision fusion later).
@@ -37,31 +39,41 @@ export type IpcCoachMatchHistoryMessage = {
 
 export type IpcGameDataMessage = {
   kind: "game_data";
-  data: unknown; // TFTSetData
+  data: unknown;
   source: "cdn" | "bundled";
 };
 
-/** Slim personal match row for coach / analytics (no `raw` blob). Synced to desktop & overlay after GEP match end. */
+/** Personal match row from IndexedDB / GEP match_end (app-typed at the edge). */
+export interface PersonalMatchIpcRecord {
+  id: string;
+  summonerName?: string;
+  region?: string;
+  createdAt: number;
+  timestamp?: number;
+  syncedAt?: number;
+  isSynced?: boolean;
+  syncStatus?: "pending" | "synced" | "failed";
+  placement: number | null;
+  units: string[];
+  items: string[];
+  /** Items per champion when captured from end-of-game board. */
+  unitBuilds?: PersonalMatchUnitBuild[];
+  augments: string[];
+  comp: string | null;
+  compName?: string | null;
+  duration?: number | null;
+  source?: string;
+  raw?: Record<string, unknown>;
+}
+
 export type IpcPersonalMatchMessage = {
   kind: "personal_match";
-  match: {
-    id: string;
-    createdAt: number;
-    timestamp?: number;
-    summonerName?: string;
-    region?: string;
-    syncedAt?: number;
-    isSynced?: boolean;
-    syncStatus: "pending" | "synced" | "failed";
-    placement: number | null;
-    units: string[];
-    items: string[];
-    augments: string[];
-    comp: string | null;
-    compName?: string | null;
-    duration: number | null;
-    source: "gep_match_end";
-  };
+  record: PersonalMatchIpcRecord;
+};
+
+export type IpcPersonalMatchesHydrateMessage = {
+  kind: "personal_matches_hydrate";
+  matches: PersonalMatchIpcRecord[];
 };
 
 export type IpcTftPayload =
@@ -70,5 +82,6 @@ export type IpcTftPayload =
   | IpcBackgroundErrorMessage
   | IpcCaptureStatusMessage
   | IpcPersonalMatchMessage
+  | IpcPersonalMatchesHydrateMessage
   | IpcCoachMatchHistoryMessage
   | IpcGameDataMessage;

@@ -2,20 +2,19 @@ import { describe, it, expect } from "vitest";
 import {
   createIpcBackgroundErrorMessage,
   createIpcCaptureStatusMessage,
-  createIpcCoachMatchHistoryMessage,
   createIpcGameStateMessage,
   createIpcGepStatusMessage,
   createIpcPersonalMatchMessage,
+  createIpcPersonalMatchesHydrateMessage,
   isIpcBackgroundErrorMessage,
   isIpcCaptureStatusMessage,
-  isIpcCoachMatchHistoryMessage,
   isIpcGameStateMessage,
   isIpcGepStatusMessage,
   isIpcPersonalMatchMessage,
+  isIpcPersonalMatchesHydrateMessage,
   isIpcTftPayload,
   TFT_LIVE_CHANNEL,
 } from "./ipcWire";
-import { emptyPlayerMatchHistorySummary } from "@/engine/recommendations/historySummary";
 import { EMPTY_STATE } from "@/store/useAppStore";
 
 describe("ipcWire", () => {
@@ -52,37 +51,45 @@ describe("ipcWire", () => {
     );
   });
 
-  it("isIpcCoachMatchHistoryMessage validates summary shape", () => {
-    const summary = emptyPlayerMatchHistorySummary();
-    const msg = createIpcCoachMatchHistoryMessage(summary);
-    expect(isIpcCoachMatchHistoryMessage(msg)).toBe(true);
-    expect(isIpcTftPayload(msg)).toBe(true);
-    expect(isIpcCoachMatchHistoryMessage({ kind: "coach_match_history", summary: null })).toBe(false);
-    expect(isIpcCoachMatchHistoryMessage({ kind: "coach_match_history", summary: {} })).toBe(false);
-  });
-
-  it("isIpcPersonalMatchMessage validates match row", () => {
-    const msg = createIpcPersonalMatchMessage({
-      id: "m1",
-      createdAt: 1,
-      syncStatus: "pending",
-      placement: 3,
-      units: ["Aatrox"],
-      items: [],
-      augments: [],
-      comp: null,
-      compName: null,
-      duration: null,
-      source: "gep_match_end",
-    });
-    expect(isIpcPersonalMatchMessage(msg)).toBe(true);
-    expect(isIpcTftPayload(msg)).toBe(true);
-    expect(isIpcPersonalMatchMessage({ kind: "personal_match", match: { id: 1 } })).toBe(false);
-  });
-
   it("rejects non-objects and wrong kind", () => {
     expect(isIpcGameStateMessage(null)).toBe(false);
     expect(isIpcGameStateMessage({ kind: "other", state: {} })).toBe(false);
     expect(isIpcGameStateMessage({ kind: "state", state: null })).toBe(false);
+  });
+
+  it("isIpcPersonalMatchMessage validates personal match rows", () => {
+    const record = {
+      id: "m1",
+      createdAt: 1,
+      placement: 3,
+      units: [],
+      items: [],
+      augments: [],
+      comp: null,
+      duration: null,
+      syncStatus: "pending" as const,
+    };
+    const msg = createIpcPersonalMatchMessage(record);
+    expect(isIpcPersonalMatchMessage(msg)).toBe(true);
+    expect(isIpcTftPayload(msg)).toBe(true);
+    expect(isIpcPersonalMatchMessage({ kind: "personal_match", record: { id: "x" } })).toBe(false);
+  });
+
+  it("isIpcPersonalMatchesHydrateMessage validates hydrate batches", () => {
+    const row = {
+      id: "m1",
+      createdAt: 1,
+      placement: 4,
+      units: [],
+      items: [],
+      augments: [],
+      comp: null,
+      duration: null,
+    };
+    const msg = createIpcPersonalMatchesHydrateMessage([row]);
+    expect(isIpcPersonalMatchesHydrateMessage(msg)).toBe(true);
+    expect(isIpcPersonalMatchesHydrateMessage({ kind: "personal_matches_hydrate", matches: [{}] })).toBe(
+      false,
+    );
   });
 });

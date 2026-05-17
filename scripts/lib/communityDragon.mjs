@@ -10,11 +10,32 @@ export function cdAssetUrl(squareIconPath) {
   const idx = squareIconPath.indexOf("/ASSETS/")
   if (idx === -1) return null
   const rest = squareIconPath.slice(idx + "/ASSETS/".length)
+  return cdAssetPathToUrl(rest)
+}
+
+/** Paths from cdragon `en_us.json` (often `ASSETS/UX/...` without the lol-game-data prefix). */
+export function cdAssetUrlFromGamePath(iconPath) {
+  if (!iconPath || typeof iconPath !== "string") return null
+  if (iconPath.includes("/lol-game-data/")) return cdAssetUrl(iconPath)
+  let rest = iconPath.replace(/^\/+/, "")
+  if (rest.startsWith("ASSETS/")) rest = rest.slice("ASSETS/".length)
+  return cdAssetPathToUrl(rest)
+}
+
+function cdAssetPathToUrl(rest) {
   const urlPath = rest
     .split("/")
     .map((s) => s.toLowerCase())
     .join("/")
   return `${CD_RAW_BASE}/${urlPath}`
+}
+
+/** CD raw hosts `.png` alongside `.tex` at the same path. */
+export function cdTexUrlToPng(texOrPngUrl) {
+  if (!texOrPngUrl || typeof texOrPngUrl !== "string") return null
+  if (/\.png$/i.test(texOrPngUrl)) return texOrPngUrl
+  if (/\.tex$/i.test(texOrPngUrl)) return texOrPngUrl.replace(/\.tex$/i, ".png")
+  return texOrPngUrl
 }
 
 /** TFT17_Aatrox → 17 */

@@ -9,6 +9,7 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, './src'),
       '@ally/shared-types': resolve(__dirname, './packages/shared-types/src'),
+      '@tft-static': resolve(__dirname, './data/tft-static'),
     },
   },
   test: {

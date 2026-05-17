@@ -1,0 +1,142 @@
+[
+  {
+    "apiName": "TFT_Item_BFSword",
+    "name": "B.F. Sword",
+    "description": "+ Attack Damage",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_BFSword.TFT_Set13.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_bfsword.tft_set13.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "component"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  },
+  {
+    "apiName": "TFT_Item_ChainVest",
+    "name": "Chain Vest",
+    "description": "+ Armor",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_ChainVest.TFT_Set13.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_chainvest.tft_set13.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "component"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  },
+  {
+    "apiName": "TFT_Item_FryingPan",
+    "name": "Frying Pan",
+    "description": "...why else would it be here?",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_FryingPan.TFT_Set13.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_fryingpan.tft_set13.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "component"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  },
+  {
+    "apiName": "TFT_Item_GiantsBelt",
+    "name": "Giant's Belt",
+    "description": "+ Health",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_GiantsBelt.TFT_Set13.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_giantsbelt.tft_set13.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "component"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  },
+  {
+    "apiName": "TFT_Item_NeedlesslyLargeRod",
+    "name": "Needlessly Large Rod",
+    "description": "+ Ability Power",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_NeedlesslyLargeRod.TFT_Set13.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_needlesslylargerod.tft_set13.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "component"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  },
+  {
+    "apiName": "TFT_Item_NegatronCloak",
+    "name": "Negatron Cloak",
+    "description": "+ Magic Resist",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_NegatronCloak.TFT_Set13.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_negatroncloak.tft_set13.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "component"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  },
+  {
+    "apiName": "TFT_Item_RecurveBow",
+    "name": "Recurve Bow",
+    "description": "+ Attack Speed",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_RecurveBow.TFT_Set13.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_recurvebow.tft_set13.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "component"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  },
+  {
+    "apiName": "TFT_Item_SparringGloves",
+    "name": "Sparring Gloves",
+    "description": "+ Critical Strike Chance",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_SparringGloves.TFT_Set13.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_sparringgloves.tft_set13.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "component"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  },
+  {
+    "apiName": "TFT_Item_Spatula",
+    "name": "Spatula",
+    "description": "It must do something...",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Spatula.TFT_Set13.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_spatula.tft_set13.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "component"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  },
+  {
+    "apiName": "TFT_Item_TearOfTheGoddess",
+    "name": "Tear of the Goddess",
+    "description": "+ Mana Regen",
+    "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_TearOfTheGoddess.TFT_Set13.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_tearofthegoddess.tft_set13.tex",
+    "composition": [],
+    "from": null,
+    "tags": [
+      "component"
+    ],
+    "unique": false,
+    "associatedTraits": []
+  }
+]

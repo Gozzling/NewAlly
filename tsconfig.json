@@ -18,7 +18,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@ally/shared-types": ["packages/shared-types/src/index.ts"]
+      "@ally/shared-types": ["packages/shared-types/src/index.ts"],
+      "@tft-static/*": ["data/tft-static/*"]
     },
     "types": ["@overwolf/types", "node"]
   },

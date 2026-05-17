@@ -1,3 +1,5 @@
+import type { PersonalMatchUnitBuild } from '@ally/shared-types'
+
 export interface PersonalMatchRecord {
   id: string
   summonerName?: string
@@ -10,6 +12,8 @@ export interface PersonalMatchRecord {
   placement: number | null
   units: string[]
   items: string[]
+  /** Per-unit items + stars when saved from live board at match end. */
+  unitBuilds?: PersonalMatchUnitBuild[]
   augments: string[]
   comp: string | null
   compName?: string | null

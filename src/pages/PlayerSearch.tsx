@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import type { RiotRegion, PlayerCard, Match } from '../types/riot'
 import { useAppStore } from '../store/useAppStore'
 import { fetchPlayerCard } from '../services/riotApiClient'
-import { fetchPlayerMatchHistory } from '../services/matchHistoryService'
+import { fetchPlayerMatchHistoryViaPipeline } from '../services/matchHistoryService'
 import { calculatePlayerStats } from '../services/playerStatsService'
 import { StatCard } from '../components/StatCard'
 import { MatchTable } from '../components/MatchTable'
@@ -76,7 +76,7 @@ export function PlayerSearch() {
       setPlayer(card)
       setSelectedPlayer(card)
       addRecentSearch({ name: card.name, region, date: Date.now() })
-      const history = await fetchPlayerMatchHistory(card.puuid, region, 20)
+      const history = await fetchPlayerMatchHistoryViaPipeline(card.puuid, region, 20)
       setMatches(history)
       setStats(calculatePlayerStats(history))
     } catch (err) {

@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=900" />
+  <title>TFT Ally — Shell design spec (900px)</title>
+  <!-- Fonts: Chakra Petch (display), Manrope (body), IBM Plex Mono (data) — loaded via Google Fonts per brief -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /*
+      Chromium 91-safe: hex + rgba(var(--*-rgb), a) only.
+      Structural surfaces: flat fills only. Shimmer uses a gradient mask on skeleton stripes (loading), not chrome.
+    */
+    :root {
+      /* —— Core ally family (continuity with product) —— */
+      --color-ally-bg: #181818;
+      --color-ally-card: #1f1f1f;
+      --color-ally-accent: #35c3e7;
+      --color-ally-accent-rgb: 53, 195, 231;
+      --color-ally-text: #ffffff;
+      --color-ally-text-dim: #e0e0e0;
+      --color-ally-muted: #a1a1a1;
+      --color-ally-border: #2a2a2a;
+      --color-ally-hover: #252525;
+
+      /* —— Background depth (3 levels) —— */
+      --color-surface-depth-0: var(--color-ally-bg);
+      --color-surface-depth-1: var(--color-ally-card);
+      --color-surface-depth-2: #242424;
+
+      /* —— Accent tint variants (legacy-safe rgba) —— */
+      --color-ally-accent-soft: rgba(var(--color-ally-accent-rgb), 0.10);
+      --color-ally-accent-muted: rgba(var(--color-ally-accent-rgb), 0.18);
+      --color-ally-accent-border: rgba(var(--color-ally-accent-rgb), 0.28);
+      --color-ally-accent-glow: rgba(var(--color-ally-accent-rgb), 0.35);
+      --focus-ring: 0 0 0 1px rgba(var(--color-ally-accent-rgb), 0.45);
+
+      /* —— Placement semantics (distinct from accent) —— */
+      --color-placement-first: #d4a520;
+      --color-placement-first-rgb: 212, 165, 32;
+      --color-placement-top4: #10b981;
+      --color-placement-top4-rgb: 16, 185, 129;
+      --color-placement-bot4: #dc2626;
+      --color-placement-bot4-rgb: 220, 38, 38;
+
+      /* —— Typography tokens —— */
+      --font-display: "Chakra Petch", "Rajdhani", sans-serif;
+      --font-body: "Manrope", system-ui, sans-serif;
+      --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+      --text-display: 1.375rem;
+      --text-title: 1.125rem;
+      --text-body: 0.8125rem;
+      --text-caption: 0.6875rem;
+      --text-mono: 0.75rem;
+
+      /* —— Layout chrome (fixed per brief) —— */
+      --shell-width: 900px;
+      --topbar-height: 44px;
+      --rail-width: 52px;
+      --right-sidebar-width: 200px;
+
+      /* —— Spacing scale (4px base) —— */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+
+      /* —— Radius & borders —— */
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-pill: 999px;
+      --border-hairline: 1px solid var(--color-ally-border);
+      --border-focus: 1px solid var(--color-ally-accent-border);
+
+      /* —— Motion (shimmer only for loading) —— */
+      --motion-skeleton-duration: 1.15s;
+      --motion-skeleton-ease: linear;
+
+      --color-trait-bronze-fg: #d4a574;
+      --color-trait-bronze-bg: rgba(180, 120, 60, 0.15);
+      --color-trait-bronze-border: rgba(180, 120, 60, 0.35);
+      --color-trait-silver-fg: #c8d0d8;
+      --color-trait-silver-bg: rgba(180, 190, 200, 0.12);
+      --color-trait-silver-border: rgba(180, 190, 200, 0.35);
+      --color-trait-prismatic-fg: #c4b5fd;
+      --color-trait-prismatic-bg: rgba(167, 139, 250, 0.12);
+      --color-trait-prismatic-border: rgba(139, 92, 246, 0.4);
+      --color-danger-soft: #f87171;
+
+      /* —— Spec preview chrome (outside product) —— */
+      --color-shell-backdrop: #0d0d0d;
+      --color-spec-toolbar-bg: #111111;
+      --color-spec-toolbar-border: #333333;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      line-height: 1.45;
+      color: var(--color-ally-text);
+      background: var(--color-shell-backdrop);
+    }
+
+    /* —— Design-spec chrome (not product UI) —— */
+    .spec-toolbar {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--color-ally-muted);
+      background: var(--color-spec-toolbar-bg);
+      border-bottom: 1px solid var(--color-spec-toolbar-border);
+      padding: var(--space-2) var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+    }
+    .spec-toolbar strong { color: var(--color-ally-text-dim); }
+    .spec-toolbar label { display: inline-flex; align-items: center; gap: var(--space-1); cursor: pointer; user-select: none; }
+    .spec-toolbar input { accent-color: var(--color-ally-accent); }
+
+    .app-frame {
+      width: var(--shell-width);
+      max-width: 100%;
+      margin: 0 auto;
+      background: var(--color-surface-depth-0);
+      border: 1px solid var(--color-ally-border);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+      position: relative;
+      overflow: hidden; /* no horizontal scroll at 900 */
+    }
+
+    /* —— Top bar: height 44px —— */
+    .topbar {
+      height: var(--topbar-height);
+      min-height: var(--topbar-height);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 0 var(--space-3) 0 var(--space-2);
+      background: var(--color-surface-depth-1);
+      border-bottom: var(--border-hairline);
+      flex-shrink: 0;
+    }
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 0 var(--space-2);
+      flex-shrink: 0;
+    }
+    .topbar-logo-mark {
+      width: 26px;
+      height: 26px;
+      border-radius: var(--radius-sm);
+      border: var(--border-focus);
+      background: var(--color-surface-depth-0);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 12px var(--color-ally-accent-glow);
+    }
+    .topbar-logo-mark svg { width: 14px; height: 14px; fill: var(--color-ally-accent); }
+    .topbar-logo-type {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .topbar-search {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      height: 30px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(var(--color-ally-accent-rgb), 0.22);
+      background: var(--color-surface-depth-0);
+      padding: 0 var(--space-3);
+      gap: var(--space-2);
+    }
+    .topbar-search svg { flex-shrink: 0; opacity: 0.55; }
+    .topbar-search input {
+      flex: 1;
+      min-width: 0;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--color-ally-text);
+      font-family: var(--font-body);
+      font-size: 0.8125rem;
+    }
+    .topbar-search input::placeholder { color: var(--color-ally-muted); }
+    .topbar-search:focus-within { box-shadow: var(--focus-ring); }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .win-btn {
+      width: 36px;
+      height: 28px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--color-ally-muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+    .win-btn:hover { background: var(--color-ally-hover); color: var(--color-ally-text); }
+    .win-btn.close:hover { background: rgba(var(--color-placement-bot4-rgb), 0.2); color: var(--color-danger-soft); }
+
+    /* —— Body row: rail + content + right sidebar —— */
+    .shell-body {
+      display: flex;
+      min-height: 560px;
+      height: min(680px, calc(100vh - 120px));
+    }
+
+    /* Left rail: 52px —— */
+    .rail {
+      width: var(--rail-width);
+      flex-shrink: 0;
+      background: var(--color-surface-depth-1);
+      border-right: var(--border-hairline);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--space-2) 0;
+      gap: var(--space-1);
+    }
+    .rail-btn {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: var(--radius-md);
+      background: transparent;
+      color: var(--color-ally-muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+    .rail-btn:hover { background: var(--color-ally-hover); color: var(--color-ally-text-dim); }
+    .rail-btn.active {
+      background: var(--color-surface-depth-0);
+      color: var(--color-ally-accent);
+      border: var(--border-focus);
+      box-shadow: inset 0 0 12px var(--color-ally-accent-soft);
+    }
+    .rail-btn svg { width: 22px; height: 22px; }
+
+    /* Main scroll: remaining width = 900 - 52 - 200 = 648px —— */
+    .main-scroll {
+      flex: 1;
+      min-width: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: var(--color-surface-depth-0);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(var(--color-ally-accent-rgb), 0.35) var(--color-surface-depth-1);
+    }
+    .main-scroll::-webkit-scrollbar { width: 6px; }
+    .main-scroll::-webkit-scrollbar-track { background: var(--color-surface-depth-1); }
+    .main-scroll::-webkit-scrollbar-thumb {
+      background: rgba(var(--color-ally-accent-rgb), 0.35);
+      border-radius: var(--radius-pill);
+    }
+
+    .main-inner {
+      padding: var(--space-4);
+      max-width: 100%;
+    }
+
+    /* Right sidebar: 200px —— */
+    .sidebar {
+      width: var(--right-sidebar-width);
+      flex-shrink: 0;
+      background: var(--color-surface-depth-1);
+      border-left: var(--border-hairline);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+
+    /* Page header —— */
+    .page-header {
+      margin-bottom: var(--space-4);
+    }
+    .page-kicker {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-ally-muted);
+      margin-bottom: var(--space-1);
+    }
+    .page-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: var(--text-display);
+      letter-spacing: 0.02em;
+      line-height: 1.15;
+      margin: 0 0 var(--space-2);
+    }
+    .tab-row {
+      display: flex;
+      gap: var(--space-1);
+      border-bottom: var(--border-hairline);
+      margin-top: var(--space-2);
+    }
+    .tab {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      padding: var(--space-2) var(--space-3);
+      border: none;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      background: transparent;
+      color: var(--color-ally-muted);
+      cursor: pointer;
+      margin-bottom: -1px;
+    }
+    .tab:hover { color: var(--color-ally-text-dim); background: var(--color-ally-hover); }
+    .tab[aria-selected="true"] {
+      color: var(--color-ally-accent);
+      background: var(--color-surface-depth-2);
+      border: var(--border-hairline);
+      border-bottom-color: var(--color-surface-depth-2);
+    }
+
+    /* Section header + divider —— */
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-3);
+      margin: var(--space-5) 0 var(--space-2);
+    }
+    .section-head h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: var(--text-title);
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+    .section-head span {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--color-ally-muted);
+    }
+    .section-rule {
+      height: 1px;
+      background: var(--color-ally-border);
+      margin-bottom: var(--space-3);
+    }
+
+    /* Stat strip: 4 cells —— */
+    .stat-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-2);
+      margin-bottom: var(--space-4);
+    }
+    .stat-cell {
+      background: var(--color-surface-depth-1);
+      border: var(--border-hairline);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+      min-width: 0;
+    }
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--color-ally-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: var(--space-1);
+    }
+    .stat-value {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-delta {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      margin-top: var(--space-1);
+    }
+    .stat-delta.pos { color: var(--color-placement-top4); }
+    .stat-delta.neg { color: var(--color-placement-bot4); }
+
+    /* Trait pill tiers —— */
+    .pill {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-ally-border);
+      white-space: nowrap;
+    }
+    .pill-bronze { background: var(--color-trait-bronze-bg); color: var(--color-trait-bronze-fg); border-color: var(--color-trait-bronze-border); }
+    .pill-silver { background: var(--color-trait-silver-bg); color: var(--color-trait-silver-fg); border-color: var(--color-trait-silver-border); }
+    .pill-gold { background: rgba(var(--color-placement-first-rgb), 0.15); color: var(--color-placement-first); border-color: rgba(var(--color-placement-first-rgb), 0.4); }
+    .pill-prismatic { background: var(--color-trait-prismatic-bg); color: var(--color-trait-prismatic-fg); border-color: var(--color-trait-prismatic-border); }
+
+    /* Match rows —— */
+    .match-list { display: flex; flex-direction: column; gap: var(--space-2); }
+    .match-row {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr) 72px;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      background: var(--color-surface-depth-1);
+      border: var(--border-hairline);
+      border-radius: var(--radius-md);
+    }
+    .placement {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.125rem;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    .placement.p1 { color: var(--color-placement-first); }
+    .placement.p2 { color: var(--color-ally-text); }
+    .placement.top4 { color: var(--color-placement-top4); }
+    .placement.bot4 { color: var(--color-placement-bot4); }
+    .match-mid { min-width: 0; }
+    .match-title {
+      font-weight: 600;
+      font-size: 0.8125rem;
+      margin-bottom: var(--space-1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .match-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-1);
+      align-items: center;
+    }
+    .unit-strip {
+      display: flex;
+      gap: 3px;
+      margin-top: var(--space-2);
+    }
+    .unit-slot {
+      width: 22px;
+      height: 22px;
+      border-radius: 3px;
+      border: 1px solid var(--color-ally-border);
+      background: var(--color-surface-depth-2);
+      flex-shrink: 0;
+    }
+    .unit-slot.cost2 { border-color: rgba(var(--color-placement-top4-rgb), 0.45); }
+    .unit-slot.cost3 { border-color: rgba(var(--color-ally-accent-rgb), 0.45); }
+    .lp {
+      font-family: var(--font-mono);
+      font-size: var(--text-mono);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .lp.up { color: var(--color-placement-top4); }
+    .lp.down { color: var(--color-placement-bot4); }
+
+    /* Player card / server / tip —— */
+    .side-card {
+      background: var(--color-surface-depth-0);
+      border: var(--border-hairline);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+    }
+    .side-card h3 {
+      margin: 0 0 var(--space-2);
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-ally-muted);
+    }
+    .summoner-name {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    .summoner-meta {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      color: var(--color-ally-muted);
+      margin-top: var(--space-1);
+    }
+    .rank-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: var(--space-3);
+      font-family: var(--font-mono);
+      font-size: var(--text-mono);
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      padding: 4px 8px;
+      border-radius: var(--radius-pill);
+      background: rgba(var(--color-placement-top4-rgb), 0.12);
+      color: var(--color-placement-top4);
+      border: 1px solid rgba(var(--color-placement-top4-rgb), 0.35);
+    }
+    .status-pill::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--color-placement-top4);
+    }
+    .tip-body {
+      font-size: 0.75rem;
+      color: var(--color-ally-text-dim);
+      line-height: 1.4;
+    }
+
+    /* Empty state —— */
+    .empty-block {
+      border: 1px dashed var(--color-ally-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-6);
+      text-align: center;
+      background: var(--color-surface-depth-1);
+    }
+    .empty-block svg { margin-bottom: var(--space-3); opacity: 0.45; }
+    .empty-title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: var(--text-title);
+      margin: 0 0 var(--space-2);
+    }
+    .empty-copy {
+      font-size: 0.8125rem;
+      color: var(--color-ally-muted);
+      margin: 0 0 var(--space-4);
+      max-width: 320px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .btn-ghost {
+      font-family: var(--font-mono);
+      font-size: var(--text-caption);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-sm);
+      border: var(--border-focus);
+      background: transparent;
+      color: var(--color-ally-accent);
+      cursor: pointer;
+    }
+    .btn-ghost:hover { background: var(--color-ally-accent-soft); }
+
+    /* Skeleton —— */
+    @keyframes skeleton-shimmer {
+      0% { background-position: 0 0; }
+      100% { background-position: 200px 0; }
+    }
+    .sk {
+      border-radius: var(--radius-sm);
+      background: linear-gradient(
+        90deg,
+        var(--color-surface-depth-2) 0px,
+        rgba(var(--color-ally-accent-rgb), 0.07) 80px,
+        var(--color-surface-depth-2) 160px
+      );
+      background-size: 200px 100%;
+      animation: skeleton-shimmer var(--motion-skeleton-duration) var(--motion-skeleton-ease) infinite;
+    }
+    .sk-line { height: 12px; margin-bottom: var(--space-2); }
+    .sk-line.short { width: 40%; }
+    .sk-line.med { width: 70%; }
+    .sk-stat { height: 44px; border-radius: var(--radius-md); }
+    .sk-row { height: 56px; border-radius: var(--radius-md); margin-bottom: var(--space-2); }
+
+    /* State visibility —— */
+    [data-preview="populated"] .when-populated,
+    [data-preview="skeleton"] .when-skeleton,
+    [data-preview="empty"] .when-empty { display: block; }
+    [data-preview="populated"] .when-skeleton,
+    [data-preview="populated"] .when-empty,
+    [data-preview="skeleton"] .when-populated,
+    [data-preview="skeleton"] .when-empty,
+    [data-preview="empty"] .when-populated,
+    [data-preview="empty"] .when-skeleton { display: none !important; }
+
+    .side-stack {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    /* Toast —— */
+    .toast {
+      position: absolute;
+      right: var(--space-4);
+      bottom: var(--space-4);
+      width: 280px;
+      padding: var(--space-3);
+      background: var(--color-surface-depth-2);
+      border: var(--border-hairline);
+      border-left: 3px solid var(--color-ally-accent);
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      font-size: 0.75rem;
+      z-index: 20;
+      display: none;
+    }
+    [data-preview="populated"] .toast { display: block; }
+    .toast-title {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      margin-bottom: var(--space-1);
+    }
+    .toast-body { color: var(--color-ally-text-dim); }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+  <!--
+    RATIONALE — Shell grid at 900px:
+    - Fixed chrome ensures muscle memory for competitive users: rail icons always same hit zone (40×40 in 52px rail → 8px vertical breathing room).
+    - Content column min-width 0 + flex prevents horizontal overflow; numeric/tabular font avoids jitter when LP deltas update.
+    - Right rail at 200px keeps player context glanceable without stealing comp table width; density matches Bloomberg / terminal side panels.
+    - Top bar 44px: single row for brand + elastic search + window controls; search flexes first to absorb narrow widths.
+    - Semantic placement colors sit on neutral surfaces so accent (ally cyan) stays scarce: only tabs, active rail, key borders, toast rail.
+  -->
+
+  <div class="spec-toolbar">
+    <strong>Design spec</strong>
+    <span>900px canvas · state preview (not shipped in product)</span>
+    <label><input type="radio" name="preview" value="populated" checked /> Populated</label>
+    <label><input type="radio" name="preview" value="skeleton" /> Skeleton</label>
+    <label><input type="radio" name="preview" value="empty" /> Empty</label>
+  </div>
+
+  <!-- app-frame: 900px total width —— -->
+  <div class="app-frame" id="appFrame" data-preview="populated">
+    <!-- topbar: 44px height, padding-x ~12px (space-3), logo gap 8px —— -->
+    <header class="topbar">
+      <div class="topbar-logo">
+        <div class="topbar-logo-mark" aria-hidden="true">
+          <!-- inline SVG glyph: compass / target motif, mono stroke -->
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L12 6M12 18L12 22M2 12L6 12M18 12L22 12M4.2 4.2L7 7M17 17L19.8 19.8M19.8 4.2L17 7M7 17L4.2 19.8M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+        </div>
+        <span class="topbar-logo-type">Ally</span>
+      </div>
+      <div class="topbar-search" role="search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input type="search" placeholder="Search summoners, units, traits…" aria-label="Global search" />
+      </div>
+      <div class="topbar-actions" aria-label="Window controls">
+        <button type="button" class="win-btn" title="Minimize" aria-label="Minimize">
+          <svg width="10" height="10" viewBox="0 0 10 10"><rect y="4" width="10" height="2" fill="currentColor"/></svg>
+        </button>
+        <button type="button" class="win-btn" title="Maximize" aria-label="Maximize">
+          <svg width="10" height="10" viewBox="0 0 10 10"><rect width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        </button>
+        <button type="button" class="win-btn close" title="Close" aria-label="Close">
+          <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.5"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="shell-body">
+      <!-- rail: 52px wide; icon buttons 40×40, gap 4px (space-1) —— -->
+      <nav class="rail" aria-label="Primary navigation">
+        <button type="button" class="rail-btn active" title="Home" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 11.5L12 4l8 7.5V20a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-8.5z"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Match history">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 6h16M4 12h10M4 18h16"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Units">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2M16 11v2M19 11v2"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Traits">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 3l7 4v10l-7 4-7-4V7l7-4z"/><path d="M12 3v18"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Items">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Augments">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 2l2 4 4 2-4 2-2 4-2-4-4-2 4-2 2-4z"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Comps">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </button>
+        <button type="button" class="rail-btn" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        </button>
+      </nav>
+
+      <main class="main-scroll" aria-label="Main content">
+        <div class="main-inner">
+          <!-- Content width: 648px inner padding 16px each side → usable ~616px for grids —— -->
+
+          <div class="when-populated">
+            <div class="page-header">
+              <div class="page-kicker">desktop · home</div>
+              <h1 class="page-title">Command overview</h1>
+              <div class="tab-row" role="tablist" aria-label="Home sections">
+                <button type="button" class="tab" role="tab" aria-selected="false">Snapshot</button>
+                <button type="button" class="tab" role="tab" aria-selected="true">Queue</button>
+                <button type="button" class="tab" role="tab" aria-selected="false">Meta</button>
+              </div>
+            </div>
+
+            <!-- stat-strip: gap 8px, cells padding 12px —— -->
+            <div class="stat-strip">
+              <div class="stat-cell">
+                <div class="stat-label">Last 20 Avg</div>
+                <div class="stat-value">4.2</div>
+                <div class="stat-delta pos">−0.3 vs prior</div>
+              </div>
+              <div class="stat-cell">
+                <div class="stat-label">Top-4</div>
+                <div class="stat-value">55%</div>
+                <div class="stat-delta pos">+4.1pp</div>
+              </div>
+              <div class="stat-cell">
+                <div class="stat-label">LP / hr</div>
+                <div class="stat-value">+12</div>
+                <div class="stat-delta pos">session</div>
+              </div>
+              <div class="stat-cell">
+                <div class="stat-label">Consistency</div>
+                <div class="stat-value">0.74</div>
+                <div class="stat-delta neg">volatile</div>
+              </div>
+            </div>
+
+            <div class="section-head">
+              <h2>Recent queue</h2>
+              <span>Last 7 on ladder</span>
+            </div>
+            <div class="section-rule" aria-hidden="true"></div>
+
+            <div class="match-list">
+              <div class="match-row">
+                <div class="placement p1">1</div>
+                <div class="match-mid">
+                  <div class="match-title">Mercenary Emblems · capped Krugs pivot</div>
+                  <div class="match-meta">
+                    <span class="pill pill-gold">Yordle 6</span>
+                    <span class="pill pill-silver">Sniper 3</span>
+                    <span class="pill pill-bronze">Edgelord 2</span>
+                  </div>
+                  <div class="unit-strip" aria-hidden="true">
+                    <span class="unit-slot cost2"></span><span class="unit-slot"></span><span class="unit-slot cost3"></span><span class="unit-slot"></span><span class="unit-slot cost2"></span><span class="unit-slot"></span><span class="unit-slot"></span><span class="unit-slot"></span>
+                  </div>
+                </div>
+                <div class="lp up">+45 LP</div>
+              </div>
+              <div class="match-row">
+                <div class="placement top4">4</div>
+                <div class="match-mid">
+                  <div class="match-title">Fast 8 · Bilgewater tempo</div>
+                  <div class="match-meta">
+                    <span class="pill pill-prismatic">Bilgewater 7</span>
+                    <span class="pill pill-bronze">Pirate 2</span>
+                  </div>
+                  <div class="unit-strip" aria-hidden="true">
+                    <span class="unit-slot"></span><span class="unit-slot cost2"></span><span class="unit-slot"></span><span class="unit-slot"></span><span class="unit-slot"></span><span class="unit-slot cost3"></span><span class="unit-slot"></span><span class="unit-slot"></span>
+                  </div>
+                </div>
+                <div class="lp up">+12 LP</div>
+              </div>
+              <div class="match-row">
+                <div class="placement bot4">7</div>
+                <div class="match-mid">
+                  <div class="match-title">Forced 4-cost · hit + bad augments</div>
+                  <div class="match-meta">
+                    <span class="pill pill-silver">Clockwork 4</span>
+                    <span class="pill pill-bronze">Innovator 3</span>
+                  </div>
+                  <div class="unit-strip" aria-hidden="true">
+                    <span class="unit-slot"></span><span class="unit-slot"></span><span class="unit-slot cost2"></span><span class="unit-slot"></span><span class="unit-slot"></span><span class="unit-slot"></span><span class="unit-slot"></span><span class="unit-slot"></span>
+                  </div>
+                </div>
+                <div class="lp down">−28 LP</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="when-skeleton">
+            <div class="page-header">
+              <div class="sk sk-line short" style="margin-bottom:12px"></div>
+              <div class="sk sk-line med" style="height:22px"></div>
+              <div class="sk sk-line short" style="margin-top:16px;height:32px"></div>
+            </div>
+            <div class="stat-strip">
+              <div class="sk sk-stat"></div><div class="sk sk-stat"></div><div class="sk sk-stat"></div><div class="sk sk-stat"></div>
+            </div>
+            <div class="sk sk-line short" style="margin:24px 0 8px"></div>
+            <div class="sk sk-line" style="width:100%;height:1px;margin-bottom:16px;animation:none;background:var(--color-ally-border)"></div>
+            <div class="sk sk-row"></div><div class="sk sk-row"></div><div class="sk sk-row"></div>
+          </div>
+
+          <div class="when-empty">
+            <div class="page-header">
+              <div class="page-kicker">desktop · home</div>
+              <h1 class="page-title">Command overview</h1>
+            </div>
+            <div class="empty-block">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-ally-muted)" stroke-width="1.25" aria-hidden="true">
+                <path d="M9 14l2 2 4-4"/><rect x="3" y="5" width="18" height="14" rx="2"/>
+              </svg>
+              <p class="empty-title">No ladder snapshot yet</p>
+              <p class="empty-copy">Play a ranked game while Ally is running to populate queue + stats. Data stays local until history syncs.</p>
+              <button type="button" class="btn-ghost">Open match history</button>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- sidebar: 200px, padding 12px, stacks gap 12px —— -->
+      <aside class="sidebar" aria-label="Context sidebar">
+        <div class="side-stack side-when-populated" data-preview="populated">
+          <div class="side-card">
+            <h3>Summoner</h3>
+            <div class="summoner-name">MaskedOracles</div>
+            <div class="summoner-meta">NA1 · updated 02:14 ago</div>
+            <div class="rank-row">
+              <span style="color:var(--color-ally-text-dim)">Rank</span>
+              <span style="color:var(--color-placement-first)">Diamond II</span>
+            </div>
+            <div class="rank-row">
+              <span style="color:var(--color-ally-text-dim)">LP</span>
+              <span>68 LP</span>
+            </div>
+          </div>
+          <div class="side-card">
+            <h3>Services</h3>
+            <div class="status-pill">Riot shard online</div>
+            <div class="summoner-meta" style="margin-top:8px">REST · 240ms p95</div>
+          </div>
+          <div class="side-card">
+            <h3>Tip</h3>
+            <p class="tip-body">Tab into Ally between rounds to scan trait breakpoints you are one unit away from — faster than scrolling carousel tooltips.</p>
+          </div>
+        </div>
+
+        <div class="side-stack side-when-skeleton" data-preview="skeleton" style="display:none">
+          <div class="sk sk-stat" style="height:120px"></div>
+          <div class="sk sk-stat" style="height:72px"></div>
+          <div class="sk sk-stat" style="height:100px"></div>
+        </div>
+
+        <div class="side-stack side-when-empty" data-preview="empty" style="display:none">
+          <div class="side-card">
+            <h3>Summoner</h3>
+            <p class="tip-body">Link a summoner in Settings to pin rank + region here.</p>
+          </div>
+          <div class="side-card">
+            <h3>Services</h3>
+            <div class="status-pill" style="background:rgba(var(--color-placement-bot4-rgb),0.12);border-color:rgba(var(--color-placement-bot4-rgb),0.35);color:var(--color-placement-bot4)">Shard unknown</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="toast" role="status" aria-live="polite">
+      <div class="toast-title">Synced match history</div>
+      <div class="toast-body">12 new entries merged · duplicates skipped</div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var frame = document.getElementById('appFrame');
+      var sidePop = document.querySelector('.side-when-populated');
+      var sideSk = document.querySelector('.side-when-skeleton');
+      var sideEm = document.querySelector('.side-when-empty');
+
+      function sync() {
+        var v = document.querySelector('input[name="preview"]:checked');
+        var state = v ? v.value : 'populated';
+        frame.setAttribute('data-preview', state);
+        [sidePop, sideSk, sideEm].forEach(function (el) {
+          if (!el) return;
+          el.style.display = el.getAttribute('data-preview') === state ? 'flex' : 'none';
+        });
+      }
+
+      document.querySelectorAll('input[name="preview"]').forEach(function (r) {
+        r.addEventListener('change', sync);
+      });
+      sync();
+
+      // Tab demo: real keyboard-safe toggle (no page transitions)
+      document.querySelectorAll('.tab-row').forEach(function (row) {
+        row.addEventListener('click', function (e) {
+          var t = e.target;
+          if (t.getAttribute('role') !== 'tab') return;
+          row.querySelectorAll('[role="tab"]').forEach(function (tab) {
+            tab.setAttribute('aria-selected', tab === t ? 'true' : 'false');
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
