@@ -9,6 +9,7 @@ import {
   type ReactNode,
   type Ref,
 } from 'react'
+import { X } from 'lucide-react'
 import type { SearchSuggestion, SearchSuggestionKind } from '@/utils/searchSuggestions'
 import {
   filterSearchSuggestions,
@@ -153,7 +154,11 @@ export function SearchInputWithSuggestions({
         }}
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
-            setOpen(false)
+            if (open && suggestions.length > 0) {
+              setOpen(false)
+            } else if (value) {
+              onChange('')
+            }
           } else if (e.key === 'ArrowDown') {
             if (!showList) {
               setOpen(true)
@@ -174,7 +179,7 @@ export function SearchInputWithSuggestions({
           }
           inputProps.onKeyDown?.(e)
         }}
-        className={inputClassName}
+        className={`${inputClassName} ${value ? 'pr-9' : ''}`}
         style={inputStyle}
         role="combobox"
         aria-expanded={showList}
@@ -184,6 +189,19 @@ export function SearchInputWithSuggestions({
           highlightedIndex >= 0 ? `${componentId}-suggestion-${highlightedIndex}` : undefined
         }
       />
+      {value && (
+        <button
+          type="button"
+          onClick={() => {
+            onChange('')
+            setOpen(false)
+          }}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-ally-muted hover:text-ally-accent transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ally-accent rounded-sm"
+          aria-label="Clear search"
+        >
+          <X size={14} strokeWidth={2.5} />
+        </button>
+      )}
       {showList && (
         <div
           id={`${componentId}-suggestions-list`}
