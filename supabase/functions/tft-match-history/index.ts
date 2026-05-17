@@ -4,6 +4,7 @@ import {
   jsonResponse,
   errorResponse,
   validateMatchId,
+  validateRegion,
 } from "../_shared/riot.ts";
 
 interface Summoner {
@@ -78,7 +79,7 @@ Deno.serve(async (req: Request) => {
   try {
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
     const name = String(body.name ?? "").trim();
-    const region = String(body.region ?? "euw1").toLowerCase();
+    const region = validateRegion(String(body.region ?? "euw1"));
     const count = Math.min(Math.max(Number(body.count ?? 20), 1), 50);
 
     if (!name || name.length > 16) {

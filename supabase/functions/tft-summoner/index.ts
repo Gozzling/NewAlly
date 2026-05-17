@@ -4,6 +4,7 @@ import {
   jsonResponse,
   errorResponse,
   validateRiotId,
+  validateRegion,
 } from "../_shared/riot.ts";
 
 Deno.serve(async (req: Request) => {
@@ -22,7 +23,7 @@ Deno.serve(async (req: Request) => {
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
     let gameName = String(body.gameName ?? "").trim();
     let tagLine  = String(body.tagLine  ?? "").trim();
-    const region = String(body.region ?? "euw1").toLowerCase();
+    const region = validateRegion(String(body.region ?? "euw1"));
 
     // Support combined "GameName#TagLine" in 'name' field
     if (!gameName && body.name) {
