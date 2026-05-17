@@ -3,6 +3,7 @@ import {
   jsonResponse,
   errorResponse,
   validatePuuid,
+  validateRegion,
 } from "../_shared/riot.ts";
 
 // Platform: /lol/spectator/v5/active-games/by-summoner/{encryptedSummonerId} (Riot uses PUUID here)
@@ -31,11 +32,11 @@ Deno.serve(async (req: Request) => {
     if (req.method === "GET") {
       const u = new URL(req.url);
       puuid = String(u.searchParams.get("puuid") ?? "").trim();
-      region = String(u.searchParams.get("region") ?? "euw1").toLowerCase();
+      region = validateRegion(String(u.searchParams.get("region") ?? "euw1"));
     } else {
       const body = await req.json().catch(() => ({} as Record<string, unknown>));
       puuid = String(body.puuid ?? "").trim();
-      region = String(body.region ?? "euw1").toLowerCase();
+      region = validateRegion(String(body.region ?? "euw1"));
     }
 
     validatePuuid(puuid);

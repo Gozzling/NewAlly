@@ -3,6 +3,7 @@ import {
   jsonResponse,
   errorResponse,
   validatePuuid,
+  validateRegion,
 } from "../_shared/riot.ts";
 
 // GET /tft/match/v1/matches/by-puuid/{puuid}/ids
@@ -21,7 +22,7 @@ Deno.serve(async (req: Request) => {
   try {
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
     const puuid = String(body.puuid ?? "").trim();
-    const region = String(body.region ?? "euw1").toLowerCase();
+    const region = validateRegion(String(body.region ?? "euw1"));
     const count = Math.min(Math.max(Number(body.count ?? 20), 1), 50);
 
     validatePuuid(puuid);

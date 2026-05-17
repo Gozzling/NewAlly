@@ -160,19 +160,13 @@ export async function riotPlatformFetchOrNull<T>(
   if (res.status === 429) throw new RiotError("Rate limited by Riot", "RATE_LIMIT", 429);
   if (res.status === 403) {
     const hint = (await res.text().catch(() => "")).slice(0, 280);
-    throw new RiotError(
-      hint ? `Forbidden (403): ${hint}` : "Forbidden (403): invalid key or product not allowed (e.g. spectator)",
-      "FORBIDDEN",
-      403,
-    );
+    if (hint) console.error(`[Riot 403 Hint] ${hint}`);
+    throw new RiotError("Forbidden (403): invalid key or product not allowed", "FORBIDDEN", 403);
   }
   if (!res.ok) {
     const hint = (await res.text().catch(() => "")).slice(0, 280);
-    throw new RiotError(
-      hint ? `Riot API error ${res.status}: ${hint}` : `Riot API error ${res.status}`,
-      "API_ERROR",
-      res.status,
-    );
+    if (hint) console.error(`[Riot ${res.status} Hint] ${hint}`);
+    throw new RiotError(`Riot API error ${res.status}`, "API_ERROR", res.status);
   }
 
   const text = await res.text();
@@ -220,11 +214,18 @@ export function jsonResponse(data: unknown, status = 200): Response {
 
 export function errorResponse(err: unknown): Response {
   if (err instanceof RiotError) {
+    const isInternal = err.status >= 500;
+    if (isInternal) {
+      console.error("[Riot Internal Error]", err);
+    }
     return jsonResponse(
-      { error: err.message, code: err.code },
-      err.status >= 500 ? 502 : err.status,
+      {
+        error: isInternal ? "Internal Riot API Error" : err.message,
+        code: err.code,
+      },
+      isInternal ? 502 : err.status,
     );
   }
-  const message = err instanceof Error ? err.message : "Unknown error";
-  return jsonResponse({ error: message, code: "INTERNAL_ERROR" }, 500);
+  console.error("[Unexpected Internal Error]", err);
+  return jsonResponse({ error: "An unexpected error occurred", code: "INTERNAL_ERROR" }, 500);
 }

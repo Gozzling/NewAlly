@@ -3,6 +3,7 @@ import {
   jsonResponse,
   errorResponse,
   validateMatchId,
+  validateRegion,
 } from "../_shared/riot.ts";
 
 // GET /tft/match/v1/matches/{matchId}
@@ -21,7 +22,7 @@ Deno.serve(async (req: Request) => {
   try {
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
     const matchId = String(body.matchId ?? "").trim();
-    const region = String(body.region ?? "euw1").toLowerCase();
+    const region = validateRegion(String(body.region ?? "euw1"));
 
     validateMatchId(matchId);
 
