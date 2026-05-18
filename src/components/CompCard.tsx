@@ -30,10 +30,10 @@ export const CompCard = memo(function CompCard({ comp, isPinned, onPinToggle, on
   const tierCls = TIER_COLORS[tier] ?? TIER_COLORS.C
 
   return (
-    <div className="w-full bg-ally-card border border-ally-border rounded-xl overflow-hidden shadow-card hover:shadow-cardHover transition-all duration-300">
+    <div className="w-full bg-ally-card border border-ally-border rounded-lg p-4 shadow-card hover:shadow-cardHover transition-all duration-300">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-4 p-4 text-left hover:bg-ally-hover transition-colors"
+        className="w-full flex items-center gap-4 p-0 text-left hover:bg-ally-hover transition-colors"
       >
         <span className={`px-2 py-0.5 rounded text-caption font-bold border font-display uppercase tracking-wider ${tierCls}`}>
           {tier} Tier
