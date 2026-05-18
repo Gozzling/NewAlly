@@ -5,6 +5,7 @@ import {
   errorResponse,
   validateMatchId,
   validateRegion,
+  validateSummonerName,
 } from "../_shared/riot.ts";
 
 interface Summoner {
@@ -81,11 +82,12 @@ Deno.serve(async (req: Request) => {
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
     const name = String(body.name ?? "").trim();
     const region = validateRegion(String(body.region ?? "euw1"));
-    const count = Math.min(Math.max(Number(body.count ?? 20), 1), 50);
 
-    if (!name || name.length > 16) {
-      return jsonResponse({ error: "Invalid 'name'", code: "BAD_REQUEST" }, 400);
-    }
+    // Validate count is a safe integer within range
+    const rawCount = parseInt(String(body.count ?? "20"), 10);
+    const count = isNaN(rawCount) ? 20 : Math.min(Math.max(rawCount, 1), 50);
+
+    validateSummonerName(name);
 
     // 1. Resolve summoner
     const summoner = await riotPlatformFetch<Summoner>(

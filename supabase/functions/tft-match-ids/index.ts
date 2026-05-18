@@ -23,7 +23,10 @@ Deno.serve(async (req: Request) => {
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
     const puuid = String(body.puuid ?? "").trim();
     const region = validateRegion(String(body.region ?? "euw1"));
-    const count = Math.min(Math.max(Number(body.count ?? 20), 1), 50);
+
+    // Validate count is a safe integer within range
+    const rawCount = parseInt(String(body.count ?? "20"), 10);
+    const count = isNaN(rawCount) ? 20 : Math.min(Math.max(rawCount, 1), 50);
 
     validatePuuid(puuid);
 
