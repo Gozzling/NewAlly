@@ -199,6 +199,8 @@ function QuickTips() {
   return (
     <div
       className={`text-caption text-ally-muted leading-tight min-h-[42px] flex items-center transition-opacity duration-300 ${fadeState === 'in' ? 'opacity-100' : 'opacity-0'}`}
+      aria-live="polite"
+      role="status"
     >
       {TIPS[currentTip]}
     </div>
@@ -1141,13 +1143,15 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
                   setSelectedTraitId(null)
                   setSelectedAugmentId(null)
                 }}
+                aria-label={tab.label}
+                aria-current={activePage === tab.id ? 'page' : undefined}
                 className={`ally-transition-filter w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ease-out focus-visible:ring-2 focus-visible:ring-ally-accent hover:shadow-lg ${
                   activePage === tab.id
                     ? 'bg-[#1a1a1a] text-ally-accent'
                     : 'text-[#555] hover:bg-[#1a1a1a] hover:text-white hover:scale-105'
                 }`}
               >
-                {tab.icon}
+                <span aria-hidden="true">{tab.icon}</span>
               </button>
               <div className="absolute left-12 top-1/2 z-50 -translate-y-1/2 rounded-lg bg-[#1a1a1a] px-4 py-2 text-[12px] text-white whitespace-nowrap opacity-0 transition-opacity duration-200 pointer-events-none group-hover:opacity-100" style={{ boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.05), inset -1px -1px 2px rgba(0,0,0,0.4)' }}>
                 {tab.label}
