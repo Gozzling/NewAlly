@@ -262,20 +262,7 @@ function InGamePage() {
 
   return (
     <div style={{ padding: '16px' }}>
-      {/* Demo Banner */}
-      {showingDemo && (
-        <div style={{
-          background: '#1a1a0a',
-          border: '1px solid #f0b42930',
-          borderRadius: '6px',
-          padding: '8px 12px',
-          fontSize: '11px',
-          color: '#f0b429',
-          marginBottom: '12px',
-        }}>
-          ⚡ Live game detection requires the Overwolf desktop app. Showing demo data.
-        </div>
-      )}
+
 
       {/* Game Metadata */}
       {gameData && !showingDemo && (
