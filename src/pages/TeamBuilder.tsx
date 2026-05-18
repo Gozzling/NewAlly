@@ -8,28 +8,24 @@ import {
   ShoppingCart,
   Sparkles,
 } from 'lucide-react'
-import { UnitPortrait } from '@/components/UnitPortrait'
-import { unitPortraitPrimaryUrl } from '@/utils/unitDisplay'
+import { UNITS } from '@/data/units'
+import { unitIconUrl } from '@/utils/unitDisplay'
+import { SYNERGIES } from '@/data/synergies'
 import {
   buildGameStateFromBoard,
   recommendationsFromGameState,
   type AllyRecommendation,
 } from '@/engine/recommendations'
-import { useCoachMatchHistory } from '@/hooks/useCoachMatchHistory'
-import { STATIC_META_VERSION } from '@/meta/tftCurrentSet'
 import { useAppStore } from '@/store/useAppStore'
-import { BUNDLED_SET_DATA } from '@/services/cdnDataService'
-import { displayThresholdEffect } from '@/utils/traitThresholdDisplay'
 import type { MetaComp } from '@/types/tft'
-import { AllySpinner } from '@/components/AllyLoading'
 
 /* ─── Design tokens ─── */
 const C = {
   bg:         '#0d0d0d',
   surface:    '#1f1f1f',
   border:     '#1a1a1a',
-  accent:     'var(--color-ally-accent)',
-  accentDim:  'color-mix(in srgb, var(--color-ally-accent) 14%, transparent)',
+  accent:     '#00d4ff',
+  accentDim:  'rgba(0,212,255,0.12)',
   danger:     '#ef4444',
   dangerDim:  'rgba(239,68,68,0.12)',
   text:       '#ffffff',
@@ -78,23 +74,23 @@ const btnBase = {
 }
 
 /* ─── Unit pill ─── */
-function UnitPill({ name, traits, cost, placed, onClick, iconUrl }: {
-  name: string; traits: string[]; cost: number; placed: boolean; onClick: () => void; iconUrl?: string;
+function UnitPill({ name, traits, cost, placed, onClick }: {
+  name: string; traits: string[]; cost: number; placed: boolean; onClick: () => void;
 }) {
   return (
     <button
       onClick={onClick}
       style={{
         ...btnBase,
-        display: 'flex', alignItems: 'center', gap: '8px',
+        display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
         padding: '5px 9px',
         border: `1px solid ${placed ? C.accent : C.border}`,
         backgroundColor: placed ? `${C.accent}1a` : 'transparent',
         boxShadow: placed
-          ? `0 0 10px color-mix(in srgb, ${C.accent} 45%, transparent), 0 0 22px color-mix(in srgb, ${C.accent} 22%, transparent)`
+          ? `0 0 10px rgba(0,212,255,0.5), 0 0 22px rgba(0,212,255,0.18)`
           : 'none',
         color: placed ? C.accent : C.muted,
-        minWidth: 100,
+        minWidth: 72, maxWidth: 84,
         fontFamily: 'Rajdhani, sans-serif',
         fontSize: 10,
         fontWeight: 700,
@@ -103,11 +99,8 @@ function UnitPill({ name, traits, cost, placed, onClick, iconUrl }: {
         transition: 'all 0.12s ease',
       }}
     >
-      <UnitPortrait name={name} cdnUrl={iconUrl} size={24} radius={4} />
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-        <span style={{ color: placed ? C.accent : C.muted, fontWeight: 700, fontSize: 10, lineHeight: 1.3 }}>{name}</span>
-        <span style={{ color: C.muted, fontSize: 8, marginTop: 2, lineHeight: 1.2, opacity: 0.7 }}>{traits.slice(0, 2).join(' · ')}</span>
-      </div>
+      <span style={{ color: placed ? C.accent : C.muted, fontWeight: 700, fontSize: 10, lineHeight: 1.3 }}>{name}</span>
+      <span style={{ color: C.muted, fontSize: 8, marginTop: 2, lineHeight: 1.2, opacity: 0.7 }}>{traits.slice(0, 2).join(' · ')}</span>
     </button>
   )
 }
@@ -119,26 +112,6 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
   const savedComps      = useAppStore(s => s.savedComps)
   const addSavedComp    = useAppStore(s => s.addSavedComp)
   const removeSavedComp = useAppStore(s => s.removeSavedComp)
-  const showToast       = useAppStore(s => s.showToast)
-  const personalMatches = useAppStore((s) => s.personalMatches)
-  const selectedPlayer  = useAppStore((s) => s.selectedPlayer)
-  const gameData = useAppStore(s => s.gameData)
-  const roster = gameData.champions.length > 0 ? gameData.champions : BUNDLED_SET_DATA.champions
-  const traitRoster = gameData.traits.length > 0 ? gameData.traits : BUNDLED_SET_DATA.traits
-
-  const { matchHistory, isLoading: coachHistoryLoading } = useCoachMatchHistory()
-
-  const displayGameName = useMemo(() => {
-    const fromPlayer = selectedPlayer?.name?.trim()
-    const fromPersonal = personalMatches.find((m) => m.summonerName)?.summonerName?.trim()
-    let fromLs = ''
-    try {
-      fromLs = localStorage.getItem('tft-ally::summoner-name')?.trim() ?? ''
-    } catch {
-      /* ignore */
-    }
-    return fromPlayer || fromPersonal || fromLs || 'you'
-  }, [selectedPlayer?.name, personalMatches])
 
   const [hist, setHist] = useState<HistoryEntry[]>([
     { pBoard: Array(BOARD_LEN).fill(null), eBoard: Array(BOARD_LEN).fill(null) }
@@ -155,10 +128,10 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
   const [sid, setSid]               = useState('')
   const [augs, setAugs]             = useState<string[]>([])
   const [comps, setComps]           = useState<string[]>([])
-  const [unitDetail, setUnitDetail] = useState<{name: string, iconUrl?: string} | null>(null)
+  const [shareToast, setShareToast] = useState(false)
+  const [unitDetail, setUnitDetail] = useState<string | null>(null)
   const [selHex, setSelHex]         = useState<string | null>(null)
   const [unitPanelBoard, setUnitPanelBoard] = useState<'player' | 'enemy'>('player')
-  const [unitFindQuery, setUnitFindQuery] = useState('')
 
   // Double-click detection
   const lastClickRef = useRef<{ time: number; idx: number | null }>({ time: 0, idx: null })
@@ -294,7 +267,6 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
   const handleHexClick = (hexId: string) => {
     const idx = parseInt(hexId, 10)
     const unit = pBoard[idx]
-    const uData = unit ? roster.find(x => x.name === unit) : null
     if (!unit) return // empty hex - do nothing (units added via + Units panel)
 
     const now = Date.now()
@@ -306,7 +278,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
     if (lastClick.idx !== null && now - lastClick.time < 300 && lastClick.idx === idx) {
       console.log('[DOUBLE CLICK DETECTED]', { unit })
       // Double-click detected - show unit detail
-      setUnitDetail({ name: unit, iconUrl: uData?.iconUrl })
+      setUnitDetail(unit)
       setSelHex(null)
       lastClickRef.current = { time: 0, idx: null }
       return
@@ -337,26 +309,19 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
   const allUnits = useMemo(() => [...pUnits, ...eUnits], [pUnits, eUnits])
 
   const unitMap = useMemo(() => {
-    const m = new Map<string, typeof roster[number]>()
-    allUnits.forEach(n => { const u = roster.find(x => x.name === n); if (u) m.set(n, u) })
+    const m = new Map<string, typeof UNITS[number]>()
+    allUnits.forEach(n => { const u = UNITS.find(x => x.name === n); if (u) m.set(n, u) })
     return m
-  }, [allUnits, roster])
+  }, [allUnits])
 
   const traits = useMemo(() => {
     const c: Record<string, number> = {}
     allUnits.forEach(n => unitMap.get(n)?.traits.forEach(t => { c[t] = (c[t] || 0) + 1 }))
     return Object.entries(c).map(([name, count]) => {
-      const syn = traitRoster.find(s => s.name === name)
+      const syn = SYNERGIES.find(s => s.name === name)
       const active = !!syn?.thresholds.filter(t => count >= t.count).pop()
       const next   = syn?.thresholds.find(t => count < t.count)
-      return {
-        name,
-        count,
-        active,
-        next,
-        traitDescription: syn?.description ?? "",
-        effect: syn && count > 0 ? syn.thresholds.filter((t) => count >= t.count).pop()?.effect ?? "" : "",
-      }
+      return { name, count, active, next, effect: syn && count > 0 ? syn.thresholds.filter(t => count >= t.count).pop()?.effect : '' }
     }).sort((a, b) => (b.active ? 1 : 0) - (a.active ? 1 : 0))
   }, [allUnits, unitMap])
 
@@ -368,15 +333,12 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
 
   const boardSig = pBoard.map((c) => c ?? '').join('|')
   const coachRecs = useMemo(() => {
-    if (coachHistoryLoading || matchHistory === null) return null
     return recommendationsFromGameState(
-      buildGameStateFromBoard(pBoard, roster, [], {}), // Team Builder specific meta comps/recipes can be added here if needed
-      matchHistory,
-      STATIC_META_VERSION,
-      Date.now(),
-      { champions: roster, traits: traitRoster }
+      buildGameStateFromBoard(pBoard, UNITS),
+      [],
+      'set17',
     ).slice(0, 5)
-  }, [boardSig, pBoard, matchHistory, coachHistoryLoading, roster, traitRoster])
+  }, [boardSig, pBoard])
 
   const coachCategoryIcon = (cat: AllyRecommendation['category']) => {
     const iconProps = { className: 'shrink-0', size: 16, color: C.accent, strokeWidth: 2 }
@@ -455,21 +417,10 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
     else pushHistory({ pBoard: [...pBoard], eBoard: nb })
   }
 
-  const sortedSavedComps = useMemo(
-    () => [...savedComps].sort((a, b) => b.timestamp - a.timestamp),
-    [savedComps],
-  )
-
   const saveComp = () => {
-    const units = Object.values(pBoard).filter(Boolean) as string[]
-    if (units.length === 0) {
-      window.alert('Place at least one unit on your board before saving.')
-      return
-    }
-    const n = window.prompt('Name this comp (e.g. Sniper Reroll, Arbiter Flex):', 'My comp')
-    if (!n?.trim()) return
-    addSavedComp({ id: Date.now().toString(), name: n.trim(), units, timestamp: Date.now() })
-    showToast(`Saved comp "${n.trim()}"`, 'success')
+    const n = window.prompt('Composition name:')
+    if (!n) return
+    addSavedComp({ id: Date.now().toString(), name: n, units: Object.values(pBoard).filter(Boolean) as string[], timestamp: Date.now() })
   }
   const loadComp = () => {
     if (!sid) return
@@ -481,11 +432,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
   }
   const deleteComp = () => {
     if (!sid) return
-    if (window.confirm(`Delete "${savedComps.find(x => x.id === sid)?.name}"?`)) {
-      removeSavedComp(sid)
-      setSid('')
-      showToast('Comp removed from saved list', 'info')
-    }
+    if (window.confirm(`Delete "${savedComps.find(x => x.id === sid)?.name}"?`)) { removeSavedComp(sid); setSid('') }
   }
   const shareComp = () => {
     const units = Object.values(pBoard).filter(Boolean) as string[]
@@ -494,18 +441,18 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
     const url = `${window.location.origin}?comp=${data}`
     try {
       navigator.clipboard.writeText(url)
-      showToast('Comp link copied to clipboard', 'success')
     } catch {
       window.prompt('Copy this link:', url)
-      showToast('Copy the link from the dialog', 'info')
     }
+    setShareToast(true)
+    setTimeout(() => setShareToast(false), 2000)
   }
 
   /* ─── Hex glyph ─── */
   const HexGlyph = ({
     pos, unit, uData, boardName,
   }: {
-    pos: HexPos; unit: string | null; uData: typeof roster[number] | null
+    pos: HexPos; unit: string | null; uData: typeof UNITS[number] | null
     boardName: 'player' | 'enemy'
   }) => {
     const isSrc  = dragItem?.board === boardName && dragItem?.idx === HEX_POSITIONS.indexOf(pos)
@@ -545,7 +492,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
               const iconY = pos.cy - iconSize / 2
               return (
                 <image
-                  href={unitPortraitPrimaryUrl(unit)}
+                  href={unitIconUrl(unit)}
                   x={iconX}
                   y={iconY}
                   width={iconSize}
@@ -569,7 +516,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
 
     return (
       <div style={{
-        position: 'relative' as const,
+        position: 'relative',
         background: bgCol,
         borderRadius: 8,
         border: `1px solid ${isEnemy ? '#3a1515' : C.border}`,
@@ -607,7 +554,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
 
           {HEX_POSITIONS.map((pos, idx) => {
             const unit  = boardArr[idx]
-            const uData_iter = unit ? roster.find(x => x.name === unit) ?? null : null
+            const uData = unit ? UNITS.find(x => x.name === unit) ?? null : null
             const isSrc  = dragItem?.board === bName && dragItem?.idx === idx
 
             return (
@@ -619,7 +566,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
                   opacity: isSrc ? 0.45 : 1,
                 }}
               >
-                <HexGlyph pos={pos} unit={unit} uData={uData_iter} boardName={bName} />
+                <HexGlyph pos={pos} unit={unit} uData={uData} boardName={bName} />
                 {/* Transparent click overlay - captures all clicks */}
                 <polygon
                   points={hexPts(pos.cx, pos.cy)}
@@ -728,7 +675,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
           <select value={sid} onChange={e => setSid(e.target.value)}
             style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, color: C.text, fontSize: 10, padding: '4px 8px', cursor: 'pointer', fontFamily: 'Rajdhani, sans-serif' }}>
             <option value="" style={{ background: '#1a1a1a' }}>Load comp…</option>
-            {sortedSavedComps.map(c => (<option key={c.id} value={c.id} style={{ background: '#1a1a1a' }}>{c.name}</option>))}
+            {savedComps.map(c => (<option key={c.id} value={c.id} style={{ background: '#1a1a1a' }}>{c.name}</option>))}
           </select>
           <button disabled={!sid} onClick={loadComp}
             style={{ ...btnBase, background: 'transparent', border: `1px solid ${C.border}`, color: !sid ? C.muted : C.accent, padding: '4px 12px', fontSize: 10, fontWeight: 600, opacity: !sid ? 0.35 : 1 }}>
@@ -743,7 +690,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
             Delete
           </button>
           <button onClick={shareComp}
-            style={{ background:'transparent', border:'none', color: C.accent, fontSize:'11px', cursor:'pointer', padding:'4px 8px' }}>
+            style={{ background:'transparent', border:'none', color:'#35c3e7', fontSize:'11px', cursor:'pointer', padding:'4px 8px' }}>
             Share
           </button>
         </div>
@@ -775,46 +722,23 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
             </div>
           )}
           <div style={{ padding: '8px 12px 12px', display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 220, overflowY: 'auto' }}>
-            <input
-              type="search"
-              value={unitFindQuery}
-              onChange={(e) => setUnitFindQuery(e.target.value)}
-              placeholder="Find unit…"
-              data-no-global-search-focus="true"
-              className="w-full rounded-md border border-ally-border bg-ally-bg px-2.5 py-1.5 font-sans text-xs text-ally-text outline-none transition-colors duration-200 placeholder:text-ally-muted focus-visible:ring-2 focus-visible:ring-ally-accent"
-            />
-            {(() => {
-              const q = unitFindQuery.trim().toLowerCase()
-              const matchUnit = (u: (typeof roster)[number]) =>
-                !q ||
-                u.name.toLowerCase().includes(q) ||
-                u.traits.some((t) => t.toLowerCase().includes(q)) ||
-                u.id.toLowerCase().includes(q)
-              return [5, 4, 3, 2, 1].map((cost) => {
-                const costUnits = roster.filter((u) => u.cost === cost).filter(matchUnit)
-                if (costUnits.length === 0) return null
-                return (
-                  <div key={cost}>
-                    <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.cost[cost], marginBottom: 5 }}>
-                      ★ Cost {cost}
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                      {costUnits.map((u) => (
-                        <UnitPill
-                          key={u.id}
-                          name={u.name}
-                          traits={u.traits}
-                          cost={u.cost}
-                          placed={targetBoard.includes(u.name)}
-                          onClick={() => handleUnitClick(u.name)}
-                          iconUrl={u.iconUrl}
-                        />
-                      ))}
-                    </div>
+            {[5, 4, 3, 2, 1].map(cost => {
+              const costUnits = UNITS.filter(u => u.cost === cost)
+              if (costUnits.length === 0) return null
+              return (
+                <div key={cost}>
+                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.cost[cost], marginBottom: 5 }}>
+                    ★ Cost {cost}
                   </div>
-                )
-              })
-            })()}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {costUnits.map(u => (
+                      <UnitPill key={u.id} name={u.name} traits={u.traits} cost={u.cost}
+                        placed={targetBoard.includes(u.name)} onClick={() => handleUnitClick(u.name)} />
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
@@ -824,23 +748,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
 
         {/* Left: player board + enemy board + stats */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <div style={{ position: 'relative' }}>
-            {renderBoard(pBoard, false)}
-            {!pBoard.some(Boolean) && (
-              <div
-                className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg"
-                style={{
-                  margin: 1,
-                  background: 'color-mix(in srgb, var(--color-ally-bg) 65%, transparent)',
-                  border: `1px dashed ${C.border}`,
-                }}
-              >
-                <p className="text-center font-display text-ally-muted px-6 text-xs leading-relaxed max-w-[220px]">
-                  Empty board — use <span className="text-ally-accent font-semibold">+ Units</span> or drag from the list to build a comp. Save multiple named boards from the toolbar (up to 32).
-                </p>
-              </div>
-            )}
-          </div>
+          {renderBoard(pBoard, false)}
 
           {/* Stats row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 2px', flexWrap: 'wrap' }}>
@@ -851,7 +759,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
             {dragHint && (
               <div style={{
                 padding: '3px 10px', borderRadius: 5,
-                background: C.accentDim, border: `1px solid color-mix(in srgb, ${C.accent} 35%, transparent)`,
+                background: `${C.accent}18`, border: `1px solid ${C.accent}50`,
                 fontSize: 9.5, color: C.accent, fontWeight: 600,
                 animation: 'hintSlide 0.15s ease-out',
                 fontFamily: 'Rajdhani, sans-serif',
@@ -863,21 +771,6 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
 
           {/* Coach recommendations (static meta + board; no live shop in builder) */}
           <div style={{ marginTop: 4 }}>
-            {matchHistory != null && matchHistory.recentPlacements.length > 0 && (
-              <div
-                style={{
-                  fontSize: '9px',
-                  color: C.accent,
-                  marginBottom: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
-                <Sparkles size={10} color="var(--color-ally-accent)" />
-                Personalized for {displayGameName} ({matchHistory.recentPlacements.length} games)
-              </div>
-            )}
             <div
               style={{
                 display: 'flex',
@@ -886,7 +779,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
                 marginBottom: 10,
               }}
             >
-              <Sparkles size={12} color="var(--color-ally-accent)" strokeWidth={2} className="shrink-0" />
+              <Sparkles size={12} color="#35c3e7" strokeWidth={2} className="shrink-0" />
               <span
                 style={{
                   fontSize: 11,
@@ -910,16 +803,11 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
               >
                 Add units to get coaching suggestions
               </div>
-            ) : coachHistoryLoading || matchHistory === null ? (
-              <div className="flex items-center justify-center gap-2 py-3 font-sans text-xs text-ally-muted">
-                <AllySpinner />
-                Loading personalized tips…
-              </div>
-            ) : coachRecs !== null && coachRecs.length === 0 ? (
+            ) : coachRecs.length === 0 ? (
               <div style={{ fontSize: 11, color: '#333', textAlign: 'center', padding: '12px 0' }}>
                 No suggestions right now.
               </div>
-            ) : coachRecs !== null ? (
+            ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                 {coachRecs.map((rec, ri) => {
                   const uCol = coachUrgencyAccent(rec.urgency)
@@ -1021,7 +909,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
                   )
                 })}
               </div>
-            ) : null}
+            )}
           </div>
 
           {/* Enemy board */}
@@ -1071,11 +959,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
                       }}>
                         <span>{t.name}</span>
                         <span style={{ opacity: 0.5 }}>{t.count}</span>
-                        {t.active && t.effect && (
-                          <span style={{ opacity: 0.6, fontWeight: 400, fontSize: 9 }}>
-                            {displayThresholdEffect(t.traitDescription, t.effect)}
-                          </span>
-                        )}
+                        {t.active && t.effect && <span style={{ opacity: 0.6, fontWeight: 400, fontSize: 9 }}>{t.effect}</span>}
                         {!t.active && t.next && <span style={{ opacity: 0.3, fontWeight: 400, fontSize: 9 }}>→ {t.next.count}</span>}
                       </div>
                     ))}
@@ -1170,21 +1054,28 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
         }
       `}</style>
 
+      {shareToast && (
+        <div style={{position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)', background:'#1a1a2e', border:'1px solid #35c3e740', color:'#35c3e7', padding:'8px 20px', borderRadius:'8px', fontSize:'12px', zIndex:1000, animation:'fadeIn 0.2s ease'}}>
+          Link copied to clipboard!
+        </div>
+      )}
+
       {unitDetail && (
-        <div className="ally-dropdown-surface" style={{
+        <div style={{
           position:'absolute', top:'50px', left:'50%',
           transform:'translateX(-50%)',
-          background:'#0f0f1e', border:'1px solid color-mix(in srgb, var(--color-ally-accent) 25%, transparent)',
+          background:'#0f0f1e', border:'1px solid #35c3e740',
           borderRadius:'10px', padding:'12px 16px', zIndex:100,
           display:'flex', alignItems:'center', gap:'12px',
           minWidth:'220px', boxShadow:'0 4px 24px #00000080'
         }}>
-          <UnitPortrait name={unitDetail.name} cdnUrl={unitDetail.iconUrl} size={44} radius={8} />
+          <img src={unitIconUrl(unitDetail)}
+            style={{width:'44px',height:'44px',borderRadius:'8px',objectFit:'cover'}} />
           <div style={{flex:1}}>
-            <div style={{color:'white',fontWeight:600,fontSize:'13px'}}>{unitDetail.name}</div>
+            <div style={{color:'white',fontWeight:600,fontSize:'13px'}}>{unitDetail}</div>
             <div style={{color:'#444',fontSize:'10px',marginTop:'2px'}}>Double-click to view · Single-click to swap</div>
           </div>
-          <button onClick={() => { onNavigate?.('units', unitDetail.name); setUnitDetail(null) }}
+          <button onClick={() => { onNavigate?.('units', unitDetail); setUnitDetail(null) }}
             style={{background:'#35c3e715',border:'1px solid #35c3e740',color:'#35c3e7',fontSize:'11px',padding:'5px 12px',borderRadius:'6px',cursor:'pointer'}}>
             View →
           </button>
