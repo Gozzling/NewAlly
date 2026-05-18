@@ -77,6 +77,7 @@ export interface TFTStaticItem extends TFTStaticIconFields {
   apiName: string
   name: string
   description: string
+  effects?: Record<string, number | undefined>
   composition: string[]
   from: string[] | null
   tags: string[]

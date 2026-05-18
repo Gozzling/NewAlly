@@ -2,9 +2,12 @@
   {
     "apiName": "TFT_Item_BFSword",
     "name": "B.F. Sword",
-    "description": "+ Attack Damage",
+    "description": "%i:scaleAD% +@AD*100@% Attack Damage",
     "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_BFSword.TFT_Set13.tex",
     "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_bfsword.tft_set13.tex",
+    "effects": {
+      "AD": 0.10000000149011612
+    },
     "composition": [],
     "from": null,
     "tags": [
@@ -16,9 +19,12 @@
   {
     "apiName": "TFT_Item_ChainVest",
     "name": "Chain Vest",
-    "description": "+ Armor",
+    "description": "%i:scaleArmor% +@Armor@ Armor",
     "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_ChainVest.TFT_Set13.tex",
     "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_chainvest.tft_set13.tex",
+    "effects": {
+      "Armor": 20
+    },
     "composition": [],
     "from": null,
     "tags": [
@@ -30,9 +36,10 @@
   {
     "apiName": "TFT_Item_FryingPan",
     "name": "Frying Pan",
-    "description": "...why else would it be here?",
+    "description": "<tftitemrules>...why else would it be here?</tftitemrules>",
     "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_FryingPan.TFT_Set13.tex",
     "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_fryingpan.tft_set13.tex",
+    "effects": {},
     "composition": [],
     "from": null,
     "tags": [
@@ -44,9 +51,12 @@
   {
     "apiName": "TFT_Item_GiantsBelt",
     "name": "Giant's Belt",
-    "description": "+ Health",
+    "description": "%i:scaleHealth% +@Health@ Health",
     "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_GiantsBelt.TFT_Set13.tex",
     "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_giantsbelt.tft_set13.tex",
+    "effects": {
+      "Health": 150
+    },
     "composition": [],
     "from": null,
     "tags": [
@@ -58,9 +68,12 @@
   {
     "apiName": "TFT_Item_NeedlesslyLargeRod",
     "name": "Needlessly Large Rod",
-    "description": "+ Ability Power",
+    "description": "%i:scaleAP% +@AP@ Ability Power",
     "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_NeedlesslyLargeRod.TFT_Set13.tex",
     "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_needlesslylargerod.tft_set13.tex",
+    "effects": {
+      "AP": 10
+    },
     "composition": [],
     "from": null,
     "tags": [
@@ -72,9 +85,12 @@
   {
     "apiName": "TFT_Item_NegatronCloak",
     "name": "Negatron Cloak",
-    "description": "+ Magic Resist",
+    "description": "%i:scaleMR% +@MagicResist@ Magic Resist",
     "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_NegatronCloak.TFT_Set13.tex",
     "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_negatroncloak.tft_set13.tex",
+    "effects": {
+      "MagicResist": 20
+    },
     "composition": [],
     "from": null,
     "tags": [
@@ -86,9 +102,12 @@
   {
     "apiName": "TFT_Item_RecurveBow",
     "name": "Recurve Bow",
-    "description": "+ Attack Speed",
+    "description": "%i:scaleAS% +@AS@% Attack Speed",
     "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_RecurveBow.TFT_Set13.tex",
     "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_recurvebow.tft_set13.tex",
+    "effects": {
+      "AS": 10
+    },
     "composition": [],
     "from": null,
     "tags": [
@@ -100,9 +119,12 @@
   {
     "apiName": "TFT_Item_SparringGloves",
     "name": "Sparring Gloves",
-    "description": "+ Critical Strike Chance",
+    "description": "+@CritChance@ Critical Strike Chance",
     "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_SparringGloves.TFT_Set13.tex",
     "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_sparringgloves.tft_set13.tex",
+    "effects": {
+      "CritChance": 20
+    },
     "composition": [],
     "from": null,
     "tags": [
@@ -114,9 +136,12 @@
   {
     "apiName": "TFT_Item_Spatula",
     "name": "Spatula",
-    "description": "It must do something...",
+    "description": "<tftitemrules>It must do something...</tftitemrules>",
     "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Spatula.TFT_Set13.tex",
     "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_spatula.tft_set13.tex",
+    "effects": {
+      "{fe9818ef}": 5
+    },
     "composition": [],
     "from": null,
     "tags": [
@@ -128,9 +153,12 @@
   {
     "apiName": "TFT_Item_TearOfTheGoddess",
     "name": "Tear of the Goddess",
-    "description": "+ Mana Regen",
+    "description": "%i:TFTManaRegen% +@ManaRegen@ Mana Regen",
     "iconPath": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_TearOfTheGoddess.TFT_Set13.tex",
     "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/items/hexcore/tft_item_tearofthegoddess.tft_set13.tex",
+    "effects": {
+      "ManaRegen": 1
+    },
     "composition": [],
     "from": null,
     "tags": [

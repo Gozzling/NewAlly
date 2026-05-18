@@ -13,6 +13,19 @@
   --color-ally-border-bright: #35c3e7;
   --color-ally-hover:        #252525;
 
+  /* Surface depth (shell spec) */
+  --color-ally-surface0:     var(--color-ally-bg);
+  --color-ally-surface1:     var(--color-ally-card);
+  --color-ally-surface2:     #242424;
+
+  /* Placement semantics (distinct from accent) */
+  --color-placement-first:   #d4a520;
+  --color-placement-first-rgb: 212, 165, 32;
+  --color-placement-top4:    #10b981;
+  --color-placement-top4-rgb: 16, 185, 129;
+  --color-placement-bot4:    #dc2626;
+  --color-placement-bot4-rgb: 220, 38, 38;
+
   --font-sans:   'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Rajdhani', ui-sans-serif, system-ui, sans-serif;
   --font-size-base: 14px;

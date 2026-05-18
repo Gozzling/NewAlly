@@ -22,7 +22,7 @@ const meta = metaJson as TFTStaticMeta
 const units = unitsJson as TFTStaticUnit[]
 const traits = traitsJson as TFTStaticTrait[]
 const augments = augmentsJson as TFTStaticAugment[]
-const godBoons = godBoonsJson as TFTStaticGodBoon[]
+const godBoons = godBoonsJson as unknown as TFTStaticGodBoon[]
 
 function normKey(value: string): string {
   return value.trim().toLowerCase()
@@ -55,10 +55,10 @@ function tagItems(
 
 function buildItems(): TFTStaticItem[] {
   return [
-    ...tagItems(componentsJson as Omit<TFTStaticItem, 'category'>[], 'component'),
-    ...tagItems(finishedJson as Omit<TFTStaticItem, 'category'>[], 'finished'),
-    ...tagItems(radiantsJson as Omit<TFTStaticItem, 'category'>[], 'radiant'),
-    ...tagItems(artifactsJson as Omit<TFTStaticItem, 'category'>[], 'artifact'),
+    ...tagItems(componentsJson as unknown as Omit<TFTStaticItem, 'category'>[], 'component'),
+    ...tagItems(finishedJson as unknown as Omit<TFTStaticItem, 'category'>[], 'finished'),
+    ...tagItems(radiantsJson as unknown as Omit<TFTStaticItem, 'category'>[], 'radiant'),
+    ...tagItems(artifactsJson as unknown as Omit<TFTStaticItem, 'category'>[], 'artifact'),
   ]
 }
 

@@ -135,6 +135,30 @@ describe("tftEnUsParse", () => {
     ).toBe("prismatic")
   })
 
+  it("includes TFT5 radiants listed in current set roster", () => {
+    const withRadiant = {
+      setData: [{ number: 17, items: ["TFT5_Item_BlueBuffRadiant"] }],
+      sets: miniEnUs.sets,
+      items: [
+        ...miniEnUs.items,
+        {
+          apiName: "TFT5_Item_BlueBuffRadiant",
+          name: "Radiant Blue Buff",
+          desc: "Gain @AD*100@% Attack Damage at @HealthThreshold@% Health.",
+          icon: "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT5_Item_BlueBuffRadiant.TFT_Set13.tex",
+          effects: { AD: 0.35, HealthThreshold: 40 },
+          composition: [],
+        },
+      ],
+    }
+    const bundle = parseEnUsBundle(withRadiant, 17)
+    expect(bundle.items.radiants.some((i) => i.apiName === "TFT5_Item_BlueBuffRadiant")).toBe(
+      true,
+    )
+    expect(bundle.items.radiants.find((i) => i.apiName === "TFT5_Item_BlueBuffRadiant")?.effects)
+      .toEqual({ AD: 0.35, HealthThreshold: 40 })
+  })
+
   it("excludes older-set augments", () => {
     expect(
       shouldIncludeAugment(

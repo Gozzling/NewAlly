@@ -721,7 +721,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
               ))}
             </div>
           )}
-          <div style={{ padding: '8px 12px 12px', display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 220, overflowY: 'auto' }}>
+          <div className="tb-unit-panel-scroll" style={{ padding: '8px 12px 12px', display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 220, overflowY: 'auto' }}>
             {[5, 4, 3, 2, 1].map(cost => {
               const costUnits = UNITS.filter(u => u.cost === cost)
               if (costUnits.length === 0) return null
@@ -1043,10 +1043,14 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
           transition: fill 0.1s, stroke 0.1s;
         }
 
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+        .tb-unit-panel-scroll {
+          scrollbar-width: thin;
+          scrollbar-color: #2a2a2a #0d0d0d;
+        }
+        .tb-unit-panel-scroll::-webkit-scrollbar { width: 4px; }
+        .tb-unit-panel-scroll::-webkit-scrollbar-track { background: #0d0d0d; }
+        .tb-unit-panel-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+        .tb-unit-panel-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
 
         button:not(:disabled):hover {
           border-color: #3a3a3a !important;

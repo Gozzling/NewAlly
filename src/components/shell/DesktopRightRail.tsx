@@ -7,15 +7,48 @@ import { useAppStore } from '@/store/useAppStore'
 
 type ServerStatus = 'online' | 'issues' | 'offline' | 'unknown'
 
+const SIDE_CARD =
+  'rounded-lg border border-ally-border bg-ally-bg p-3 shadow-card'
+
 function normName(name: string | undefined | null): string {
   if (!name) return ''
   return name.split('#')[0]?.trim().toLowerCase() ?? ''
 }
 
 function placementChipClass(place: number): string {
-  if (place === 1) return 'bg-ally-placementFirst text-black'
-  if (place <= 4) return 'bg-ally-placementTop4 text-white'
-  return 'bg-ally-placementBot4 text-white'
+  if (place === 1) {
+    return 'border border-ally-placementFirst/40 bg-ally-placementFirst text-black'
+  }
+  if (place <= 4) {
+    return 'border border-ally-placementTop4/35 bg-ally-placementTop4/15 text-ally-placementTop4'
+  }
+  return 'border border-ally-placementBot4/35 bg-ally-placementBot4/15 text-ally-placementBot4'
+}
+
+function serverStatusPillClass(status: ServerStatus): string {
+  switch (status) {
+    case 'online':
+      return 'border-ally-placementTop4/35 bg-ally-placementTop4/10 text-ally-placementTop4 before:bg-ally-placementTop4'
+    case 'issues':
+      return 'border-ally-warning/35 bg-ally-warning/10 text-ally-warning before:bg-ally-warning'
+    case 'offline':
+      return 'border-ally-placementBot4/35 bg-ally-placementBot4/10 text-ally-placementBot4 before:bg-ally-placementBot4'
+    default:
+      return 'border-ally-border bg-ally-hover text-ally-muted before:bg-ally-muted'
+  }
+}
+
+function serverStatusLabel(status: ServerStatus): string {
+  switch (status) {
+    case 'online':
+      return 'All systems online'
+    case 'issues':
+      return 'Riot: incidents or maintenance'
+    case 'offline':
+      return 'Offline'
+    default:
+      return 'Status unknown'
+  }
 }
 
 export function DesktopRightRail({ serverStatus }: { serverStatus: ServerStatus }) {
@@ -59,39 +92,23 @@ export function DesktopRightRail({ serverStatus }: { serverStatus: ServerStatus 
     selectedPlayer?.rank ??
     (selectedPlayer?.tier != null && selectedPlayer?.lp != null
       ? `${selectedPlayer.tier} · ${selectedPlayer.lp} LP`
-      : selectedPlayer?.tier ?? null)
-
-  const statusDot =
-    serverStatus === 'online'
-      ? 'bg-ally-placementTop4 shadow-[0_0_6px_rgba(var(--color-placement-top4-rgb),0.45)]'
-      : serverStatus === 'issues'
-        ? 'bg-ally-warning shadow-[0_0_6px_rgba(245,158,11,0.45)]'
-        : 'bg-ally-placementBot4 shadow-[0_0_6px_rgba(var(--color-placement-bot4-rgb),0.45)]'
-
-  const statusLabel =
-    serverStatus === 'online'
-      ? 'All systems online'
-      : serverStatus === 'issues'
-        ? 'Riot: incidents or maintenance'
-        : serverStatus === 'offline'
-          ? 'Offline'
-          : 'Status unknown'
+      : (selectedPlayer?.tier ?? null))
 
   return (
     <aside
-      className="flex w-[200px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-ally-border bg-ally-surface1 px-3 py-3"
+      className="custom-scrollbar flex w-[200px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-ally-border bg-ally-card px-3 py-3"
       aria-label="Session sidebar"
     >
       <section className="w-full min-w-0">
         <SectionHeader label="Player" variant="sidebar" />
-        <div className="rounded-lg border border-ally-border bg-ally-surface0 p-2.5">
+        <div className={SIDE_CARD}>
           {!selectedPlayer ? (
-            <p className="font-mono text-[11px] leading-snug text-ally-muted">
+            <p className="font-sans text-caption leading-snug text-ally-muted">
               Look up a summoner in Match History to show rank and your locally recorded placements here.
             </p>
           ) : (
             <>
-              <div className="font-display text-xs font-bold text-ally-accent">{selectedPlayer.name}</div>
+              <div className="font-display text-sm font-semibold text-ally-accent">{selectedPlayer.name}</div>
               {rankLine ? (
                 <div className="mt-1 font-mono text-[10px] text-ally-muted">{rankLine}</div>
               ) : (
@@ -119,13 +136,14 @@ export function DesktopRightRail({ serverStatus }: { serverStatus: ServerStatus 
                     ))}
                   </div>
                 ) : (
-                  <p className="font-mono text-[10px] leading-snug text-ally-muted">
-                    No placement history in Ally storage yet. Finish TFT games with the app running to build this timeline.
+                  <p className="font-sans text-[10px] leading-snug text-ally-muted">
+                    No placement history in Ally storage yet. Finish TFT games with the app running to build this
+                    timeline.
                   </p>
                 )}
               </div>
-              <div className="mt-3 flex items-end justify-between border-t border-ally-border pt-2">
-                <span className="font-mono text-[9px] text-ally-muted">Avg (local)</span>
+              <div className="mt-3 flex items-center justify-between border-t border-ally-border pt-2">
+                <span className="font-mono text-[9px] uppercase tracking-wider text-ally-muted">Avg (local)</span>
                 {idbLoading ? (
                   <Skeleton className="h-5 w-10 rounded" />
                 ) : avgPlacement != null ? (
@@ -139,32 +157,24 @@ export function DesktopRightRail({ serverStatus }: { serverStatus: ServerStatus 
         </div>
       </section>
 
-      <div className="h-px w-full bg-ally-border" />
-
-      <section className="mb-1">
+      <section className="w-full min-w-0">
         <SectionHeader label="Server" variant="sidebar" />
-        <div className="flex items-center gap-2">
-          <span className={`h-2 w-2 shrink-0 rounded-full ${statusDot}`} aria-hidden />
+        <div className={SIDE_CARD}>
           <span
-            className={`font-mono text-xs font-medium ${
-              serverStatus === 'online'
-                ? 'text-ally-placementTop4'
-                : serverStatus === 'issues'
-                  ? 'text-ally-warning'
-                  : 'text-ally-placementBot4'
-            }`}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 font-mono text-[11px] font-medium before:h-1.5 before:w-1.5 before:shrink-0 before:rounded-full before:content-[''] ${serverStatusPillClass(serverStatus)}`}
           >
-            {statusLabel}
+            {serverStatusLabel(serverStatus)}
           </span>
         </div>
       </section>
 
-      <div className="h-px w-full bg-ally-border" />
-
       <section className="w-full min-w-0">
         <SectionHeader label="Tips" variant="sidebar" />
-        <QuickTips />
+        <div className={SIDE_CARD}>
+          <QuickTips />
+        </div>
       </section>
     </aside>
   )
 }
+

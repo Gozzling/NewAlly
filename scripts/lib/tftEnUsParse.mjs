@@ -207,13 +207,15 @@ function isFinishedItem(item) {
   return Array.isArray(item.composition) && item.composition.length === 2
 }
 
-function isRadiantItem(item, setNumber) {
-  const blob = `${item.apiName}|${item.icon}|${item.name}`
+function isRadiantItem(item, setNumber, setItemApis) {
+  const api = item.apiName || ""
+  const blob = `${api}|${item.icon}|${item.name}`
   if (!/radiant/i.test(blob)) return false
+  if (setItemApis?.has(api)) return true
   if (referencesOlderSet(blob, setNumber) && !referencesSet(blob, setNumber)) {
     return false
   }
-  return referencesSet(blob, setNumber) || item.apiName?.startsWith("TFT_Item_")
+  return referencesSet(blob, setNumber) || api.startsWith("TFT_Item_")
 }
 
 function isArtifactItem(item, setNumber) {
@@ -341,7 +343,18 @@ export function shouldIncludeAugment(item, setNumber) {
   return false
 }
 
-export function parseItems(enUs, setNumber) {
+export function resolveSetItemApis(enUs, setNumber) {
+  const apis = new Set()
+  const blocks = Array.isArray(enUs.setData) ? enUs.setData : []
+  const block =
+    blocks.find((b) => b.number === setNumber) ?? blocks[blocks.length - 1]
+  for (const api of block?.items || []) {
+    if (typeof api === "string" && api.length > 0) apis.add(api)
+  }
+  return apis
+}
+
+export function parseItems(enUs, setNumber, setItemApis = resolveSetItemApis(enUs, setNumber)) {
   const items = enUs.items || []
   const components = []
   const finished = []
@@ -362,6 +375,8 @@ export function parseItems(enUs, setNumber) {
       }),
     )
     const rec = bucket[bucket.length - 1]
+    rec.description = item.desc || ""
+    rec.effects = item.effects || {}
     rec.composition = item.composition || []
     rec.from = item.from || null
     rec.tags = item.tags || []
@@ -376,7 +391,7 @@ export function parseItems(enUs, setNumber) {
       push(components, item)
       continue
     }
-    if (isRadiantItem(item, setNumber)) {
+    if (isRadiantItem(item, setNumber, setItemApis)) {
       push(radiants, item)
       continue
     }
@@ -448,7 +463,8 @@ export function parseAugments(enUs, setNumber) {
 }
 
 export function parseEnUsBundle(enUs, setNumber) {
-  const items = parseItems(enUs, setNumber)
+  const setItemApis = resolveSetItemApis(enUs, setNumber)
+  const items = parseItems(enUs, setNumber, setItemApis)
   return {
     meta: {
       setNumber,

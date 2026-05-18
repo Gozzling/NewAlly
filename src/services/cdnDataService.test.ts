@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatTftText } from './cdnDataService'
+import { formatTftText } from '@/utils/formatTftText'
 
 describe('formatTftText', () => {
   it('should handle basic tokens', () => {

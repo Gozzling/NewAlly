@@ -8,6 +8,10 @@ import { AUGMENTS, type Augment } from "@/data/augments"
 import { ITEM_GUIDE_ENTRIES, type ItemGuideEntry } from "@/data/itemGuideCatalog"
 import { CURRENT_TFT_SET_NUMBER } from "@/meta/tftCurrentSet"
 import { cdGameAssetUrl } from "@/utils/cdnIcons"
+import { formatTftText, roundTftWhole } from "@/utils/formatTftText"
+import { buildItemStatsFromEffects } from "@/utils/itemStatsFromEffects"
+
+export { formatTftText } from "@/utils/formatTftText"
 
 const CD_DRAGON_TFT_BASE = "https://raw.communitydragon.org/latest/cdragon/tft"
 
@@ -15,7 +19,7 @@ const DB_NAME = "tft-ally-cache"
 const STORE_NAME = "set-data"
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000
 /** Bump when cached payload shape / decoding logic changes (forces miss on first read). */
-const CACHE_KEY = "current-set-v10"
+const CACHE_KEY = "current-set-v11"
 
 export type Item = ItemGuideEntry
 
@@ -33,195 +37,6 @@ export interface CachedSetData {
   setVersion: string
 }
 
-function flattenEffectMap(effects: unknown): Record<string, number | string> {
-  const out: Record<string, number | string> = {}
-  if (!effects || typeof effects !== "object" || Array.isArray(effects)) return out
-  for (const [k, v] of Object.entries(effects as Record<string, unknown>)) {
-    if (typeof v === "number" || typeof v === "string") out[k] = v
-    else if (typeof v === "boolean") out[k] = v ? "1" : "0"
-  }
-  return out
-}
-
-/** Nearest whole number for UI (fractional part ≥ 0.5 rounds up). */
-function roundTftWhole(n: number): number {
-  if (!Number.isFinite(n)) return n
-  return Math.round(n)
-}
-
-function formatEffectDisplayValue(key: string, v: number | string): string {
-  if (typeof v === "string") return v
-  const k = key.toLowerCase()
-  if ((k.includes("percent") || k.includes("pct") || k.endsWith("ratio") || k.includes("increase")) && v > 0 && v <= 1) {
-    return `${roundTftWhole(v * 100)}%`
-  }
-  return String(roundTftWhole(v))
-}
-
-/** Title-case words for loc-key fallbacks (e.g. `precision` → `Precision`). */
-function titleCaseWords(s: string): string {
-  return s
-    .split(/\s+/)
-    .map((w) => (w.length === 0 ? "" : w[0].toUpperCase() + w.slice(1).toLowerCase()))
-    .filter(Boolean)
-    .join(" ")
-}
-
-/** Split CamelCase / snake into spaced words, then title-case. */
-function humanizeLocFragment(raw: string): string {
-  const spaced = raw.replace(/_/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2")
-  return titleCaseWords(spaced.trim())
-}
-
-/**
- * Riot `{{TFT_*}}` loc references — not in `effects`; drop set-only junk, otherwise short label from key tail.
- */
-function humanizeDoubleBraceKey(key: string): string {
-  const k = key.trim()
-  if (!k) return ""
-  if (/onlyitem$/i.test(k) || /_only_/i.test(k)) return ""
-  if (/^TFT_Keyword_/i.test(k)) return humanizeLocFragment(k.replace(/^TFT_Keyword_/i, ""))
-  const stripped = k.replace(/^TFT\d+_/i, "")
-  const parts = stripped.split("_").filter(Boolean)
-  const last = parts[parts.length - 1] || stripped
-  return humanizeLocFragment(last)
-}
-
-const TFT_UNWRAP_TAGS = [
-  "TFTKeyword",
-  "TFTRadiantItemBonus",
-  "spellPassive",
-  "spellActive",
-  "magicDamage",
-  "physicalDamage",
-  "trueDamage",
-  "scaleShimmer",
-  "scaleHealth",
-  "scaleShield",
-  "scaleArmor",
-  "scaleMR",
-  "scaleMana",
-  "scaleAttackSpeed",
-  "scaleAP",
-  "scaleAD",
-  "size",
-  "status",
-  "spellName",
-  "spellSubName",
-] as const
-
-function stripTftRulesBlocks(s: string): string {
-  return s.replace(/<rules\b[^>]*>[\s\S]*?<\/rules>/gi, "")
-}
-
-/** Unwrap known paired Riot rich-text tags (inner text keeps @ tokens for a later pass). */
-function unwrapKnownPairedTags(input: string): string {
-  let s = input
-  for (let i = 0; i < 14; i++) {
-    const prev = s
-    for (const tag of TFT_UNWRAP_TAGS) {
-      const re = new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)</${tag}>`, "gi")
-      s = s.replace(re, "$1")
-    }
-    if (s === prev) break
-  }
-  return s
-}
-
-function normalizeRowTags(s: string): string {
-  return s.replace(/<\/row>/gi, "\n").replace(/<row\b[^>]*>/gi, "\n")
-}
-
-function resolveDoubleBraces(s: string, map: Record<string, number | string>): string {
-  return s.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (_, inner: string) => {
-    const key = inner.trim()
-    if (Object.prototype.hasOwnProperty.call(map, key)) {
-      return formatEffectDisplayValue(key, map[key])
-    }
-    for (const [mk, mv] of Object.entries(map)) {
-      if (mk.toLowerCase() === key.toLowerCase()) return formatEffectDisplayValue(mk, mv)
-    }
-    return humanizeDoubleBraceKey(key)
-  })
-}
-
-/** Collapse horizontal space per line; keep paragraph breaks from `<br>`. */
-function finalizeTftWhitespace(s: string): string {
-  const lines = s.replace(/\r\n?/g, "\n").split("\n")
-  const out: string[] = []
-  for (const line of lines) {
-    const t = line.replace(/[ \t]+/g, " ").replace(/\s+,/g, ",").trim()
-    if (t.length > 0) out.push(t)
-  }
-  return out.join("\n\n").trim()
-}
-
-/** Strip HTML / Riot rich text, resolve `@Key@` and `{{loc}}`, preserve readable paragraphs. */
-export function formatTftText(raw: string | undefined | null, effects: unknown): string {
-  let s = String(raw || "")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/&nbsp;/gi, " ")
-  s = stripTftRulesBlocks(s)
-  s = unwrapKnownPairedTags(s)
-  s = normalizeRowTags(s)
-  s = s.replace(/<[^>]+>/g, " ")
-  s = s.replace(/%i:[A-Za-z0-9_]+%/gi, "")
-  s = s.replace(/\*\*/g, "")
-  const map = flattenEffectMap(effects)
-  s = resolveDoubleBraces(s, map)
-  s = s.replace(/@([A-Za-z0-9_*.:]+)@/g, (_, token: string) => {
-    let key = token
-    let multiplier = 1
-
-    if (key.includes("*")) {
-      const parts = key.split("*")
-      key = parts[0]
-      multiplier = parseFloat(parts[1]) || 1
-    }
-
-    if (key.includes(":")) {
-      key = key.split(":").pop() || key
-    }
-
-    // Fallback for suffix 100/10 if exact key not found
-    if (!Object.prototype.hasOwnProperty.call(map, key)) {
-      const m = key.match(/(\d+)$/)
-      if (m) {
-        const suffix = m[1]
-        if (suffix === "100" || suffix === "10") {
-          const stem = key.slice(0, -suffix.length)
-          if (Object.prototype.hasOwnProperty.call(map, stem)) {
-            key = stem
-            multiplier = parseFloat(suffix)
-          }
-        }
-      }
-    }
-
-    const tryKeys = [key, key.replace(/_TOOLTIPONLY$/i, ""), key.replace(/_TOOLTIP$/i, "")]
-    for (const tk of tryKeys) {
-      if (Object.prototype.hasOwnProperty.call(map, tk)) {
-        const v = map[tk]
-        if (v === undefined) return ""
-        const numericVal = typeof v === "number" ? v * multiplier : v
-        return formatEffectDisplayValue(tk, numericVal)
-      }
-    }
-
-    const lower = key.toLowerCase()
-    for (const [mk, mv] of Object.entries(map)) {
-      if (mk.toLowerCase() === lower || mk.toLowerCase().replace(/_tooltiponly$/i, "") === lower.replace(/_tooltiponly$/i, "")) {
-        const numericVal = typeof mv === "number" ? mv * multiplier : mv
-        return formatEffectDisplayValue(mk, numericVal)
-      }
-    }
-    return ""
-  })
-  s = s.replace(/@([A-Za-z0-9_*.:]+)@/g, "")
-  while (/\(\s*\)/.test(s)) s = s.replace(/\(\s*\)/g, "")
-  s = s.replace(/\s+([.,;:!?])/g, "$1")
-  return finalizeTftWhitespace(s)
-}
 function traitVariableMap(tr: CDragonTrait): Record<string, unknown> {
   const out: Record<string, unknown> = {}
   for (const e of tr.effects || []) {
@@ -397,6 +212,7 @@ interface CDragonItemRow {
   name?: string
   desc?: string
   icon?: string
+  tags?: unknown[]
   associatedTraits?: string[]
   composition?: unknown[]
   effects?: Record<string, unknown>
@@ -559,6 +375,31 @@ export function transformTraits(setBlock: CDragonSetBlock): Synergy[] {
   return out
 }
 
+function inferCdnItemCategory(row: CDragonItemRow): ItemGuideEntry["category"] {
+  const api = String(row.apiName || "")
+  const name = String(row.name || "")
+  const blob = `${api}|${name}`
+  if (/radiant/i.test(blob)) return "core"
+  if (/^TFT\d+_Item_Artifact_/i.test(api) || /artifact/i.test(api)) return "artifact"
+  if ((row.tags as string[] | undefined)?.some((t) => String(t).toLowerCase() === "component")) {
+    return "core"
+  }
+  return "core"
+}
+
+function inferCdnItemTags(row: CDragonItemRow, category: ItemGuideEntry["category"]): string[] {
+  const tags = new Set<string>()
+  const api = String(row.apiName || "")
+  const name = String(row.name || "")
+  if (/radiant/i.test(`${api}|${name}`)) tags.add("radiant")
+  if (category === "artifact") tags.add("artifact")
+  for (const t of row.tags || []) {
+    const s = String(t).toLowerCase()
+    if (s.length > 2 && !s.startsWith("{")) tags.add(s)
+  }
+  return [...tags]
+}
+
 export function transformItems(setItemApis: string[], itemsByApi: Map<string, CDragonItemRow>): ItemGuideEntry[] {
   const seen = new Set<string>()
   const out: ItemGuideEntry[] = []
@@ -572,27 +413,20 @@ export function transformItems(setItemApis: string[], itemsByApi: Map<string, CD
     if (seen.has(displayName)) continue
     seen.add(displayName)
     const iconUrl = cdGameAssetUrl(row.icon)
-    // Extract stats if they exist in effects
-    const statsList: string[] = []
-    if (row.effects) {
-        for (const [k, v] of Object.entries(row.effects)) {
-            if (typeof v === 'number' && v !== 0) {
-                const humanKey = k.replace(/([A-Z])/g, ' $1').trim()
-                const displayVal = v > 0 && v <= 1 ? `${roundTftWhole(v * 100)}%` : roundTftWhole(v)
-                statsList.push(`${humanKey}: ${displayVal}`)
-            }
-        }
-    }
+    const category = inferCdnItemCategory(row)
+    const curated = ITEM_GUIDE_ENTRIES.find((e) => e.name === displayName)
 
     out.push({
       name: displayName,
-      category: "core",
-      stats: statsList.join('\n'),
-      effect: effect || displayName,
+      category,
+      stats:
+        curated?.stats ||
+        buildItemStatsFromEffects(row.effects as Record<string, number | undefined> | undefined),
+      effect: curated?.effect || effect || displayName,
       components: null,
-      tags: [],
-      tier: "B",
-      bestOn: [],
+      tags: inferCdnItemTags(row, category),
+      tier: curated?.tier ?? "B",
+      bestOn: curated?.bestOn ?? [],
       ...(iconUrl ? { iconUrl } : {}),
     })
   }

@@ -389,13 +389,24 @@ function ItemDetail({ item, onBack, onItemSelect }: { item: ItemRecipe; onBack: 
         </div>
       </div>
 
+      {item.stats ? (
+        <div style={{ marginBottom: '32px' }}>
+          <div style={{ fontSize: '10px', color: '#333', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px' }}>
+            Stats
+          </div>
+          <div style={{ padding: '16px', borderRadius: '8px', background: C.surface, border: `1px solid ${C.border}` }}>
+            <div style={{ fontSize: '13px', color: '#b8e8f5', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{item.stats}</div>
+          </div>
+        </div>
+      ) : null}
+
       {/* Effect */}
       <div style={{ marginBottom: '32px' }}>
         <div style={{ fontSize: '10px', color: '#333', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px' }}>
           Effect
         </div>
         <div style={{ padding: '16px', borderRadius: '8px', background: C.surface, border: `1px solid ${C.border}` }}>
-          <div style={{ fontSize: '13px', color: '#ccc' }}>{item.effect}</div>
+          <div style={{ fontSize: '13px', color: '#ccc', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{item.effect}</div>
         </div>
       </div>
 

@@ -10,8 +10,11 @@ import type {
   TFTStaticTrait,
   TFTStaticUnit,
 } from '@/types/tftStaticData'
+import { findGuideItem } from '@/data/itemGuideCatalog'
 import { augmentIconUrl } from '@/utils/augmentDisplay'
 import { gameIconDisplayUrl } from '@/utils/cdIconDisplay'
+import { formatTftText } from '@/utils/formatTftText'
+import { buildItemStatsFromEffects } from '@/utils/itemStatsFromEffects'
 import { itemIconUrl } from '@/utils/itemDisplay'
 import { unitIconUrl } from '@/utils/unitDisplay'
 
@@ -41,6 +44,7 @@ export interface ItemGuideEntry {
   apiName: string
   name: string
   components: [string, string] | [string] | []
+  stats: string
   effect: string
   tags: string[]
   tier: 'S' | 'A' | 'B' | 'C'
@@ -149,14 +153,22 @@ export function buildItemGuideEntries(catalog: TFTDataCatalog): ItemGuideEntry[]
           ? [itemDisplayName(catalog, comp[0])]
           : []
 
+    const curated = findGuideItem(item.name)
+    const formattedEffect = formatTftText(item.description, item.effects)
+    const stats =
+      curated?.stats ||
+      buildItemStatsFromEffects(item.effects) ||
+      ''
+
     return {
       apiName: item.apiName,
       name: item.name,
       components,
-      effect: item.description,
+      stats,
+      effect: curated?.effect || formattedEffect || item.name,
       tags: itemTags(item),
-      tier: 'B',
-      bestOn: [],
+      tier: curated?.tier ?? 'B',
+      bestOn: curated?.bestOn ?? [],
       category: item.category,
       iconUrl: gameIconDisplayUrl(item.iconUrl, itemIconUrl(item.name)),
     }

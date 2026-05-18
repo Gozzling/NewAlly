@@ -616,6 +616,8 @@ export function DesktopApp() {
 
         .custom-scrollbar {
           direction: ltr;
+          scrollbar-width: thin;
+          scrollbar-color: #2a2a2a #0e0e0e;
         }
         .custom-scrollbar::-webkit-scrollbar {
           width: 8px;
