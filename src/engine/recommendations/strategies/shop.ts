@@ -48,7 +48,11 @@ function shopPriorityToModel(
 }
 
 /** Early board: suggest shop cost focus from trait progress (e.g. Team Builder with no shop snapshot). */
-function traitProgressShopHint(boardUnitNames: string[], nowMs: number): AllyRecommendation | null {
+function traitProgressShopHint(
+  boardUnitNames: string[],
+  history: PlayerMatchHistorySummary,
+  nowMs: number,
+): AllyRecommendation | null {
   const n = boardUnitNames.length;
   if (n === 0 || n >= 4) return null;
 
@@ -94,7 +98,23 @@ function traitProgressShopHint(boardUnitNames: string[], nowMs: number): AllyRec
     .slice(0, 4)
     .map((u) => u.name);
 
-  const detail = `You have ${have} ${top.trait} — add ${top.need} more for the ${top.nextCount}-${top.trait} bonus. In shop rolls, lean toward ${costPhrase} picks${examples.length ? ` (e.g. ${examples.join(", ")})` : ""}.`;
+  let detail = `You have ${have} ${top.trait} — add ${top.need} more for the ${top.nextCount}-${top.trait} bonus. In shop rolls, lean toward ${costPhrase} picks${examples.length ? ` (e.g. ${examples.join(", ")})` : ""}.`;
+
+  const reasoning = [
+    `Next breakpoint: ${top.nextCount} ${top.trait} (${have} on board).`,
+    ...(examples.length ? [`Examples: ${examples.join(", ")}.`] : []),
+  ];
+
+  const evidence: AllyRecommendation["evidence"] = [
+    { source: "static_meta", weight: 0.65, note: "Trait thresholds & unit costs" },
+    { source: "heuristic", weight: 0.35, note: "Early board shop planning" },
+  ];
+
+  if (history.top4Rate != null && history.windowSize > 0) {
+    detail += ` You top-4 in ${Math.round(history.top4Rate * 100)}% of matches with similar boards.`;
+    reasoning.push(`Personal trend: ${Math.round(history.top4Rate * 100)}% top-4 rate.`);
+    evidence.push({ source: "match_history", weight: 0.2, note: "Aggregated personal performance" });
+  }
 
   return {
     id: `shop:trait:${top.trait}:${nowMs}`,
@@ -104,14 +124,8 @@ function traitProgressShopHint(boardUnitNames: string[], nowMs: number): AllyRec
     confidence: 0.52,
     risk: "low",
     urgency: n <= 2 ? "medium" : "low",
-    reasoning: [
-      `Next breakpoint: ${top.nextCount} ${top.trait} (${have} on board).`,
-      ...(examples.length ? [`Examples: ${examples.join(", ")}.`] : []),
-    ],
-    evidence: [
-      { source: "static_meta", weight: 0.65, note: "Trait thresholds & unit costs" },
-      { source: "heuristic", weight: 0.35, note: "Early board shop planning" },
-    ],
+    reasoning,
+    evidence,
     createdAtMs: nowMs,
   };
 }
@@ -170,7 +184,7 @@ export function shopRecommendations(input: RecommendationEngineInput, nowMs = Da
   if (!signals.inGame) return [];
 
   const out: AllyRecommendation[] = [];
-  const traitHint = traitProgressShopHint(signals.boardUnitNames, nowMs);
+  const traitHint = traitProgressShopHint(signals.boardUnitNames, matchHistory, nowMs);
   if (traitHint) out.push(traitHint);
 
   if (signals.shopUnitNames.length === 0) return out;
