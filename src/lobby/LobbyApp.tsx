@@ -88,7 +88,7 @@ export function LobbyApp() {
   return (
     <div className="w-full h-full bg-[#0d0d0d] text-white font-sans flex flex-col">
       {/* Header */}
-      <div className="h-10 flex items-center justify-between px-3 border-b border-[#2a2a2a] bg-[#161616]">
+      <div className="h-10 flex items-center justify-between px-3 border-b border-[#2a2a2a] bg-[#111111]">
         <span className="text-xs font-bold tracking-wide text-[#35c3e7]">TFT Lobby</span>
         <button
           onClick={() => void loadLobby()}
