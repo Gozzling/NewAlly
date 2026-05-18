@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { useState, useMemo, useCallback, useRef, useEffect, memo } from 'react'
 import {
   BookOpen,
   Coins,
@@ -77,8 +77,66 @@ const btnBase = {
   fontFamily: 'Rajdhani, sans-serif',
 }
 
+/* ─── Hex glyph ─── */
+const HexGlyph = memo(function HexGlyph({
+  pos, idx, unit, uData, boardName, isSrc, isOver, showNames,
+}: {
+  pos: HexPos; idx: number; unit: string | null; uData: { cost: number } | null
+  boardName: 'player' | 'enemy'; isSrc: boolean; isOver: boolean; showNames: boolean
+}) {
+  const costCol = uData ? C.cost[uData.cost] : C.accent
+
+  const fillBase = boardName === 'enemy' ? '#160808' : C.hexEmpty
+  const fillOcc  = boardName === 'enemy' ? '#200c0c' : C.hexHover
+  const strokeBase = boardName === 'enemy' ? '#3a1515' : C.border
+
+  const fill = unit ? fillOcc : fillBase
+  const strokeCol = isSrc ? costCol : isOver ? C.accent : (unit ? costCol : strokeBase)
+  const strokeW = isSrc || isOver ? 2 : (unit ? 1.5 : 1)
+
+  return (
+    <>
+      {unit && !isSrc && (
+        <polygon
+          points={hexPts(pos.cx, pos.cy)}
+          fill="none" stroke={costCol} strokeWidth={8} opacity={0.08}
+          style={{ filter: 'blur(6px)' }}
+        />
+      )}
+      <polygon
+        points={hexPts(pos.cx, pos.cy)}
+        fill={isSrc ? '#282828' : fill}
+        stroke={strokeCol}
+        strokeWidth={strokeW}
+        style={{ transition: 'fill 0.1s, stroke 0.1s' }}
+      />
+      {showNames && unit && uData && (
+        <>
+          <title>{unit}</title>
+          {(() => {
+            const iconSize = R * 1.8
+            const iconX = pos.cx - iconSize / 2
+            const iconY = pos.cy - iconSize / 2
+            return (
+              <image
+                href={unitPortraitPrimaryUrl(unit)}
+                x={iconX}
+                y={iconY}
+                width={iconSize}
+                height={iconSize}
+                clipPath={`url(#hex-clip-${HEX_POSITIONS.indexOf(pos)})`}
+                preserveAspectRatio="xMidYMid slice"
+              />
+            )
+          })()}
+        </>
+      )}
+    </>
+  )
+})
+
 /* ─── Unit pill ─── */
-function UnitPill({ name, traits, cost, placed, onClick, iconUrl }: {
+const UnitPill = memo(function UnitPill({ name, traits, cost, placed, onClick, iconUrl }: {
   name: string; traits: string[]; cost: number; placed: boolean; onClick: () => void; iconUrl?: string;
 }) {
   return (
@@ -110,7 +168,7 @@ function UnitPill({ name, traits, cost, placed, onClick, iconUrl }: {
       </div>
     </button>
   )
-}
+})
 
 /* ═══════════════════════════════════════════════════════════════
    TeamBuilder
@@ -125,6 +183,9 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
   const gameData = useAppStore(s => s.gameData)
   const roster = gameData.champions.length > 0 ? gameData.champions : BUNDLED_SET_DATA.champions
   const traitRoster = gameData.traits.length > 0 ? gameData.traits : BUNDLED_SET_DATA.traits
+
+  const rosterMap = useMemo(() => new Map(roster.map(u => [u.name, u])), [roster])
+  const traitMap = useMemo(() => new Map(traitRoster.map(t => [t.name, t])), [traitRoster])
 
   const { matchHistory, isLoading: coachHistoryLoading } = useCoachMatchHistory()
 
@@ -159,6 +220,21 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
   const [selHex, setSelHex]         = useState<string | null>(null)
   const [unitPanelBoard, setUnitPanelBoard] = useState<'player' | 'enemy'>('player')
   const [unitFindQuery, setUnitFindQuery] = useState('')
+
+  const groupedUnits = useMemo(() => {
+    const q = unitFindQuery.trim().toLowerCase()
+    const matchUnit = (u: (typeof roster)[number]) =>
+      !q ||
+      u.name.toLowerCase().includes(q) ||
+      u.traits.some((t) => t.toLowerCase().includes(q)) ||
+      u.id.toLowerCase().includes(q)
+
+    const filtered = roster.filter(matchUnit)
+    return [5, 4, 3, 2, 1].map((cost) => {
+      const costUnits = filtered.filter((u) => u.cost === cost)
+      return { cost, units: costUnits }
+    })
+  }, [roster, unitFindQuery])
 
   // Double-click detection
   const lastClickRef = useRef<{ time: number; idx: number | null }>({ time: 0, idx: null })
@@ -216,18 +292,18 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
     setHi(prev => prev + 1)
   }, [hi])
 
-  const undo = () => { if (hi > 0) setHi(hi - 1) }
-  const redo = () => { if (hi < hist.length - 1) setHi(hi + 1) }
-  const clear = () => {
+  const undo = useCallback(() => { if (hi > 0) setHi(hi - 1) }, [hi])
+  const redo = useCallback(() => { if (hi < hist.length - 1) setHi(hi + 1) }, [hi, hist.length])
+  const clear = useCallback(() => {
     setDragItem(null); setDragTarget(null)
     pushHistory({ pBoard: Array(BOARD_LEN).fill(null), eBoard: Array(BOARD_LEN).fill(null) })
-  }
+  }, [pushHistory])
 
   /* ─── Mouse-based drag: start ─── */
-  const startDrag = (board: 'player' | 'enemy', idx: number) => {
+  const startDrag = useCallback((board: 'player' | 'enemy', idx: number) => {
     const arr = board === 'player' ? pBoard[idx] : eBoard[idx]
     if (arr) setDragItem({ board, idx })
-  }
+  }, [pBoard, eBoard])
 
   /* ─── Mouse-based drag: drop ─── */
   const doDrop = useCallback((board: 'player' | 'enemy', idx: number) => {
@@ -291,20 +367,17 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
   }
 
   /* ─── Hex click: select for swapping or show detail on double-click ─── */
-  const handleHexClick = (hexId: string) => {
+  const handleHexClick = useCallback((hexId: string) => {
     const idx = parseInt(hexId, 10)
     const unit = pBoard[idx]
-    const uData = unit ? roster.find(x => x.name === unit) : null
+    const uData = unit ? rosterMap.get(unit) : null
     if (!unit) return // empty hex - do nothing (units added via + Units panel)
 
     const now = Date.now()
     const lastClick = lastClickRef.current
 
-    console.log('[HEX CLICK]', { hexId, idx, unit, now, lastClick, timeDiff: now - lastClick.time })
-
     // Check for double-click (within 300ms and same hex)
     if (lastClick.idx !== null && now - lastClick.time < 300 && lastClick.idx === idx) {
-      console.log('[DOUBLE CLICK DETECTED]', { unit })
       // Double-click detected - show unit detail
       setUnitDetail({ name: unit, iconUrl: uData?.iconUrl })
       setSelHex(null)
@@ -314,39 +387,39 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
 
     // Single click - select for swapping
     if (selHex === hexId) {
-      console.log('[DESELECT HEX]', { hexId })
       setSelHex(null);
       return
     }
     if (selHex) { // swap mode - do the swap
-      console.log('[SWAP MODE]', { selHex, hexId })
       const selIdx = parseInt(selHex, 10)
       const tmp = pBoard[selIdx]; pBoard[selIdx] = pBoard[idx]; pBoard[idx] = tmp
       setSelHex(null)
       return
     }
     // first click on occupied hex - select for swapping
-    console.log('[SELECT HEX]', { hexId })
     setSelHex(hexId)
     lastClickRef.current = { time: now, idx }
-  }
+  }, [pBoard, rosterMap, onNavigate, selHex])
 
   /* ─── Board computed data ─── */
   const pUnits = useMemo(() => pBoard.filter(Boolean) as string[], [pBoard])
   const eUnits = useMemo(() => eBoard.filter(Boolean) as string[], [eBoard])
   const allUnits = useMemo(() => [...pUnits, ...eUnits], [pUnits, eUnits])
 
+  const pBoardSet = useMemo(() => new Set(pUnits), [pUnits])
+  const eBoardSet = useMemo(() => new Set(eUnits), [eUnits])
+
   const unitMap = useMemo(() => {
     const m = new Map<string, typeof roster[number]>()
-    allUnits.forEach(n => { const u = roster.find(x => x.name === n); if (u) m.set(n, u) })
+    allUnits.forEach(n => { const u = rosterMap.get(n); if (u) m.set(n, u) })
     return m
-  }, [allUnits, roster])
+  }, [allUnits, rosterMap])
 
   const traits = useMemo(() => {
     const c: Record<string, number> = {}
     allUnits.forEach(n => unitMap.get(n)?.traits.forEach(t => { c[t] = (c[t] || 0) + 1 }))
     return Object.entries(c).map(([name, count]) => {
-      const syn = traitRoster.find(s => s.name === name)
+      const syn = traitMap.get(name)
       const active = !!syn?.thresholds.filter(t => count >= t.count).pop()
       const next   = syn?.thresholds.find(t => count < t.count)
       return {
@@ -442,7 +515,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
 
   /* ─── Save / Load / Delete / Share ─── */
   const targetBoard = unitPanelBoard === 'player' ? pBoard : eBoard
-  const handleUnitClick = (name: string) => {
+  const handleUnitClick = useCallback((name: string) => {
     const existingIdx = targetBoard.indexOf(name)
     let nb: (string | null)[]
     if (existingIdx !== -1) { nb = [...targetBoard]; nb[existingIdx] = null }
@@ -453,7 +526,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
     }
     if (unitPanelBoard === 'player') pushHistory({ pBoard: nb, eBoard: [...eBoard] })
     else pushHistory({ pBoard: [...pBoard], eBoard: nb })
-  }
+  }, [targetBoard, unitPanelBoard, pushHistory, pBoard, eBoard])
 
   const sortedSavedComps = useMemo(
     () => [...savedComps].sort((a, b) => b.timestamp - a.timestamp),
@@ -501,65 +574,6 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
     }
   }
 
-  /* ─── Hex glyph ─── */
-  const HexGlyph = ({
-    pos, unit, uData, boardName,
-  }: {
-    pos: HexPos; unit: string | null; uData: typeof roster[number] | null
-    boardName: 'player' | 'enemy'
-  }) => {
-    const isSrc  = dragItem?.board === boardName && dragItem?.idx === HEX_POSITIONS.indexOf(pos)
-    const isOver = dragTarget?.board === boardName && dragTarget?.idx === HEX_POSITIONS.indexOf(pos)
-    const costCol = uData ? C.cost[uData.cost] : C.accent
-
-    const fillBase = boardName === 'enemy' ? '#160808' : C.hexEmpty
-    const fillOcc  = boardName === 'enemy' ? '#200c0c' : C.hexHover
-    const strokeBase = boardName === 'enemy' ? '#3a1515' : C.border
-
-    const fill = unit ? fillOcc : fillBase
-    const strokeCol = isSrc ? costCol : isOver ? C.accent : (unit ? costCol : strokeBase)
-    const strokeW = isSrc || isOver ? 2 : (unit ? 1.5 : 1)
-
-    return (
-      <>
-        {unit && !isSrc && (
-          <polygon
-            points={hexPts(pos.cx, pos.cy)}
-            fill="none" stroke={costCol} strokeWidth={8} opacity={0.08}
-            style={{ filter: 'blur(6px)' }}
-          />
-        )}
-        <polygon
-          points={hexPts(pos.cx, pos.cy)}
-          fill={isSrc ? '#282828' : fill}
-          stroke={strokeCol}
-          strokeWidth={strokeW}
-          style={{ transition: 'fill 0.1s, stroke 0.1s' }}
-        />
-        {showNames && unit && uData && (
-          <>
-            <title>{unit}</title>
-            {(() => {
-              const iconSize = R * 1.8
-              const iconX = pos.cx - iconSize / 2
-              const iconY = pos.cy - iconSize / 2
-              return (
-                <image
-                  href={unitPortraitPrimaryUrl(unit)}
-                  x={iconX}
-                  y={iconY}
-                  width={iconSize}
-                  height={iconSize}
-                  clipPath={`url(#hex-clip-${HEX_POSITIONS.indexOf(pos)})`}
-                  preserveAspectRatio="xMidYMid slice"
-                />
-              )
-            })()}
-          </>
-        )}
-      </>
-    )
-  }
 
   /* ─── Board renderer ─── */
   const renderBoard = (boardArr: (string | null)[], isEnemy: boolean) => {
@@ -607,8 +621,9 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
 
           {HEX_POSITIONS.map((pos, idx) => {
             const unit  = boardArr[idx]
-            const uData_iter = unit ? roster.find(x => x.name === unit) ?? null : null
+            const uData_iter = unit ? rosterMap.get(unit) ?? null : null
             const isSrc  = dragItem?.board === bName && dragItem?.idx === idx
+            const isOver = dragTarget?.board === bName && dragTarget?.idx === idx
 
             return (
               <g
@@ -619,7 +634,16 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
                   opacity: isSrc ? 0.45 : 1,
                 }}
               >
-                <HexGlyph pos={pos} unit={unit} uData={uData_iter} boardName={bName} />
+                <HexGlyph
+                  pos={pos}
+                  idx={idx}
+                  unit={unit}
+                  uData={uData_iter}
+                  boardName={bName}
+                  isSrc={isSrc}
+                  isOver={isOver}
+                  showNames={showNames}
+                />
                 {/* Transparent click overlay - captures all clicks */}
                 <polygon
                   points={hexPts(pos.cx, pos.cy)}
@@ -783,38 +807,30 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
               data-no-global-search-focus="true"
               className="w-full rounded-md border border-ally-border bg-ally-bg px-2.5 py-1.5 font-sans text-xs text-ally-text outline-none transition-colors duration-200 placeholder:text-ally-muted focus-visible:ring-2 focus-visible:ring-ally-accent"
             />
-            {(() => {
-              const q = unitFindQuery.trim().toLowerCase()
-              const matchUnit = (u: (typeof roster)[number]) =>
-                !q ||
-                u.name.toLowerCase().includes(q) ||
-                u.traits.some((t) => t.toLowerCase().includes(q)) ||
-                u.id.toLowerCase().includes(q)
-              return [5, 4, 3, 2, 1].map((cost) => {
-                const costUnits = roster.filter((u) => u.cost === cost).filter(matchUnit)
-                if (costUnits.length === 0) return null
-                return (
-                  <div key={cost}>
-                    <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.cost[cost], marginBottom: 5 }}>
-                      ★ Cost {cost}
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                      {costUnits.map((u) => (
-                        <UnitPill
-                          key={u.id}
-                          name={u.name}
-                          traits={u.traits}
-                          cost={u.cost}
-                          placed={targetBoard.includes(u.name)}
-                          onClick={() => handleUnitClick(u.name)}
-                          iconUrl={u.iconUrl}
-                        />
-                      ))}
-                    </div>
+            {groupedUnits.map(({ cost, units }) => {
+              if (units.length === 0) return null
+              const currentBoardSet = unitPanelBoard === 'player' ? pBoardSet : eBoardSet
+              return (
+                <div key={cost}>
+                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.cost[cost], marginBottom: 5 }}>
+                    ★ Cost {cost}
                   </div>
-                )
-              })
-            })()}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {units.map((u) => (
+                      <UnitPill
+                        key={u.id}
+                        name={u.name}
+                        traits={u.traits}
+                        cost={u.cost}
+                        placed={currentBoardSet.has(u.name)}
+                        onClick={() => handleUnitClick(u.name)}
+                        iconUrl={u.iconUrl}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}

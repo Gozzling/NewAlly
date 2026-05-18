@@ -34,7 +34,7 @@ export function runRecommendationEngine(
   contextData?: { champions?: Unit[]; traits?: Synergy[] },
 ): AllyRecommendation[] {
   const combined = [
-    ...shopRecommendations(input, nowMs, contextData),
+    ...shopRecommendations(input, nowMs),
     ...itemRecommendations(input, nowMs),
     ...compRecommendations(input, nowMs),
     ...economyRecommendations(input, nowMs),
