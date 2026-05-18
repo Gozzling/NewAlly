@@ -28,6 +28,8 @@ export function QuickTips() {
   return (
     <div
       className={`text-[11px] font-body leading-tight text-ally-muted min-h-[42px] flex items-center transition-opacity duration-200 ease-out ${fadeState === 'in' ? 'opacity-100' : 'opacity-0'}`}
+      aria-live="polite"
+      role="status"
     >
       {TIPS[currentTip]}
     </div>
