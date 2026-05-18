@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { fetchMatchIds } from './riotApiClient'
 
 const { fetchMatchIdsSupabaseMock } = vi.hoisted(() => ({
   fetchMatchIdsSupabaseMock: vi.fn(),
