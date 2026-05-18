@@ -17,9 +17,22 @@ const VALID_REGIONS = new Set([
 const VALID_CONTINENTS = new Set(["americas", "europe", "asia", "sea"]);
 
 export function validateRegion(region: string): string {
+  if (!region || region.length > 12) {
+    throw new RiotError(`Invalid region length: ${region}`, "BAD_REQUEST", 400);
+  }
   const r = region.toLowerCase();
   if (VALID_REGIONS.has(r) || VALID_CONTINENTS.has(r)) return r;
   throw new RiotError(`Invalid region: ${region}`, "BAD_REQUEST", 400);
+}
+
+export function validateSummonerName(name: string): void {
+  if (!name || name.length > 16) {
+    throw new RiotError("Invalid summoner name length", "BAD_REQUEST", 400);
+  }
+  // Defense-in-depth: Block control characters and other suspicious patterns
+  if (/[\x00-\x1F\x7F]/.test(name)) {
+    throw new RiotError("Invalid characters in summoner name", "BAD_REQUEST", 400);
+  }
 }
 
 export function validateRiotId(gameName: string, tagLine: string): void {
@@ -28,6 +41,10 @@ export function validateRiotId(gameName: string, tagLine: string): void {
   }
   if (!tagLine || tagLine.length > 5) {
     throw new RiotError("Invalid tagLine length", "BAD_REQUEST", 400);
+  }
+  // Defense-in-depth: Block control characters
+  if (/[\x00-\x1F\x7F]/.test(gameName) || /[\x00-\x1F\x7F]/.test(tagLine)) {
+    throw new RiotError("Invalid characters in Riot ID", "BAD_REQUEST", 400);
   }
 }
 
@@ -118,7 +135,7 @@ export async function riotAccountFetch(
   if (res.status === 404) throw new RiotError("Player not found", "NOT_FOUND", 404);
   if (res.status === 403) throw new RiotError("Invalid API key", "FORBIDDEN", 403);
   if (!res.ok) throw new RiotError(`Riot API error ${res.status}`, "API_ERROR", res.status);
-  return res.json();
+  return (await res.json()) as { puuid: string; gameName: string; tagLine: string };
 }
 
 export async function riotPlatformFetch<T>(
@@ -208,6 +225,10 @@ export function jsonResponse(data: unknown, status = 200): Response {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+      // Security enhancements for defense-in-depth
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+      "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'; sandbox",
     },
   });
 }
