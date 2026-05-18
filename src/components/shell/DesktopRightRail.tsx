@@ -8,7 +8,7 @@ import { useAppStore } from '@/store/useAppStore'
 type ServerStatus = 'online' | 'issues' | 'offline' | 'unknown'
 
 const SIDE_CARD =
-  'rounded-lg border border-ally-border bg-ally-bg p-3 shadow-card'
+  'rounded-lg bg-ally-bg p-3 shadow-card'
 
 function normName(name: string | undefined | null): string {
   if (!name) return ''
@@ -96,7 +96,7 @@ export function DesktopRightRail({ serverStatus }: { serverStatus: ServerStatus 
 
   return (
     <aside
-      className="custom-scrollbar flex w-[200px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-ally-border bg-ally-card px-3 py-3"
+      className="custom-scrollbar flex w-[200px] shrink-0 flex-col gap-3 overflow-y-auto bg-ally-card px-3 py-3"
       aria-label="Session sidebar"
     >
       <section className="w-full min-w-0">
@@ -142,7 +142,7 @@ export function DesktopRightRail({ serverStatus }: { serverStatus: ServerStatus 
                   </p>
                 )}
               </div>
-              <div className="mt-3 flex items-center justify-between border-t border-ally-border pt-2">
+              <div className="mt-3 flex items-center justify-between pt-2">
                 <span className="font-mono text-[9px] uppercase tracking-wider text-ally-muted">Avg (local)</span>
                 {idbLoading ? (
                   <Skeleton className="h-5 w-10 rounded" />
