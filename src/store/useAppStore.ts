@@ -8,6 +8,7 @@ import type { Synergy } from "../data/synergies";
 import type { Augment } from "../data/augments";
 import type { ItemGuideEntry } from "../data/itemGuideCatalog";
 import { getSetData, type TFTSetData } from "../services/cdnDataService";
+import { resetAugmentResolverCache } from "../lib/augmentResolver";
 import { invalidateSearchCorpus } from "../utils/searchSuggestions";
 import { CURRENT_TFT_SET_NUMBER } from "../meta/tftCurrentSet";
 import type { PersonalMatchRecord } from "../services/indexedDbService";
@@ -459,6 +460,7 @@ export const useAppStore = create<AppState>(
 
     setGameData: (data: TFTSetData, source: "cdn" | "bundled") => {
       invalidateSearchCorpus();
+      resetAugmentResolverCache();
       set(() => ({
         gameData: {
           setNumber: data.setNumber,

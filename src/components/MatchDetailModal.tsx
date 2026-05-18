@@ -1,4 +1,5 @@
 import type { Match } from '../types/riot'
+import { resolveAugmentDisplayName } from '@/lib/augmentResolver'
 import { X, Clock, Trophy, Swords, Shield, Zap, Users } from 'lucide-react'
 
 interface MatchDetailModalProps {
@@ -88,7 +89,7 @@ export function MatchDetailModal({ match, onClose }: MatchDetailModalProps) {
             <div className="flex flex-wrap gap-1.5">
               {match.augments.map((a) => (
                 <span key={a} className="px-2 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-md text-xs text-yellow-400">
-                  {a.split('_').pop() ?? a}
+                  {resolveAugmentDisplayName(a)}
                 </span>
               ))}
             </div>

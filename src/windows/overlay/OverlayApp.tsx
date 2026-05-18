@@ -7,6 +7,7 @@ import { OverlayItemPanel } from './components/OverlayItemPanel'
 import { OverlayMiniBoard } from './components/OverlayMiniBoard'
 import { OverlayShopGuide } from './components/OverlayShopGuide'
 import { OverlayCoachPanel } from './components/OverlayCoachPanel'
+import { OverlayAugmentRecommendations } from './components/OverlayAugmentRecommendations'
 import { useOverlayRecommendations } from '@/hooks/useOverlayRecommendations'
 import type { TftGameState } from '@/types/tft'
 
@@ -68,6 +69,7 @@ export function OverlayApp() {
       </div>
       <div className="absolute top-14 left-0 w-64 flex flex-col gap-2 p-2 font-sans text-xs pointer-events-none">
         <OverlayCoachPanel recommendations={recommendations} />
+        <OverlayAugmentRecommendations gameState={state} />
         <OverlayCompTracker />
         <OverlayTraitPanel />
         <OverlayMiniBoard />

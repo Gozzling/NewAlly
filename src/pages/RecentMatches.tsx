@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import { fetchPlayerMatchHistoryViaPipeline } from '@/services/matchHistoryService'
 import type { Match } from '@/types/riot'
+import { resolveAugmentDisplayName } from '@/lib/augmentResolver'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -321,7 +322,7 @@ function MatchCard({ match }: { match: Match }) {
                 whiteSpace: 'nowrap',
               }}
             >
-              {augment}
+              {resolveAugmentDisplayName(augment)}
             </span>
           ))}
           {match.augments.length > 3 && (

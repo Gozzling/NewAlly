@@ -91,7 +91,10 @@ export type TFTAugmentTier = 'silver' | 'gold' | 'prismatic' | 'unknown'
 export interface TFTStaticAugment extends TFTStaticIconFields {
   apiName: string
   name: string
+  /** Stripped description (legacy); prefer rawDescription + formatTftText at read time */
   description: string
+  /** Raw TFT string with @placeholders@ preserved */
+  rawDescription?: string
   tier: TFTAugmentTier
   associatedTraits: string[]
   effects: Record<string, number>

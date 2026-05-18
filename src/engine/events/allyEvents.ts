@@ -5,6 +5,8 @@ export const ALLY_EVENT_KINDS = [
   "pipeline_gep_status",
   "pipeline_error",
   "capture_status",
+  "augment_unresolved",
+  "entity_unresolved",
 ] as const;
 
 export type AllyEventKind = (typeof ALLY_EVENT_KINDS)[number];
@@ -32,5 +34,24 @@ export type AllyAppEvent =
       kind: "capture_status";
       running: boolean;
       framesThisSession: number;
+      timestampMs: number;
+    }
+  | {
+      kind: "augment_unresolved";
+      identifier: string;
+      source: string;
+      patch: string;
+      set: number;
+      context: string | null;
+      timestampMs: number;
+    }
+  | {
+      kind: "entity_unresolved";
+      entityType: string;
+      identifier: string;
+      source: string;
+      patch: string;
+      set: number;
+      context: string | null;
       timestampMs: number;
     };

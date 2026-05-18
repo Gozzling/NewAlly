@@ -14,6 +14,8 @@ import {
 } from "@/hooks/useCoachMatchHistory";
 import { CURRENT_TFT_SET_NUMBER, STATIC_META_VERSION } from "@/meta/tftCurrentSet";
 import { broadcastCoachMatchHistorySummary } from "@/services/coachBroadcast";
+import { AugmentRecommendationsPanel } from "@/components/AugmentRecommendationsPanel";
+import { useStabilizedOverlayIntent } from "@/hooks/useIntentAugmentRecommendations";
 import { fetchPlayerMatchHistoryForSet } from "@/services/matchHistoryService";
 import { useAppStore } from "@/store/useAppStore";
 import type { TftGameState } from "@/types/tft";
@@ -62,6 +64,7 @@ export function OverlayCoachTips() {
 
   const [expanded, setExpanded] = useState(true);
   const [cacheEpoch, setCacheEpoch] = useState(0);
+  const overlayIntent = useStabilizedOverlayIntent(debouncedGameState);
 
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
@@ -142,14 +145,27 @@ export function OverlayCoachTips() {
           <span>Coach Intelligence</span>
         </button>
         {expanded ? (
-          <ul className="space-y-1.5">
-            {recs.map((r) => (
-              <li key={r.id} className="text-[9px] leading-snug text-ally-text-dim border-l-2 border-ally-accent/50 pl-2 py-0.5">
-                <span className="font-display font-bold text-ally-text uppercase tracking-wide">{r.title}</span>
-                <span className="block text-ally-muted mt-0.5 font-medium">{r.detail}</span>
-              </li>
-            ))}
-          </ul>
+          <div className="space-y-2">
+            <ul className="space-y-1.5">
+              {recs.map((r) => (
+                <li key={r.id} className="text-[9px] leading-snug text-ally-text-dim border-l-2 border-ally-accent/50 pl-2 py-0.5">
+                  <span className="font-display font-bold text-ally-text uppercase tracking-wide">{r.title}</span>
+                  <span className="block text-ally-muted mt-0.5 font-medium">{r.detail}</span>
+                </li>
+              ))}
+            </ul>
+            {debouncedGameState.isInGame ? (
+              <AugmentRecommendationsPanel
+                intent={overlayIntent.primary}
+                blendedIntent={overlayIntent}
+                compact
+                compressionMode
+                gameState={debouncedGameState}
+                surface="coach"
+                limit={3}
+              />
+            ) : null}
+          </div>
         ) : null}
       </div>
     </div>

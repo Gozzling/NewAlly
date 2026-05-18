@@ -5,6 +5,7 @@ import { useAppStore } from '../store/useAppStore'
 import { fetchPlayerCard } from '../services/riotApiClient'
 import { fetchEnrichedPlayerMatchHistory } from '../services/matchHistoryService'
 import { canonicalToLegacyMatch } from '@/domain/legacyAdapter'
+import { resolveAugmentDisplayName } from '@/lib/augmentResolver'
 import { useEnrichedPersonalMatches } from '../hooks/useEnrichedPersonalMatches'
 import { PersonalMatchList } from '@/components/PersonalMatchList'
 import { getPersonalMatches } from '../services/indexedDbService'
@@ -237,7 +238,7 @@ export function PlayerAnalytics() {
                       className="bg-[#181818] border border-[#2a2a2a] rounded-lg p-2.5 text-center"
                       style={{ borderColor: `rgba(53,195,231,${0.2 + intensity * 0.5})` }}
                     >
-                      <div className="text-[11px] text-neutral-300 truncate">{a.augment.split('_').pop()}</div>
+                      <div className="text-[11px] text-neutral-300 truncate">{resolveAugmentDisplayName(a.augment)}</div>
                       <div className="text-xs text-[#35c3e7] font-semibold mt-1">{a.count}x</div>
                     </div>
                   )

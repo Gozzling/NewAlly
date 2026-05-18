@@ -2,6 +2,7 @@ import type { CanonicalMatch } from "@ally/shared-types";
 import type { PersonalMatchRecord } from "@/services/indexedDbService";
 import { detectCompFromUnits } from "@/shared/gameEngine";
 import { collectMatchAugmentsFromRecord } from "./augmentCollect";
+import { augmentSlotFromIdentifier } from "./augmentSnapshot";
 import { inferTraitsFromUnitNames } from "./inferTraits";
 import { toCanonicalUnitSlots } from "./matchUnits";
 
@@ -46,13 +47,9 @@ export function normalizePersonalMatch(record: PersonalMatchRecord): CanonicalMa
     summonerName: record.summonerName ?? null,
     region: record.region ?? null,
     units: toCanonicalUnitSlots(unitsFromNames),
-    augments: collectMatchAugmentsFromRecord(record).map((displayName) => ({
-      rawId: null,
-      displayName,
-      iconUrl: null,
-      tier: null,
-      knownInCatalog: false,
-    })),
+    augments: collectMatchAugmentsFromRecord(record).map((displayName) =>
+      augmentSlotFromIdentifier(null, displayName),
+    ),
     traits: inferTraitsFromUnitNames(unitNames),
     syncStatus: record.syncStatus,
   };

@@ -1,7 +1,7 @@
-import { AUGMENTS } from "@/data/augments";
 import { ITEM_RECIPES } from "@/data/itemRecipes";
 import { SYNERGIES } from "@/data/synergies";
 import { UNITS } from "@/data/units";
+import { resolveAugment, resolveAugmentByCanonicalId } from "@/lib/augmentResolver";
 import { augmentIconUrl } from "@/utils/augmentDisplay";
 import { itemIconUrl } from "@/utils/itemDisplay";
 import { unitIconUrl, unitMatchKey } from "@/utils/unitDisplay";
@@ -35,7 +35,6 @@ export type ItemCatalogEntry = {
 
 export type AllyCatalog = {
   unitsByKey: Map<string, UnitCatalogEntry>;
-  augmentsByKey: Map<string, AugmentCatalogEntry>;
   traitsByKey: Map<string, TraitCatalogEntry>;
   itemsByKey: Map<string, ItemCatalogEntry>;
 };
@@ -59,21 +58,6 @@ function buildUnitsMap(): Map<string, UnitCatalogEntry> {
       iconUrl: unitIconUrl(u.name),
     };
     map.set(unitMatchKey(u.name), entry);
-  }
-  return map;
-}
-
-function buildAugmentsMap(): Map<string, AugmentCatalogEntry> {
-  const map = new Map<string, AugmentCatalogEntry>();
-  for (const a of AUGMENTS) {
-    const entry: AugmentCatalogEntry = {
-      id: a.id,
-      name: a.name,
-      tier: a.tier,
-      iconUrl: augmentIconUrl(a.name),
-    };
-    map.set(unitMatchKey(a.name), entry);
-    map.set(unitMatchKey(a.id), entry);
   }
   return map;
 }
@@ -109,7 +93,6 @@ export function getAllyCatalog(): AllyCatalog {
   if (!cachedCatalog) {
     cachedCatalog = {
       unitsByKey: buildUnitsMap(),
-      augmentsByKey: buildAugmentsMap(),
       traitsByKey: buildTraitsMap(),
       itemsByKey: buildItemsMap(),
     };
@@ -122,8 +105,16 @@ export function lookupUnit(name: string): UnitCatalogEntry | null {
 }
 
 export function lookupAugment(nameOrId: string): AugmentCatalogEntry | null {
-  const key = unitMatchKey(nameOrId);
-  return getAllyCatalog().augmentsByKey.get(key) ?? null;
+  const resolved =
+    resolveAugmentByCanonicalId(nameOrId, { silent: true }) ??
+    resolveAugment(nameOrId, { silent: true });
+  if (!resolved) return null;
+  return {
+    id: resolved.canonicalId,
+    name: resolved.name,
+    tier: (resolved.tier ?? "gold") as AugmentTierLabel,
+    iconUrl: resolved.iconUrl ?? augmentIconUrl(resolved.name),
+  };
 }
 
 export function lookupTrait(rawId: string): TraitCatalogEntry & { knownInCatalog: boolean } {

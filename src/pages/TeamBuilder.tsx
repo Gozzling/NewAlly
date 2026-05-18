@@ -16,6 +16,7 @@ import {
   recommendationsFromGameState,
   type AllyRecommendation,
 } from '@/engine/recommendations'
+import { AugmentRecommendationsPanel } from '@/components/AugmentRecommendationsPanel'
 import { useAppStore } from '@/store/useAppStore'
 import type { MetaComp } from '@/types/tft'
 
@@ -808,7 +809,10 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
                 No suggestions right now.
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {pBoardUnits > 0 && (
+                  <AugmentRecommendationsPanel intent="stabilization" surface="team_builder" limit={3} compact />
+                )}
                 {coachRecs.map((rec, ri) => {
                   const uCol = coachUrgencyAccent(rec.urgency)
                   return (

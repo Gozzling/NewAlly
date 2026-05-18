@@ -30,7 +30,14 @@ export interface CanonicalUnitSlot {
 /** Normalized augment pick. */
 export interface CanonicalAugmentSlot {
   rawId: string | null;
+  /** Snapshot label at match capture time — preferred for historical display */
   displayName: string;
+  /** Stable internal id for analytics / patch-safe resolution */
+  canonicalId: string | null;
+  /** TFT set number when the match was recorded */
+  set: number | null;
+  /** Game patch when the match was recorded (e.g. "17.1") */
+  patch: string | null;
   iconUrl: string | null;
   tier: AugmentTierLabel | null;
   knownInCatalog: boolean;

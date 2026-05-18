@@ -1,11 +1,16 @@
 import { useMemo, useState } from 'react'
+import { AugmentRecommendationsPanel } from '@/components/AugmentRecommendationsPanel'
 import { GameIcon } from '@/components/GameIcon'
 import { augmentIconUrl } from '@/utils/augmentDisplay'
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { useTFTData } from '@/hooks/useTFTData'
-import { buildAugmentGuideEntries, type AugmentGuideEntry } from '@/lib/tftStaticMappers'
+import { listCanonicalAugments } from '@/lib/augmentResolver'
+import { toGuideAugment, type GuideAugment } from '@/lib/augmentProjections'
+import { useAppStore } from '@/store/useAppStore'
 import { TFTStaticDataBanner } from '@/components/TFTStaticDataBanner'
+import type { RecommendationIntent } from '@/types/recommendationIntent'
+import { recordRecommendationEvaluation } from '@/engine/recommendations/evaluation'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -25,7 +30,7 @@ const TIER_COLORS: Record<string, { text: string; bg: string; border: string; ac
   silver: { text: '#9aa4af', bg: 'rgba(154, 164, 175, 0.1)', border: 'rgba(154, 164, 175, 0.3)', accent: '#9aa4af', glow: 'none' }
 }
 
-type Augment = AugmentGuideEntry
+type Augment = GuideAugment
 
 const AUGMENTS_PLACEHOLDER_FALLBACK = ['Gold', 'Silver', 'Combat']
 
@@ -41,8 +46,13 @@ interface AugmentGuideProps {
 
 export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFilter, setTagFilter, onAugmentSelect }: AugmentGuideProps) {
   const tft = useTFTData()
-  const augments = useMemo(() => buildAugmentGuideEntries(tft), [tft])
+  const gameDataVersion = useAppStore((s) => s.gameData.lastUpdated)
+  const augments = useMemo(
+    () => listCanonicalAugments().map(toGuideAugment),
+    [gameDataVersion],
+  )
   const [selectedAugment, setSelectedAugment] = useState<Augment | null>(null)
+  const [recoIntent, setRecoIntent] = useState<RecommendationIntent>('stabilization')
 
   const placeholderWords = useMemo(
     () => augments.slice(0, 10).map((a) => a.name),
@@ -78,7 +88,22 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
   }, [query, tierFilter, tagFilter, augments])
 
   const handleAugmentClick = (augment: Augment) => {
+    recordRecommendationEvaluation({
+      type: 'guide_augment_opened',
+      canonicalId: augment.canonicalId,
+      intent: recoIntent,
+      surface: 'guide',
+    })
     setSelectedAugment(augment)
+  }
+
+  const handleRecoIntentChange = (next: RecommendationIntent) => {
+    recordRecommendationEvaluation({
+      type: 'guide_intent_changed',
+      intent: next,
+      surface: 'guide',
+    })
+    setRecoIntent(next)
   }
 
   const handleBack = () => {
@@ -186,6 +211,14 @@ export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFi
         animation: 'contentEnter 0.3s cubic-bezier(0.25, 1, 0.5, 1) 0.15s both',
       }}>
         <TFTStaticDataBanner meta={tft.meta} count={filtered.length} label="augments" />
+        <AugmentRecommendationsPanel
+          intent={recoIntent}
+          onIntentChange={handleRecoIntentChange}
+          showIntentPicker
+          surface="guide"
+          limit={5}
+          className="mb-4"
+        />
         <div className="grid grid-cols-2 gap-3">
           {filtered.map((augment, index) => (
             <AugmentCard

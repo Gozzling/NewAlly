@@ -1,6 +1,6 @@
 import type { CanonicalMatch } from "@ally/shared-types";
-import { lookupAugment, lookupItem, lookupTrait, lookupUnit } from "@/domain/catalog/buildCatalog";
-import { augmentIconUrl } from "@/utils/augmentDisplay";
+import { enrichAugmentSlot } from "@/lib/augmentResolver";
+import { lookupItem, lookupTrait, lookupUnit } from "@/domain/catalog/buildCatalog";
 
 export function enrichCanonicalMatch(match: CanonicalMatch): CanonicalMatch {
   return {
@@ -27,18 +27,12 @@ export function enrichCanonicalMatch(match: CanonicalMatch): CanonicalMatch {
         }),
       };
     }),
-    augments: match.augments.map((aug) => {
-      const catalog =
-        lookupAugment(aug.displayName) ??
-        (aug.rawId ? lookupAugment(aug.rawId) : null);
-      return {
-        ...aug,
-        displayName: catalog?.name ?? aug.displayName,
-        iconUrl: catalog?.iconUrl ?? aug.iconUrl ?? augmentIconUrl(aug.displayName),
-        tier: catalog?.tier ?? aug.tier,
-        knownInCatalog: Boolean(catalog),
-      };
-    }),
+    augments: match.augments.map((aug) =>
+      enrichAugmentSlot(aug, {
+        set: aug.set ?? undefined,
+        patch: aug.patch ?? undefined,
+      }),
+    ),
     traits: match.traits.map((trait) => {
       const catalog = lookupTrait(trait.rawId);
       return {

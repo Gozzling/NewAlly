@@ -1,4 +1,5 @@
 import type { Match } from '../types/riot'
+import { resolveAugmentDisplayName } from '@/lib/augmentResolver'
 import { useState } from 'react'
 
 interface MatchTableProps {
@@ -40,7 +41,7 @@ export function MatchTable({ matches }: MatchTableProps) {
             </span>
             <span className="text-xs text-neutral-300 truncate">{m.comp ?? 'Mixed'}</span>
             <span className="text-[11px] text-[#a1a1a1] truncate">
-              {m.augments.slice(0, 2).map((a) => a.split('_').pop()).join(', ')}
+              {m.augments.slice(0, 2).map((a) => resolveAugmentDisplayName(a)).join(', ')}
             </span>
             <span className="text-[11px] text-[#a1a1a1] text-right">
               {m.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
@@ -63,7 +64,7 @@ export function MatchTable({ matches }: MatchTableProps) {
                 <div className="flex flex-wrap gap-1">
                   {m.augments.map((a) => (
                     <span key={a} className="px-1.5 py-0.5 bg-[#1f1f1f] border border-[#2a2a2a] rounded text-[11px] text-neutral-300">
-                      {a.split('_').pop() ?? a}
+                      {resolveAugmentDisplayName(a)}
                     </span>
                   ))}
                 </div>

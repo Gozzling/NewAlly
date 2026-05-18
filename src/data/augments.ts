@@ -16,6 +16,11 @@ export interface Augment {
   tags: string[]
   /** When set, raw CD HUD path resolved to a PNG on raw.communitydragon.org */
   iconUrl?: string
+  /** Riot / CDN apiName — used by canonical augment resolver */
+  apiName?: string
+  /** Unformatted description with TFT placeholders — prefer resolver formatting */
+  rawDescription?: string
+  effects?: Record<string, number>
 }
 
 export const AUGMENTS: Augment[] = [

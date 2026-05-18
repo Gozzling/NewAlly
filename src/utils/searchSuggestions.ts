@@ -1,3 +1,5 @@
+import { listCanonicalAugments } from '@/lib/augmentResolver'
+import { toSearchAugment } from '@/lib/augmentProjections'
 import { useAppStore } from '@/store/useAppStore'
 import { BUNDLED_SET_DATA } from '@/services/cdnDataService'
 import {
@@ -53,7 +55,6 @@ function buildCorpus(): SearchSuggestion[] {
   const { gameData } = useAppStore.getState()
   const champions = gameData.champions.length > 0 ? gameData.champions : BUNDLED_SET_DATA.champions
   const traits = gameData.traits.length > 0 ? gameData.traits : BUNDLED_SET_DATA.traits
-  const augments = gameData.augments.length > 0 ? gameData.augments : BUNDLED_SET_DATA.augments
   const guideItems = gameData.items.length > 0 ? gameData.items : BUNDLED_SET_DATA.items
 
   const out: SearchSuggestion[] = []
@@ -153,11 +154,11 @@ function buildCorpus(): SearchSuggestion[] {
     out.push({ kind: 'trait', id: s.id, label: s.name, group, groupIcon })
   }
 
-  for (const a of augments) {
+  for (const a of listCanonicalAugments().map(toSearchAugment)) {
     out.push({
       kind: 'augment',
-      id: a.id,
-      label: a.name,
+      id: a.apiName,
+      label: a.label,
       group: 'Augments',
       groupIcon: '🌀',
     })

@@ -206,22 +206,28 @@ export function buildGodBoonGuideEntries(catalog: TFTDataCatalog): GodBoonGuideE
 }
 
 export function buildAugmentGuideEntries(catalog: TFTDataCatalog): AugmentGuideEntry[] {
-  return catalog.augments.map((aug: TFTStaticAugment) => ({
-    id: aug.apiName,
-    apiName: aug.apiName,
-    name: aug.name,
-    tier: mapAugmentTier(aug.tier),
-    description: aug.description,
-    effect: aug.description,
-    bestComps: [],
-    pickRate: 0,
-    winRate: 0,
-    avgPlacement: 0,
-    synergies: aug.associatedTraits,
-    counters: [],
-    tags: [aug.tier, 'augment'],
-    iconUrl: gameIconDisplayUrl(aug.iconUrl, augmentIconUrl(aug.name)),
-  }))
+  return catalog.augments.map((aug: TFTStaticAugment) => {
+    const raw = aug.rawDescription ?? aug.description
+    const formatted = formatTftText(raw, aug.effects)
+    const description = formatted?.trim() ? formatted : aug.description
+    const effect = (description || aug.name).slice(0, 160)
+    return {
+      id: aug.apiName,
+      apiName: aug.apiName,
+      name: aug.name,
+      tier: mapAugmentTier(aug.tier),
+      description,
+      effect,
+      bestComps: [],
+      pickRate: 0,
+      winRate: 0,
+      avgPlacement: 0,
+      synergies: aug.associatedTraits,
+      counters: [],
+      tags: [aug.tier, 'augment'],
+      iconUrl: gameIconDisplayUrl(aug.iconUrl, augmentIconUrl(aug.name)),
+    }
+  })
 }
 
 function formatThresholdEffect(tr: TFTStaticTrait, minUnits: number): string {

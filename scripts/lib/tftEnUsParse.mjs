@@ -25,7 +25,8 @@ const TRAIT_EXCLUDE = [
   { display: "Stargazer", apiSuffix: "TFT17_Stargazer" },
 ]
 
-export function stripGameText(html) {
+/** Strip HTML/icons only — keep @placeholders@ for formatTftText at read time. */
+export function stripHtmlKeepPlaceholders(html) {
   return String(html || "")
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<expandRow>[\s\S]*?<\/expandRow>/gi, "")
@@ -33,14 +34,19 @@ export function stripGameText(html) {
     .replace(/<\/row>/gi, "")
     .replace(/<[^>]+>/g, "")
     .replace(/%i:[A-Za-z0-9_]+%/gi, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/ {2,}/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim()
+}
+
+export function stripGameText(html) {
+  return stripHtmlKeepPlaceholders(html)
     .replace(/@TFTUnitProperty\.trait:[^@]+@/gi, "")
     .replace(/\(@MinUnits@\)/g, "")
     .replace(/@[A-Za-z0-9_*]+@/g, "")
-    .replace(/&nbsp;/gi, " ")
     .replace(/\s*%\s+/g, " ")
     .replace(/\s+%/g, " ")
-    .replace(/ {2,}/g, " ")
-    .replace(/\n{3,}/g, "\n\n")
     .trim()
 }
 
@@ -446,6 +452,7 @@ export function parseAugments(enUs, setNumber) {
   const augments = []
   for (const item of enUs.items || []) {
     if (!shouldIncludeAugment(item, setNumber)) continue
+    const rawDescription = stripHtmlKeepPlaceholders(item.desc)
     augments.push({
       ...baseRecord({
         apiName: item.apiName,
@@ -453,6 +460,7 @@ export function parseAugments(enUs, setNumber) {
         description: item.desc,
         iconPath: item.icon,
       }),
+      rawDescription,
       tier: augmentTier(item),
       associatedTraits: item.associatedTraits || [],
       effects: item.effects || {},

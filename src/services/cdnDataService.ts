@@ -441,17 +441,22 @@ export function transformAugments(augmentApiNames: string[], itemsByApi: Map<str
     if (!row) continue
     if (!isAugmentRow(row)) continue
     const id = `aug_${apiName.replace(/[^a-zA-Z0-9]+/g, "_").toLowerCase()}`
-    const description = formatTftText(row.desc || row.name || "", row.effects)
-    let name = formatTftText(row.name || "", row.effects)
-    if (!name || /@/.test(name)) name = formatTftText(row.desc || "", row.effects)
+    const rawDescription = row.desc || row.name || ""
+    const effects = row.effects as Record<string, number> | undefined
+    const description = formatTftText(rawDescription, effects)
+    let name = formatTftText(row.name || "", effects)
+    if (!name || /@/.test(name)) name = formatTftText(row.desc || "", effects)
     if (!name || /@/.test(name)) name = humanizeAugmentApiName(apiName)
     const effect = (description || name).slice(0, 160)
     const iconUrl = cdGameAssetUrl(row.icon)
     out.push({
       id,
+      apiName,
       name,
       tier: inferAugmentTier(apiName, name),
       description: description || name,
+      rawDescription,
+      effects,
       effect: effect || "—",
       bestComps: [],
       pickRate: 0,

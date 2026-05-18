@@ -1,6 +1,6 @@
 import type { CanonicalMatch, CanonicalTraitSlot } from "@ally/shared-types";
 import type { Match, MatchDetail, TftParticipant } from "@/types/riot";
-import { normalizeAugmentDisplayName } from "@/shared/augmentParse";
+import { augmentSlotFromIdentifier } from "./augmentSnapshot";
 import { legacyTraitNamesToSlots } from "./inferTraits";
 import { toCanonicalUnitSlots } from "./matchUnits";
 
@@ -58,18 +58,8 @@ function participantToCanonical(
     region: null,
     units,
     augments: (participant.augments ?? [])
-      .map((rawId) => {
-        const displayName = normalizeAugmentDisplayName(rawId);
-        if (!displayName) return null;
-        return {
-          rawId,
-          displayName,
-          iconUrl: null,
-          tier: null,
-          knownInCatalog: false,
-        };
-      })
-      .filter((slot): slot is NonNullable<typeof slot> => slot != null),
+      .map((rawId) => augmentSlotFromIdentifier(rawId))
+      .filter((slot) => slot.displayName.length > 0),
     traits,
   };
 }
@@ -130,13 +120,9 @@ export function normalizeLegacyRiotMatch(match: Match): CanonicalMatch {
     summonerName: null,
     region: null,
     units: toCanonicalUnitSlots(unitBuilds),
-    augments: (match.augments ?? []).map((displayName) => ({
-      rawId: null,
-      displayName,
-      iconUrl: null,
-      tier: null,
-      knownInCatalog: false,
-    })),
+    augments: (match.augments ?? []).map((displayName) =>
+      augmentSlotFromIdentifier(null, displayName),
+    ),
     traits,
   };
 }
