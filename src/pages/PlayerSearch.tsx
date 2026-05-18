@@ -105,12 +105,12 @@ export function PlayerSearch() {
           leftSlot={
             <Search className="pointer-events-none absolute left-3 top-1/2 z-[1] w-4 -translate-y-1/2 text-[#a1a1a1]" />
           }
-          inputClassName="w-full bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg py-2.5 pl-9 pr-3 text-sm text-white placeholder-[#a1a1a1] focus:outline-none focus:border-[#35c3e7]"
+          inputClassName="w-full bg-ally-card border border-[#2a2a2a] rounded-lg py-2.5 pl-9 pr-3 text-sm text-white placeholder-[#a1a1a1] focus:outline-none focus:border-[#35c3e7]"
         />
         <select
           value={region}
           onChange={(e) => setRegion(e.target.value as RiotRegion)}
-          className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#35c3e7]"
+          className="bg-ally-card border border-[#2a2a2a] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#35c3e7]"
         >
           {REGIONS.map((r) => (
             <option key={r.value} value={r.value}>
@@ -129,7 +129,7 @@ export function PlayerSearch() {
       </form>
 
       {recentSearches.length > 0 && !player && (
-        <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4">
+        <div className="bg-ally-card border border-[#2a2a2a] rounded-xl p-4">
           <div className="text-[10px] uppercase tracking-widest text-[#a1a1a1] mb-2 flex items-center gap-1">
             <Clock className="w-3 h-3" /> Recent Searches
           </div>
@@ -157,7 +157,7 @@ export function PlayerSearch() {
       {player && stats && (
         <>
           {/* Player card */}
-          <div className="flex items-center gap-4 bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4">
+          <div className="flex items-center gap-4 bg-ally-card border border-[#2a2a2a] rounded-xl p-4">
             <div className="w-12 h-12 bg-[#181818] rounded-full flex items-center justify-center border border-[#2a2a2a]">
               <User className="w-6 h-6 text-[#a1a1a1]" />
             </div>
@@ -185,7 +185,7 @@ export function PlayerSearch() {
 
           {/* Most played comps */}
           {stats.mostPlayedComps.length > 0 && (
-            <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4">
+            <div className="bg-ally-card border border-[#2a2a2a] rounded-xl p-4">
               <div className="text-[10px] uppercase tracking-widest text-[#a1a1a1] mb-3">Most Played Comps</div>
               <div className="space-y-2">
                 {stats.mostPlayedComps.map((c) => (

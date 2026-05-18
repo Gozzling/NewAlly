@@ -22,7 +22,7 @@ export function MatchTable({ matches }: MatchTableProps) {
   const [expanded, setExpanded] = useState<string | null>(null)
 
   return (
-    <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl overflow-hidden">
+    <div className="bg-ally-card border border-[#2a2a2a] rounded-xl overflow-hidden">
       <div className="grid grid-cols-[60px_1fr_1fr_100px] gap-2 px-4 py-2.5 text-caption uppercase tracking-widest text-ally-muted font-display font-bold border-b border-[#2a2a2a]">
         <span>#</span>
         <span>Comp</span>
@@ -53,7 +53,7 @@ export function MatchTable({ matches }: MatchTableProps) {
                 <div className="text-caption uppercase tracking-widest text-ally-muted mb-1 font-display font-bold">Units</div>
                 <div className="flex flex-wrap gap-1">
                   {m.units.map((u) => (
-                    <span key={u} className="px-1.5 py-0.5 bg-[#1f1f1f] border border-[#2a2a2a] rounded text-[11px] text-neutral-300">
+                    <span key={u} className="px-1.5 py-0.5 bg-ally-card border border-[#2a2a2a] rounded text-[11px] text-neutral-300">
                       {u}
                     </span>
                   ))}
@@ -63,8 +63,9 @@ export function MatchTable({ matches }: MatchTableProps) {
                 <div className="text-caption uppercase tracking-widest text-ally-muted mb-1 font-display font-bold">All Augments</div>
                 <div className="flex flex-wrap gap-1">
                   {m.augments.map((a) => (
-                    <span key={a} className="px-1.5 py-0.5 bg-[#1f1f1f] border border-[#2a2a2a] rounded text-[11px] text-neutral-300">
+                    <span key={a} className="px-1.5 py-0.5 bg-ally-card border border-[#2a2a2a] rounded text-[11px] text-neutral-300">
                       {resolveAugmentDisplayName(a)}
+                    </span>
                     </span>
                   ))}
                 </div>

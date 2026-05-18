@@ -280,7 +280,7 @@ function InGamePage() {
       {/* Game Metadata */}
       {gameData && !showingDemo && (
         <div style={{
-          background: '#1f1f1f',
+          background: 'var(--color-ally-card)',
           border: '1px solid #1a1a1a',
           borderRadius: '8px',
           padding: '12px',
@@ -381,7 +381,7 @@ function InGamePage() {
             <div
               key={i}
               style={{
-                background: '#1f1f1f',
+                background: 'var(--color-ally-card)',
                 border: '1px solid #1a1a1a',
                 borderRadius: '10px',
                 padding: '12px',
@@ -655,7 +655,7 @@ export function DesktopApp() {
       <div className="flex h-full w-full flex-col overflow-hidden bg-[#0d0d0d] font-sans text-white" style={{ '--color-ally-accent': accentColor } as React.CSSProperties}>
       {/* Top Bar */}
       <div
-        className="h-12 bg-[#1f1f1f] flex items-center px-4 flex-shrink-0 relative"
+        className="h-12 bg-[#111111] flex items-center px-4 flex-shrink-0 relative"
         style={{ WebkitAppRegion: 'drag', boxShadow: 'inset 0 -1px 2px rgba(0,0,0,0.3)' } as Record<string, string>}
       >
         {/* Left: ALLY Logo */}
@@ -745,7 +745,7 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
       {/* Body */}
       <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* Left Icon Sidebar */}
-        <div className="w-14 bg-[#1f1f1f] flex flex-col items-center py-3 gap-1 flex-shrink-0" style={{ boxShadow: 'inset -1px 0 2px rgba(0,0,0,0.3)' }}>
+        <div className="w-14 bg-[#111111] flex flex-col items-center py-3 gap-1 flex-shrink-0" style={{ boxShadow: 'inset -1px 0 2px rgba(0,0,0,0.3)' }}>
           {NAV_TABS.map((tab) => (
             <div key={tab.id} className="relative group">
               <button
@@ -755,8 +755,8 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
                 }}
                 className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ease-out focus-visible:ring-2 focus-visible:ring-[#35c3e7] hover:shadow-lg ${
                   activePage === tab.id
-                    ? 'bg-[#1a1a1a] text-[#35c3e7]'
-                    : 'text-[#555] hover:bg-[#1a1a1a] hover:text-white hover:scale-105'
+                    ? 'bg-[#1a1a1a] text-white'
+                    : 'text-white hover:bg-[#1a1a1a] hover:text-white hover:scale-105'
                 }`}
               >
                 {tab.icon}
@@ -773,8 +773,8 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
               onClick={() => setActivePage('settings')}
               className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ease-out focus-visible:ring-2 focus-visible:ring-[#35c3e7] hover:shadow-lg ${
                 activePage === 'settings'
-                  ? 'bg-[#1a1a1a] text-[#35c3e7]'
-                  : 'text-[#555] hover:bg-[#1a1a1a] hover:text-white hover:scale-105'
+                  ? 'bg-[#1a1a1a] text-white'
+                  : 'text-white hover:bg-[#1a1a1a] hover:text-white hover:scale-105'
               }`}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -788,7 +788,7 @@ className="w-8 h-8 rounded-lg flex items-center justify-center text-white hover:
           </div>
           {/* Profile */}
           <div className="relative group">
-            <button className="w-10 h-10 rounded-lg flex items-center justify-center text-[#555] hover:bg-[#1a1a1a] hover:text-white transition-colors">
+            <button className="w-10 h-10 rounded-lg flex items-center justify-center text-white hover:bg-[#1a1a1a] hover:text-white transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
                 <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />

@@ -126,13 +126,13 @@ export function PlayerAnalytics() {
             placeholder="Search summoner for analytics..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg pl-9 pr-3 py-2.5 text-sm text-white placeholder-[#a1a1a1] focus:outline-none focus:border-[#35c3e7]"
+            className="w-full bg-ally-card border border-[#2a2a2a] rounded-lg pl-9 pr-3 py-2.5 text-sm text-white placeholder-[#a1a1a1] focus:outline-none focus:border-[#35c3e7]"
           />
         </div>
         <select
           value={region}
           onChange={(e) => setRegion(e.target.value as RiotRegion)}
-          className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#35c3e7]"
+          className="bg-ally-card border border-[#2a2a2a] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#35c3e7]"
         >
           {REGIONS.map((r) => (
             <option key={r.value} value={r.value}>
@@ -174,7 +174,7 @@ export function PlayerAnalytics() {
           {/* Charts row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Win rate by comp */}
-            <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4">
+            <div className="bg-ally-card border border-[#2a2a2a] rounded-xl p-4">
               <div className="text-[10px] uppercase tracking-widest text-[#a1a1a1] mb-3">Win Rate by Comp</div>
               {compPieData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={220}>
@@ -194,7 +194,7 @@ export function PlayerAnalytics() {
                       ))}
                     </Pie>
                     <ReTooltip
-                      contentStyle={{ background: '#1f1f1f', border: '1px solid #2a2a2a', borderRadius: '8px', fontSize: '12px' }}
+                      contentStyle={{ background: 'var(--color-ally-card)', border: '1px solid #2a2a2a', borderRadius: '8px', fontSize: '12px' }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -204,7 +204,7 @@ export function PlayerAnalytics() {
             </div>
 
             {/* Placement timeline */}
-            <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4">
+            <div className="bg-ally-card border border-[#2a2a2a] rounded-xl p-4">
               <div className="text-[10px] uppercase tracking-widest text-[#a1a1a1] mb-3">Placement Timeline</div>
               {placementLineData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={220}>
@@ -213,7 +213,7 @@ export function PlayerAnalytics() {
                     <XAxis dataKey="game" stroke="#a1a1a1" tick={{ fontSize: 11 }} />
                     <YAxis domain={[1, 8]} reversed stroke="#a1a1a1" tick={{ fontSize: 11 }} />
                     <ReTooltip
-                      contentStyle={{ background: '#1f1f1f', border: '1px solid #2a2a2a', borderRadius: '8px', fontSize: '12px' }}
+                      contentStyle={{ background: 'var(--color-ally-card)', border: '1px solid #2a2a2a', borderRadius: '8px', fontSize: '12px' }}
                     />
                     <Line type="monotone" dataKey="placement" stroke="#35c3e7" strokeWidth={2} dot={{ r: 3, fill: '#35c3e7' }} />
                   </LineChart>
@@ -226,7 +226,7 @@ export function PlayerAnalytics() {
 
           {/* Augment heatmap */}
           {stats.mostPickedAugments.length > 0 && (
-            <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4">
+            <div className="bg-ally-card border border-[#2a2a2a] rounded-xl p-4">
               <div className="text-[10px] uppercase tracking-widest text-[#a1a1a1] mb-3">Top Augments</div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
                 {stats.mostPickedAugments.map((a) => {
@@ -250,7 +250,7 @@ export function PlayerAnalytics() {
       )}
 
       {/* Your top comps (from cached GEP matches) */}
-      <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4">
+      <div className="bg-ally-card border border-[#2a2a2a] rounded-xl p-4">
         <div className="text-[10px] uppercase tracking-widest text-[#a1a1a1] mb-3">Your Top Comps (evolving)</div>
         {personalMatches.length === 0 ? (
           <div className="text-sm text-[#a1a1a1]">
@@ -301,7 +301,7 @@ export function PlayerAnalytics() {
       </div>
 
       {/* Your Matches */}
-      <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4">
+      <div className="bg-ally-card border border-[#2a2a2a] rounded-xl p-4">
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="text-[10px] uppercase tracking-widest text-[#a1a1a1]">Your Matches</div>
           {incompletePersonalCount > 0 && (

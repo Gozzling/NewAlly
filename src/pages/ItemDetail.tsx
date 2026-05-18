@@ -7,7 +7,7 @@ import { IconWithFallback } from '@/components/IconWithFallback'
 /* ─── Design tokens ─── */
 const C = {
   bg:         '#181818',
-  surface:    '#1f1f1f',
+  surface:    'var(--color-ally-card)',
   border:     '#2a2a2a',
   accent:     'var(--color-ally-accent)',
   accentDim:  'color-mix(in srgb, var(--color-ally-accent) 14%, transparent)',

@@ -36,17 +36,17 @@ export function MatchDetailModal({ match, onClose }: MatchDetailModalProps) {
         <div className="p-4 space-y-4">
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg p-3 text-center">
+            <div className="bg-ally-card border border-[#2a2a2a] rounded-lg p-3 text-center">
               <Users className="w-4 h-4 text-[#35c3e7] mx-auto mb-1" />
               <div className="text-lg font-bold text-white font-numbers">{match.level}</div>
               <div className="text-caption text-ally-muted uppercase tracking-wider font-display font-bold">Level</div>
             </div>
-            <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg p-3 text-center">
+            <div className="bg-ally-card border border-[#2a2a2a] rounded-lg p-3 text-center">
               <Swords className="w-4 h-4 text-[#35c3e7] mx-auto mb-1" />
               <div className="text-lg font-bold text-white font-numbers">{match.units.length}</div>
               <div className="text-caption text-ally-muted uppercase tracking-wider font-display font-bold">Units</div>
             </div>
-            <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg p-3 text-center">
+            <div className="bg-ally-card border border-[#2a2a2a] rounded-lg p-3 text-center">
               <Clock className="w-4 h-4 text-[#35c3e7] mx-auto mb-1" />
               <div className="text-lg font-bold text-white font-numbers">{Math.round(match.gameLength / 60)}m</div>
               <div className="text-caption text-ally-muted uppercase tracking-wider font-display font-bold">Duration</div>
@@ -60,7 +60,7 @@ export function MatchDetailModal({ match, onClose }: MatchDetailModalProps) {
             </div>
             <div className="flex flex-wrap gap-1.5">
               {match.units.map((u) => (
-                <span key={u} className="px-2 py-1 bg-[#1f1f1f] border border-[#2a2a2a] rounded-md text-xs text-neutral-300">
+                <span key={u} className="px-2 py-1 bg-ally-card border border-[#2a2a2a] rounded-md text-xs text-neutral-300">
                   {u}
                 </span>
               ))}

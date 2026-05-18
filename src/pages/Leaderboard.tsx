@@ -57,12 +57,12 @@ export function Leaderboard() {
     <div className="p-5 space-y-4">
       <div className="flex items-center gap-2"><Trophy className="w-5 h-5 text-[#35c3e7]" /><h1 className="text-lg font-bold text-white">Leaderboard</h1></div>
       <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search summoner..." className="w-full bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-[#35c3e7]" /></div>
-        <select value={regionFilter} onChange={e => setRegionFilter(e.target.value)} className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#35c3e7]">
+        <div className="relative flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search summoner..." className="w-full bg-ally-card border border-[#2a2a2a] rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-[#35c3e7]" /></div>
+        <select value={regionFilter} onChange={e => setRegionFilter(e.target.value)} className="bg-ally-card border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#35c3e7]">
           <option value="all">All Regions</option><option value="NA">NA</option><option value="EUW">EUW</option><option value="KR">KR</option>
         </select>
       </div>
-      <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl overflow-hidden">
+      <div className="bg-ally-card border border-[#2a2a2a] rounded-xl overflow-hidden">
         <div className="grid grid-cols-12 gap-2 px-4 py-2 text-[10px] uppercase tracking-wider text-neutral-500 border-b border-[#2a2a2a]">
           <button onClick={() => toggleSort('rank')} className="col-span-1 flex items-center gap-1 hover:text-white">Rank <ArrowUpDown className="w-3 h-3" /></button>
           <div className="col-span-3">Summoner</div>

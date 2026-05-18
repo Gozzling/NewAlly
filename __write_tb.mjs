@@ -47,7 +47,7 @@ export function TeamBuilder(){
           <button onClick={undo} disabled={hi<=0} className="text-xs px-2 py-1 rounded bg-neutral-700 text-white disabled:opacity-40">Undo</button>
           <button onClick={redo} disabled={hi>=hist.length-1} className="text-xs px-2 py-1 rounded bg-neutral-700 text-white disabled:opacity-40">Redo</button>
           <button onClick={clear} className="text-xs px-2 py-1 rounded bg-neutral-700 text-white">Clear</button>
-          <select value={sid} onChange={e=>setSid(e.target.value)} className="text-xs bg-[#1f1f1f] border border-[#2a2a2a] text-white rounded px-2 py-1"><option value="">Load comp…</option>{savedComps.map(c=>(<option key={c.id} value={c.id}>{c.name}</option>))}</select>
+          <select value={sid} onChange={e=>setSid(e.target.value)} className="text-xs bg-ally-card border border-[#2a2a2a] text-white rounded px-2 py-1"><option value="">Load comp…</option>{savedComps.map(c=>(<option key={c.id} value={c.id}>{c.name}</option>))}</select>
           <button onClick={load} disabled={!sid} className="text-xs px-2 py-1 rounded bg-[#35c3e7]/20 text-[#35c3e7] disabled:opacity-40">Load</button>
           <button onClick={del} disabled={!sid} className="text-xs px-2 py-1 rounded bg-red-500/20 text-red-400 disabled:opacity-40">Del</button>
           <button onClick={share} disabled={!sid} className="text-xs px-2 py-1 rounded bg-[#35c3e7]/20 text-[#35c3e7] disabled:opacity-40">Share</button>
@@ -55,9 +55,9 @@ export function TeamBuilder(){
         </div>
         <div className="flex items-center gap-2">
           <button onClick={()=>setPk({t:'board',i:board.findIndex(x=>x===null)})} className="text-xs px-3 py-1 rounded bg-yellow-600 text-white font-semibold">Add Units</button>
-          <button onClick={()=>setSe(s=>!s)} className={\`text-xs px-2 py-1 rounded border \${se?'bg-yellow-600 border-yellow-600 text-white':'bg-[#1f1f1f] border-[#2a2a2a] text-neutral-400'}\`}>Enemy</button>
-          <button onClick={()=>setSn(s=>!s)} className={\`text-xs px-2 py-1 rounded border \${sn?'bg-yellow-600 border-yellow-600 text-white':'bg-[#1f1f1f] border-[#2a2a2a] text-neutral-400'}\`}>Names</button>
-          <button onClick={()=>setSt(s=>!s)} className={\`text-xs px-2 py-1 rounded border \${st?'bg-yellow-600 border-yellow-600 text-white':'bg-[#1f1f1f] border-[#2a2a2a] text-neutral-400'}\`}>Traits</button>
+          <button onClick={()=>setSe(s=>!s)} className={\`text-xs px-2 py-1 rounded border \${se?'bg-yellow-600 border-yellow-600 text-white':'bg-ally-card border-[#2a2a2a] text-neutral-400'}\`}>Enemy</button>
+          <button onClick={()=>setSn(s=>!s)} className={\`text-xs px-2 py-1 rounded border \${sn?'bg-yellow-600 border-yellow-600 text-white':'bg-ally-card border-[#2a2a2a] text-neutral-400'}\`}>Names</button>
+          <button onClick={()=>setSt(s=>!s)} className={\`text-xs px-2 py-1 rounded border \${st?'bg-yellow-600 border-yellow-600 text-white':'bg-ally-card border-[#2a2a2a] text-neutral-400'}\`}>Traits</button>
         </div>
       </div>
       {/* Board */}
@@ -94,10 +94,10 @@ export function TeamBuilder(){
         <div className="mt-1 text-center text-[10px] text-neutral-500">Total Cost: <span className="text-yellow-400 font-bold">\${cost}</span> · Units: {all.length}</div>
       </div>
       {/* Traits */}
-      <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-3">
+      <div className="bg-ally-card border border-[#2a2a2a] rounded-xl p-3">
         <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">Active Traits</div>
         <div className="flex flex-wrap gap-2">
-          {traits.map(t=>(<div key={t.name} className={\`text-xs px-2 py-1 rounded border \${t.active?'bg-[#2a2218] border-[#f0b429] text-yellow-400':'bg-[#1f1f1f] border-[#2a2a2a] text-neutral-500'}\`}>
+          {traits.map(t=>(<div key={t.name} className={\`text-xs px-2 py-1 rounded border \${t.active?'bg-[#2a2218] border-[#f0b429] text-yellow-400':'bg-ally-card border-[#2a2a2a] text-neutral-500'}\`}>
             <span className="font-semibold">{t.name}</span> <span className="ml-1">{t.count}</span>
             {t.active&&t.syn&&<span className="ml-1 text-[10px] opacity-70">{t.syn.thresholds.filter(th=>t.count>=th.count).pop()?.effect}</span>}
           </div>))}
@@ -105,12 +105,12 @@ export function TeamBuilder(){
       </div>
       {/* Augments & Components */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-3">
+        <div className="bg-ally-card border border-[#2a2a2a] rounded-xl p-3">
           <div className="flex items-center justify-between mb-2"><span className="text-xs font-semibold text-white">Augments</span><button onClick={()=>{const a=window.prompt('Augment:');if(a)setAugs([...augs,a])}} className="text-xs bg-[#35c3e7]/20 text-[#35c3e7] px-2 py-0.5 rounded">+</button></div>
           {augs.map((a,i)=>(<div key={i} className="text-xs text-neutral-300 flex justify-between items-center"><span>{a}</span><button onClick={()=>setAugs(augs.filter((_,j)=>j!==i))} className="text-red-400 text-[10px]">✕</button></div>))}
           {augs.length===0&&<div className="text-[10px] text-neutral-500">No augments added</div>}
         </div>
-        <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-3">
+        <div className="bg-ally-card border border-[#2a2a2a] rounded-xl p-3">
           <div className="flex items-center justify-between mb-2"><span className="text-xs font-semibold text-white">Components</span><button onClick={()=>{const c=window.prompt('Component:');if(c)setComps([...comps,c])}} className="text-xs bg-[#35c3e7]/20 text-[#35c3e7] px-2 py-0.5 rounded">+</button></div>
           <div className="flex flex-wrap gap-1">{comps.map((c,i)=>(<span key={i} className="text-xs bg-neutral-800 text-neutral-300 px-1.5 py-0.5 rounded">{c} <button onClick={()=>setComps(comps.filter((_,j)=>j!==i))} className="text-red-400">✕</button></span>))}</div>
           {comps.length===0&&<div className="text-[10px] text-neutral-500">No components added</div>}
@@ -118,7 +118,7 @@ export function TeamBuilder(){
       </div>
       {/* Unit Picker Modal */}
       {pk&&<div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center" onClick={()=>setPk(null)}>
-        <div className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4 max-h-[80vh] overflow-y-auto w-[360px]" onClick={e=>e.stopPropagation()}>
+        <div className="bg-ally-card border border-[#2a2a2a] rounded-xl p-4 max-h-[80vh] overflow-y-auto w-[360px]" onClick={e=>e.stopPropagation()}>
           <div className="flex items-center justify-between mb-3"><span className="text-sm font-bold text-white">Pick Unit</span><button onClick={()=>setPk(null)} className="text-neutral-400 hover:text-white">✕</button></div>
           {[5,4,3,2,1].map(cost=>{
             const list=UNITS.filter(u=>u.cost===cost)

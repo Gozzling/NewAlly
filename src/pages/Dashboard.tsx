@@ -91,7 +91,7 @@ export function Dashboard() {
   return (
     <div className="space-y-5">
       {/* Set 17 Badge */}
-      <div className="flex items-center gap-3 bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg p-3">
+      <div className="flex items-center gap-3 bg-ally-card border border-[#2a2a2a] rounded-lg p-3">
         <div className="w-9 h-9 rounded-lg bg-[#35c3e7]/10 flex items-center justify-center text-[#35c3e7]">
           <Rocket className="w-5 h-5" />
         </div>
@@ -121,10 +121,10 @@ export function Dashboard() {
             placeholder="Search comps, units, traits..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg pl-9 pr-3 py-2 text-body text-white placeholder-[#a1a1a1] focus:outline-none focus:border-[#35c3e7]"
+            className="w-full bg-ally-card border border-[#2a2a2a] rounded-lg pl-9 pr-3 py-2 text-body text-white placeholder-[#a1a1a1] focus:outline-none focus:border-[#35c3e7]"
           />
         </div>
-        <div className="flex gap-1 bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg p-1">
+        <div className="flex gap-1 bg-ally-card border border-[#2a2a2a] rounded-lg p-1">
           <button
             onClick={() => setActiveTier('all')}
             className={`px-3 py-1.5 rounded text-caption font-medium transition-colors ${activeTier === 'all' ? 'bg-[#252525] text-white' : 'text-[#a1a1a1] hover:text-white'}`}

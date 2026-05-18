@@ -111,7 +111,7 @@ export function LobbyApp() {
         {players.map((p) => (
           <div
             key={p.summonerId}
-            className="flex items-center gap-3 bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg px-3 py-2.5"
+            className="flex items-center gap-3 bg-ally-card border border-[#2a2a2a] rounded-lg px-3 py-2.5"
           >
             <div className="w-8 h-8 bg-[#181818] rounded-full flex items-center justify-center border border-[#2a2a2a] shrink-0">
               <User className="w-4 h-4 text-[#a1a1a1]" />

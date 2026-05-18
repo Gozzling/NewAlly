@@ -68,7 +68,7 @@ export function Guides() {
             placeholder="Search items or components..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-[#a1a1a1] focus:outline-none focus:border-[#35c3e7]"
+            className="w-full bg-ally-card border border-[#2a2a2a] rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-[#a1a1a1] focus:outline-none focus:border-[#35c3e7]"
           />
         </div>
         <div className="flex gap-1">
@@ -90,7 +90,7 @@ export function Guides() {
         {filtered.map((r) => (
           <div
             key={r.item}
-            className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4 hover:border-[#35c3e7]/30 transition-colors"
+            className="bg-ally-card border border-[#2a2a2a] rounded-xl p-4 hover:border-[#35c3e7]/30 transition-colors"
           >
             <div className="flex items-center gap-2 mb-2">
               <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${categoryColors[r.category]}`}>

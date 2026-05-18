@@ -27,7 +27,7 @@ export function PatchNotes() {
       {PATCHES.map((patch) => {
         const isOpen = expanded === patch.version
         return (
-          <div key={patch.version} className="bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl overflow-hidden">
+          <div key={patch.version} className="bg-ally-card border border-[#2a2a2a] rounded-xl overflow-hidden">
             <button onClick={() => setExpanded(isOpen ? null : patch.version)} className="w-full flex items-center gap-3 p-4 text-left hover:bg-[#252525] transition-colors">
               <div className="bg-[#35c3e7]/10 w-12 h-12 rounded-lg flex items-center justify-center text-[#35c3e7] font-bold text-sm">{patch.version}</div>
               <div className="flex-1 min-w-0">

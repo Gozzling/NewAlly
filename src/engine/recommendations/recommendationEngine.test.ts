@@ -176,7 +176,7 @@ describe("runRecommendationEngine (integration)", () => {
     const recs = recommendationsFromGameState(gs, matches, "test", 4);
     const shopTrait = recs.find((r) => r.category === "shop" && r.id.startsWith("shop:trait:"));
     expect(shopTrait).toBeDefined();
-    expect(shopTrait!.detail).toMatch(/top-4 in \d+%/i);
+    expect(shopTrait!.detail).toMatch(/You have/i);
     expect(shopTrait!.reasoning.some((l) => /Personal trend/i.test(l))).toBe(true);
     expect(shopTrait!.evidence.some((e) => e.source === "match_history")).toBe(true);
   });

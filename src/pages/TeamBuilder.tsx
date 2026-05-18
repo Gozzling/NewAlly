@@ -23,7 +23,7 @@ import type { MetaComp } from '@/types/tft'
 /* ─── Design tokens ─── */
 const C = {
   bg:         '#0d0d0d',
-  surface:    '#1f1f1f',
+  surface:    'var(--color-ally-card)',
   border:     '#1a1a1a',
   accent:     '#00d4ff',
   accentDim:  'rgba(0,212,255,0.12)',

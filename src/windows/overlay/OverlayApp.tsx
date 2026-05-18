@@ -23,7 +23,7 @@ function HudBar({
   health?: number | null
 }) {
   return (
-    <div className="flex items-center gap-2 bg-[#1f1f1f]/90 border border-[#2a2a2a] rounded-lg px-3 py-1.5 text-[10px] pointer-events-none">
+    <div className="flex items-center gap-2 bg-ally-card/90 border border-[#2a2a2a] rounded-lg px-3 py-1.5 text-[10px] pointer-events-none">
       <span className="text-yellow-400 font-semibold">G: {gold ?? '–'}</span>
       <span className="text-neutral-500">|</span>
       <span className="text-white">{stage ?? '–'}</span>
@@ -48,7 +48,7 @@ export function OverlayApp() {
   if (!state?.isInGame) {
     return (
       <div className="w-full h-full flex items-center justify-center pointer-events-none">
-        <div className="bg-[#1f1f1f]/90 border border-[#2a2a2a] rounded-lg px-4 py-2 text-[10px] text-neutral-500">
+        <div className="bg-ally-card/90 border border-[#2a2a2a] rounded-lg px-4 py-2 text-[10px] text-neutral-500">
           Waiting for TFT...
         </div>
       </div>

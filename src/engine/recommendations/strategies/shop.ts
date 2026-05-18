@@ -171,7 +171,16 @@ export function shopRecommendations(input: RecommendationEngineInput, nowMs = Da
 
   const out: AllyRecommendation[] = [];
   const traitHint = traitProgressShopHint(signals.boardUnitNames, nowMs);
-  if (traitHint) out.push(traitHint);
+  if (traitHint) {
+    // Augment with personal match‑history stats when available
+    if (matchHistory && matchHistory.windowSize > 0) {
+      const topRate = Math.round((matchHistory.top4Rate ?? 0) * 100);
+      const personalReason = `Personal trend: top-4 in ${topRate}% of recent games`;
+      traitHint.reasoning = [...traitHint.reasoning, personalReason];
+      traitHint.evidence = [...traitHint.evidence, { source: "match_history", weight: 0.1, note: "Personal match‑history stats" }];
+    }
+    out.push(traitHint);
+  }
 
   if (signals.shopUnitNames.length === 0) return out;
 
