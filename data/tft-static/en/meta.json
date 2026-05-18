@@ -3,10 +3,10 @@
   "setPrefix": "TFT17_",
   "setCoreName": "TFTSet17",
   "locale": "en_us",
-  "generatedAt": "2026-05-18T08:24:39.580Z",
+  "generatedAt": "2026-05-18T18:17:00.031Z",
   "sourceUrl": "https://raw.communitydragon.org/latest/cdragon/tft/en_us.json",
   "counts": {
-    "units": 63,
+    "units": 64,
     "traits": 36,
     "items": {
       "components": 10,
@@ -14,7 +14,7 @@
       "radiants": 52,
       "artifacts": 45
     },
-    "augments": 54,
+    "augments": 42,
     "godBoons": 13
   }
 }

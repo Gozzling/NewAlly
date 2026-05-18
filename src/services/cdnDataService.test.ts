@@ -1,5 +1,119 @@
 import { describe, it, expect } from 'vitest'
+import { transformAugments, transformSetAugmentsFromCdn } from '@/services/cdnDataService'
 import { formatTftText } from '@/utils/formatTftText'
+
+describe('transformSetAugmentsFromCdn', () => {
+  function row(
+    apiName: string,
+    icon: string,
+    name = 'Test Augment',
+    tier?: string,
+  ): { apiName: string; name: string; icon: string; desc: string; tier?: string } {
+    return { apiName, name, icon, desc: 'Does something.', ...(tier ? { tier } : {}) }
+  }
+
+  it('maps every api in setBlock.augments when item row exists (no local set filter)', () => {
+    const items = new Map([
+      [
+        'TFT10_Augment_CrashTestDummies',
+        row(
+          'TFT10_Augment_CrashTestDummies',
+          'ASSETS/Maps/TFT/Icons/Augments/Hexcore/CrashTestDummies_II.TFT_Set10.tex',
+        ),
+      ],
+      [
+        'TFT17_Augment_AnimaSquad_Commander',
+        row(
+          'TFT17_Augment_AnimaSquad_Commander',
+          'ASSETS/Maps/TFT/Icons/Augments/Hexcore/AnimaCommander_II.TFT_Set17.tex',
+          'Anima Commander',
+        ),
+      ],
+    ])
+
+    const out = transformSetAugmentsFromCdn(
+      {
+        augments: ['TFT10_Augment_CrashTestDummies', 'TFT17_Augment_AnimaSquad_Commander'],
+      },
+      items,
+    )
+
+    expect(out.map((a) => a.apiName).sort()).toEqual(
+      ['TFT10_Augment_CrashTestDummies', 'TFT17_Augment_AnimaSquad_Commander'].sort(),
+    )
+  })
+
+  it('uses CDN tier field when present, otherwise infers from icon path', () => {
+    const items = new Map([
+      [
+        'TFT17_Augment_NasusCarry',
+        row(
+          'TFT17_Augment_NasusCarry',
+          'ASSETS/Maps/TFT/Icons/Augments/Hexcore/Bonk_I.TFT_Set17.tex',
+          'Bonk!',
+        ),
+      ],
+      [
+        'TFT17_Augment_AnimaSquad_Commander',
+        row(
+          'TFT17_Augment_AnimaSquad_Commander',
+          'ASSETS/Maps/TFT/Icons/Augments/Hexcore/AnimaCommander_II.TFT_Set17.tex',
+          'Anima Commander',
+          'gold',
+        ),
+      ],
+      [
+        'TFT_Augment_EndlessConflagration',
+        row(
+          'TFT_Augment_EndlessConflagration',
+          'ASSETS/Maps/TFT/Icons/Augments/Hexcore/EndlessConflagration_III.TFT_Set17.tex',
+          'Endless Conflagration',
+          'prismatic',
+        ),
+      ],
+    ])
+
+    const out = transformSetAugmentsFromCdn(
+      {
+        augments: [
+          'TFT17_Augment_NasusCarry',
+          'TFT17_Augment_AnimaSquad_Commander',
+          'TFT_Augment_EndlessConflagration',
+        ],
+      },
+      items,
+    )
+
+    const byApi = Object.fromEntries(out.map((a) => [a.apiName, a.tier]))
+    expect(byApi['TFT17_Augment_NasusCarry']).toBe('silver')
+    expect(byApi['TFT17_Augment_AnimaSquad_Commander']).toBe('gold')
+    expect(byApi['TFT_Augment_EndlessConflagration']).toBe('prismatic')
+  })
+
+  it('skips apis with no matching item row', () => {
+    const out = transformSetAugmentsFromCdn({ augments: ['TFT17_Augment_Missing'] }, new Map())
+    expect(out).toHaveLength(0)
+  })
+})
+
+describe('transformAugments', () => {
+  it('delegates to transformSetAugmentsFromCdn', () => {
+    const items = new Map([
+      [
+        'TFT17_Augment_Test',
+        {
+          apiName: 'TFT17_Augment_Test',
+          name: 'Test',
+          icon: 'ASSETS/Maps/TFT/Icons/Augments/Hexcore/Test_II.TFT_Set17.tex',
+          desc: 'Test',
+        },
+      ],
+    ])
+    const out = transformAugments(['TFT17_Augment_Test'], items)
+    expect(out).toHaveLength(1)
+    expect(out[0].apiName).toBe('TFT17_Augment_Test')
+  })
+})
 
 describe('formatTftText', () => {
   it('should handle basic tokens', () => {

@@ -1,8 +1,10 @@
 import type { Augment } from '@/data/augments'
+import { deriveCanonicalAugmentId } from '@/lib/canonicalAugmentId'
 import {
   getCachedProjection,
   projectionKeyFromVersion,
 } from '@/lib/canonicalProjectionCache'
+import { CURRENT_TFT_SET_NUMBER } from '@/meta/tftCurrentSet'
 import { augmentVersion } from '@/types/canonicalAugment'
 import type { CanonicalAugment } from '@/types/canonicalAugment'
 import type { CanonicalDataVersion } from '@/types/canonicalCatalog'
@@ -57,6 +59,30 @@ function project<T>(aug: CanonicalAugment, projection: 'guide' | 'overlay' | 'se
     projectionKeyFromVersion(aug.canonicalId, projection, version),
     factory,
   )
+}
+
+/** Live CDN / store row for Augment Guide (icons + formatted description). */
+export function fromStoreAugment(aug: Augment): GuideAugment {
+  const apiName = aug.apiName ?? aug.id
+  const canonicalId = deriveCanonicalAugmentId(apiName, CURRENT_TFT_SET_NUMBER)
+  const description = aug.description?.trim() || aug.effect || aug.name
+  return {
+    id: aug.id,
+    canonicalId,
+    apiName,
+    name: aug.name,
+    tier: aug.tier,
+    description,
+    effect: aug.effect || description.slice(0, 160),
+    bestComps: aug.bestComps,
+    pickRate: aug.pickRate,
+    winRate: aug.winRate,
+    avgPlacement: aug.avgPlacement,
+    synergies: aug.synergies,
+    counters: aug.counters,
+    tags: aug.tags.length > 0 ? aug.tags : ['augment'],
+    iconUrl: gameIconDisplayUrl(aug.iconUrl, augmentIconUrl(aug.name)),
+  }
 }
 
 export function toGuideAugment(aug: CanonicalAugment): GuideAugment {

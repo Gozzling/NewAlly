@@ -1,41 +1,25 @@
 /**
- * Community Dragon raw asset URLs from `squareIconPath` fields in Riot TFT JSON dumps.
- * Pattern: strip `/lol-game-data/assets/ASSETS/`, lowercase path segments, prefix raw CD host.
+ * Community Dragon raw asset URLs from Riot `ASSETS/...` paths in TFT JSON dumps.
+ * @see scripts/lib/tftAssetPath.mjs
  */
+
+import { normalizeCdragonPath } from "./tftAssetPath.mjs"
 
 export const CD_RAW_BASE = "https://raw.communitydragon.org/latest/game/assets"
 
 export function cdAssetUrl(squareIconPath) {
-  if (!squareIconPath || typeof squareIconPath !== "string") return null
-  const idx = squareIconPath.indexOf("/ASSETS/")
-  if (idx === -1) return null
-  const rest = squareIconPath.slice(idx + "/ASSETS/".length)
-  return cdAssetPathToUrl(rest)
+  return normalizeCdragonPath(squareIconPath)
 }
 
 /** Paths from cdragon `en_us.json` (often `ASSETS/UX/...` without the lol-game-data prefix). */
 export function cdAssetUrlFromGamePath(iconPath) {
-  if (!iconPath || typeof iconPath !== "string") return null
-  if (iconPath.includes("/lol-game-data/")) return cdAssetUrl(iconPath)
-  let rest = iconPath.replace(/^\/+/, "")
-  if (rest.startsWith("ASSETS/")) rest = rest.slice("ASSETS/".length)
-  return cdAssetPathToUrl(rest)
-}
-
-function cdAssetPathToUrl(rest) {
-  const urlPath = rest
-    .split("/")
-    .map((s) => s.toLowerCase())
-    .join("/")
-  return `${CD_RAW_BASE}/${urlPath}`
+  return normalizeCdragonPath(iconPath)
 }
 
 /** CD raw hosts `.png` alongside `.tex` at the same path. */
 export function cdTexUrlToPng(texOrPngUrl) {
   if (!texOrPngUrl || typeof texOrPngUrl !== "string") return null
-  if (/\.png$/i.test(texOrPngUrl)) return texOrPngUrl
-  if (/\.tex$/i.test(texOrPngUrl)) return texOrPngUrl.replace(/\.tex$/i, ".png")
-  return texOrPngUrl
+  return normalizeCdragonPath(texOrPngUrl)
 }
 
 /** TFT17_Aatrox → 17 */

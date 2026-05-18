@@ -2,9 +2,9 @@
   {
     "apiName": "TFT17_AnimaSquad",
     "name": "Anima",
-    "description": "After losing a player combat, gain Tech, plus additional Tech equal to times the length of your loss streak. Additionally, gain Tech per Anima takedown.\n\nEach time Animas get Tech, they prototype new Anima Weapons. You can take them, or save your Tech to get more powerful weapons next time.\n\n Start Researching! \n\n After each player combat, gain loot!\n\nGain Tech from losing if your partner wins a combat in Double Up.",
+    "description": "After losing a player combat, gain  Tech, plus additional Tech equal to  times the length of your loss streak. Additionally, gain  Tech per Anima takedown.\n\nEach time Animas get  Tech, they prototype new Anima Weapons. You can take them, or save your Tech to get more powerful weapons next time.\n\n Start Researching! \n\n After each player combat, gain loot!\n\nGain Tech from losing if your partner wins a combat in Double Up.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_AnimaTech.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_animatech.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_animatech.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 3,
@@ -45,7 +45,7 @@
     "name": "Arbiter",
     "description": "Scribe a unique divine law, allowing you to choose an effect to apply to Arbiters when a chosen cause occurs.\n\n Choose a cause and effect for your law\n\n Effects are stronger.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Arbiter.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_arbiter.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_arbiter.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 2,
@@ -80,9 +80,9 @@
   {
     "apiName": "TFT17_ResistTank",
     "name": "Bastion",
-    "description": "Your team gains Armor and Magic Resist.\n\nBastions gain more, and the value doubles in the first seconds of combat.\n\n \n\n \n\n ; Non-Bastions gain an additional .",
+    "description": "Your team gains  Armor and Magic Resist.\n\nBastions gain more, and the value doubles in the first  seconds of combat.\n\n  \n\n  \n\n  ; Non-Bastions gain an additional  .",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_9_Bastion.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_9_bastion.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_9_bastion.png",
     "thresholds": [
       {
         "minUnits": 2,
@@ -130,7 +130,7 @@
     "name": "Brawler",
     "description": "Your team gains Health. Brawlers gain more.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_Brawler.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_brawler.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_brawler.png",
     "thresholds": [
       {
         "minUnits": 2,
@@ -166,7 +166,7 @@
     "name": "Bulwark",
     "description": "Summon a placeable relic. At the start of combat, it grants adjacent allies a max Health shield and Attack Speed.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Bulwark.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_bulwark.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_bulwark.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 1,
@@ -184,9 +184,9 @@
   {
     "apiName": "TFT17_ASTrait",
     "name": "Challenger",
-    "description": "Your team gains Attack Speed. Challengers gain bonus Attack Speed. When their target dies, Challengers dash to a new target and increase their Attack Speed bonus by for seconds.",
+    "description": "Your team gains Attack Speed. Challengers gain bonus Attack Speed. When their target dies, Challengers dash to a new target and increase their Attack Speed bonus by for  seconds.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Challenger.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_challenger.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_challenger.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 2,
@@ -243,15 +243,15 @@
     "name": "Choose Trait",
     "description": "When you field Miss Fortune, choose between Conduit Mode, Challenger Mode, and Replicator Mode. Miss Fortune has a unique ability based on her mode and gains the associated trait.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_MissFortuneUndetermindedTrait.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_missfortuneundetermindedtrait.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_missfortuneundetermindedtrait.tft_set17.png",
     "thresholds": []
   },
   {
     "apiName": "TFT17_SonaUniqueTrait",
     "name": "Commander",
-    "description": "Sona gives you a random Command Mod every rounds which allows you to alter the way an ally behaves during combat. Command Mods last player combats even if they are not equipped.",
+    "description": "Sona gives you a random Command Mod every  rounds which allows you to alter the way an ally behaves during combat. Command Mods last  player combats even if they are not equipped.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Commander.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_commander.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_commander.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 1,
@@ -270,7 +270,7 @@
     "name": "Conduit",
     "description": "Innate: Conduits gain additional Mana from all sources.\n\nYour team gains Mana Regen, increased for Conduits.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Channeler.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_channeler.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_channeler.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 2,
@@ -319,7 +319,7 @@
     "name": "Dark Lady",
     "description": "Your team gains Durability, increased to when Morgana is in her Dark Form.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_DarkLady.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_darklady.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_darklady.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 1,
@@ -335,9 +335,9 @@
   {
     "apiName": "TFT17_DarkStar",
     "name": "Dark Star",
-    "description": "Dark Stars create a black hole that consumes enemies at max health.\n\n AND they gain .\n\n AND the strongest Dark Star unit goes supermassive, gaining effectiveness from Dark Star, and creates 2 minor Black Holes.\n\n All Dark Stars are supermassive. At level 10, CONSUME EVERYONE.",
+    "description": "Dark Stars create a black hole that consumes enemies at  max health.\n\n AND they gain .\n\n AND the strongest Dark Star unit goes supermassive, gaining effectiveness from Dark Star, and creates 2 minor Black Holes.\n\n All Dark Stars are supermassive. At level 10, CONSUME EVERYONE.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_DarkStar.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_darkstar.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_darkstar.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 2,
@@ -390,7 +390,7 @@
     "name": "Divine Duelist",
     "description": "Your Tactician heals for of player damage dealt from winning.\n\nFiora always wins a one on one duel.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_DivineDuelist.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_divineduelist.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_divineduelist.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 1,
@@ -410,7 +410,7 @@
     "name": "Doomer",
     "description": "Combat Start: Mark all enemies with Doom.\n\nThe first time enemies are damaged each combat, their Doom is consumed, stealing Attack Damage and Ability Power from them and granting it to your strongest Vex.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Doomer.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_doomer.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_doomer.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 1,
@@ -427,7 +427,7 @@
     "name": "Eradicator",
     "description": "Enemies have less Armor and Magic Resist.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Singularity.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_singularity.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_singularity.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 1,
@@ -442,9 +442,9 @@
   {
     "apiName": "TFT17_GravesTrait",
     "name": "Factory New",
-    "description": "After participating in combat, open an armory to purchase a permanent upgrade for your strongest Graves.\n\nEvery upgrades, future upgrades will take an additional round.\n\nNext Upgrade: Rounds.",
+    "description": "After participating in combat, open an armory to purchase a permanent upgrade for your strongest Graves.\n\nEvery  upgrades, future upgrades will take an additional round.\n\nNext Upgrade:  Rounds.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_FactoryNew.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_factorynew.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_factorynew.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 1,
@@ -461,7 +461,7 @@
     "name": "Fateweaver",
     "description": "Innate: Fateweavers have Precision.\n\n Chance effects on abilities are Lucky.\n\n Gain Crit Chance and Crit Damage. Critical strikes are also Lucky.\n\n{{TFT_Keyword_Precision}}\nLucky: Check twice and take the better outcome.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Fateweaver.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_fateweaver.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_fateweaver.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 2,
@@ -487,7 +487,7 @@
     "name": "Galaxy Hunter",
     "description": "Zed is obtained from the Invader Zed augment.\n\nWhile at least one clone is alive, Zed gains bonus Attack Damage.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_GalaxyHunter.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_galaxyhunter.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_galaxyhunter.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 1,
@@ -504,7 +504,7 @@
     "name": "Gun Goddess",
     "description": "When you field Miss Fortune, choose between Conduit Mode, Challenger Mode, and Replicator Mode. Miss Fortune has a unique ability based on her mode and gains the associated trait.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_GunGoddess.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_gungoddess.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_gungoddess.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 1,
@@ -523,9 +523,9 @@
   {
     "apiName": "TFT17_MeleeTrait",
     "name": "Marauder",
-    "description": "Your team gains Omnivamp. Marauders gain more Omnivamp, Attack Damage, and their Omnivamp overhealing is converted into Shield (up to max Health.) , , , .",
+    "description": "Your team gains Omnivamp. Marauders gain more Omnivamp, Attack Damage, and their Omnivamp overhealing is converted into Shield (up to max Health.) ,  ,  , .",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_16_Slayer.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_16_slayer.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_16_slayer.png",
     "thresholds": [
       {
         "minUnits": 2,
@@ -570,7 +570,7 @@
     "name": "Mecha",
     "description": "Innate: Mecha units can transform into their Ultimate form, upgrading their ability and gaining Health. Transformed Mechas take up two team slots and count twice for the Mecha trait.\n\n Energy Cells: Mechas gain .\n\n Overclocked Cells: Increased to .\n\n Precision Engineering: + max team size\n\nUse the Mecha-Former item to toggle the forms of your Mecha units",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Mecha.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_mecha.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_mecha.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 3,
@@ -610,9 +610,9 @@
   {
     "apiName": "TFT17_Astronaut",
     "name": "Meeple",
-    "description": "Meeple attract Meeps that empower Meeple abilities in meepy ways. They also gain bonus Health.\n\n , \n\n , \n\n , . Create a Cloning Slot on your bench. Gain gold and a 1-star copy of the champion placed there when cloning completes.\n\n , . SUMMON THE FOUR MEEPLORDS!\n\nCloning time = Champion cost",
+    "description": "Meeple attract Meeps that empower Meeple abilities in meepy ways. They also gain bonus Health.\n\n  ,  \n\n  ,  \n\n  ,  . Create a Cloning Slot on your bench. Gain gold and a 1-star copy of the champion placed there when cloning completes.\n\n  ,  . SUMMON THE FOUR MEEPLORDS!\n\nCloning time = Champion cost",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Astronaut.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_astronaut.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_astronaut.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 3,
@@ -657,7 +657,7 @@
     "name": "N.O.V.A.",
     "description": "seconds into combat, N.O.V.A. grant a power surge to allies based on champions.\n\n Gain a Striker selector. The chosen N.O.V.A. activates their Strike during the power surge.\n\nAatrox: Ally Damage Shred and Sunders enemiesAatrox: Shred and Sunder enemies\nCaitlyn: Grant allies Attack SpeedCaitlyn: Grant Attack Speed\nAkali: Allies gain PrecisionAkali: Allies gain Precision\nMaokai: Allies heal max HealthMaokai: Heal allies\nKindred: Shield the strongest Tank for Kindred: Shield an ally\nEmblem: Allies deal stacking bonus true damageEmblem: Deal bonus true damage",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_NOVA.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_nova.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_nova.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 2,
@@ -690,9 +690,9 @@
   {
     "apiName": "TFT17_TahmKenchUniqueTrait",
     "name": "Oracle",
-    "description": "Every rounds, Tahm Kench grants a reward!\n\nRounds Remaining: \nLast Reward:",
+    "description": "Every  rounds, Tahm Kench grants a reward!\n\nRounds Remaining: \nLast Reward:",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_12_Arcana.TFT_Set12.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_12_arcana.tft_set12.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_12_arcana.tft_set12.png",
     "thresholds": [
       {
         "minUnits": 1,
@@ -709,7 +709,7 @@
     "name": "Party Animal",
     "description": "Once per combat, after falling below percent Health, become untargetable and repair max Health per second. Upon reaching full Health, or when no other allies remain, return to combat. If fully healed, for the rest of combat Blitzcrank is in {{TFT17_SpaceGroove_TheGroove}} and Party Crasher's passive fires bolts four times as fast.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_PartyAnimal.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_partyanimal.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_partyanimal.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 1,
@@ -727,7 +727,7 @@
     "name": "Primordian",
     "description": "Dealing damage spawns Swarmlings based on unique Primordian star level.\n\n Spawn more Swarmlings! After each player combat, gain a random 1 or 2-cost champion. of damage taken contributes to damage dealt.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Primordian.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_primordian.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_primordian.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 2,
@@ -758,7 +758,7 @@
     "name": "Psionic",
     "description": "Gain Psionic items that can be equipped to any ally.\n\n Gain the \n\n Gain the , Psionic items gain extra effects on Psionic units",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_PsyOps.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_psyops.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_psyops.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 2,
@@ -783,7 +783,7 @@
     "name": "Redeemer",
     "description": "For each non-unique trait you have active, your team gains /%/ Attack Speed, and // Armor and Magic Resist.\n\nTeamwide Attack Speed: Teamwide Resists:",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Redeemer.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_redeemer.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_redeemer.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 1,
@@ -805,7 +805,7 @@
     "name": "Replicator",
     "description": "Replicator abilities occur a second time at reduced effectiveness.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Replicator.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_replicator.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_replicator.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 2,
@@ -830,7 +830,7 @@
     "name": "Rogue",
     "description": "Rogues gain Attack Damage and Ability Power. The first time they fall below health, they slip into shadows. Enemies targeting them are redirected to a nearby unit, preferring Tanks.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Rogue.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_rogue.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_rogue.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 2,
@@ -883,7 +883,7 @@
     "name": "Shepherd",
     "description": "Shepherds summon the Bond of the Stars to aid them in battle.\n\n Summon Bia\n\n Summon Bayin\n\n Bia and Bayin's bond grows deeper\n\nBia and Bayin's power are increased by the total star level of all Shepherds.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Shepherd.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_shepherd.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_shepherd.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 3,
@@ -910,7 +910,7 @@
     "name": "Sniper",
     "description": "Snipers gain Damage Amp, increased against targets farther away. ; + per hex ; + per hex ; + per hex",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_6_Sniper.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_6_sniper.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_6_sniper.png",
     "thresholds": [
       {
         "minUnits": 2,
@@ -944,9 +944,9 @@
   {
     "apiName": "TFT17_SpaceGroove",
     "name": "Space Groove",
-    "description": "Groovians can enter {{TFT17_SpaceGroove_TheGroove}}. While in it, they gain Attack Speed and max Health Regen, increased per Groovian on your team.\n\n All Groovians start combat in {{TFT17_SpaceGroove_TheGroove}} for seconds.\n\n Each second spent in {{TFT17_SpaceGroove_TheGroove}} grants stacking Attack Damage and Ability Power.\n\n Increase these effects by !\n\n {{TFT17_SpaceGroove_Groove}}\n\n{{TFT17_SpaceGroove_TheGroove}}: @TFTUnitProperty.:TFT17_SpaceGroove_AS*100@ , @TFTUnitProperty.:TFT17_SpaceGroove_HealthRegen*100@",
+    "description": "Groovians can enter {{TFT17_SpaceGroove_TheGroove}}. While in it, they gain Attack Speed and max Health Regen, increased per Groovian on your team.\n\n All Groovians start combat in {{TFT17_SpaceGroove_TheGroove}} for  seconds.\n\n Each second spent in {{TFT17_SpaceGroove_TheGroove}} grants stacking Attack Damage and Ability Power.\n\n Increase these effects by !\n\n {{TFT17_SpaceGroove_Groove}}\n\n{{TFT17_SpaceGroove_TheGroove}}: @TFTUnitProperty.:TFT17_SpaceGroove_AS*100@ , @TFTUnitProperty.:TFT17_SpaceGroove_HealthRegen*100@%",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_SpaceGroove.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_spacegroove.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_spacegroove.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 1,
@@ -1005,9 +1005,9 @@
   {
     "apiName": "TFT17_Stargazer",
     "name": "Stargazer",
-    "description": "Stargazers chart a different constellation every game.\n\nStargazers in empowered hexes gain various bonuses, starting at units.\n\nMore hexes reveal at each player level.",
+    "description": "Stargazers chart a different constellation every game.\n\nStargazers in empowered hexes gain various bonuses, starting at  units.\n\nMore hexes reveal at each player level.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Stargazer.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_stargazer.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_stargazer.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 3,
@@ -1285,7 +1285,7 @@
     "name": "Timebreaker",
     "description": "Allies gain Attack Speed.\n\n AND When you lose, gain free rerolls. When you win, store XP in a Temporal Core (scales with stage).\n\n AND Timebreakers gain an additional Attack Speed\n\nRerolls on Loss: @TFTUnitProperty.:TFT17_Timebreaker_NumRerollsTooltip@\nXP on Win: @TFTUnitProperty.:TFT17_Timebreaker_NumXPTooltip@",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Timebreaker.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_timebreaker.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_timebreaker.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 2,
@@ -1322,9 +1322,9 @@
   {
     "apiName": "TFT17_ShieldTank",
     "name": "Vanguard",
-    "description": "Vanguards gain Durability while Shielded. \n\nCombat start and Health: Gain a max Health Shield for seconds. max Health max Health max Health; while Shielded",
+    "description": "Vanguards gain Durability while Shielded. \n\nCombat start and Health: Gain a max Health Shield for  seconds. max Health max Health max Health; while Shielded",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_12_Vanguard.TFT_Set12.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_12_vanguard.tft_set12.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_12_vanguard.tft_set12.png",
     "thresholds": [
       {
         "minUnits": 2,
@@ -1367,9 +1367,9 @@
   {
     "apiName": "TFT17_FlexTrait",
     "name": "Voyager",
-    "description": "Combat Start: Your Tanks gain a Shield for seconds. Your other allies gain Damage Amp. \n\nVoyagers gain double.",
+    "description": "Combat Start: Your Tanks gain a Shield for  seconds. Your other allies gain Damage Amp. \n\nVoyagers gain double.",
     "iconPath": "ASSETS/UX/TraitIcons/Trait_Icon_17_Voyager.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_voyager.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_17_voyager.tft_set17.png",
     "thresholds": [
       {
         "minUnits": 2,

@@ -4,6 +4,7 @@
  */
 
 import { cdAssetUrlFromGamePath } from "./communityDragon.mjs"
+import { isPlayableRosterUnit } from "./unitRosterFilter.mjs"
 
 export const EN_US_URL_CANDIDATES = [
   process.env.TFT_EN_US_URL,
@@ -130,28 +131,34 @@ export function parseUnits(enUs, setNumber) {
   for (const ch of set.champions) {
     const apiName = ch.apiName || ch.characterName || ""
     if (!apiName.startsWith(prefix)) continue
+    if (!isPlayableRosterUnit(apiName, ch.name)) continue
     if (/_TraitClone$/i.test(apiName)) continue
-    if (!ch.traits?.length) continue
+    const isElderDragon = /_PVE_ElderDragon$/i.test(apiName)
+    if (!isElderDragon && !ch.traits?.length) continue
 
-    const iconPath = ch.squareIcon || ch.icon || null
     const unitIconPath =
-      ch.squareIcon && referencesSet(ch.squareIcon, setNumber)
-        ? ch.squareIcon
-        : ch.icon && referencesSet(ch.icon, setNumber)
-          ? ch.icon
-          : iconPath
+      ch.tileIcon && referencesSet(ch.tileIcon, setNumber)
+        ? ch.tileIcon
+        : ch.squareIcon && referencesSet(ch.squareIcon, setNumber)
+          ? ch.squareIcon
+          : ch.icon && referencesSet(ch.icon, setNumber)
+            ? ch.icon
+            : null
     units.push(
       withIconFields(
         {
           apiName,
           name: ch.name || apiName,
-          description: stripGameText(ch.ability?.desc),
+          description: stripHtmlKeepPlaceholders(ch.ability?.desc),
           cost: ch.cost ?? null,
           traits: (ch.traits || []).map((t) => (typeof t === "string" ? t : t.name)).filter(Boolean),
           ability: ch.ability
             ? {
                 name: ch.ability.name || null,
-                description: stripGameText(ch.ability.desc),
+                description: stripHtmlKeepPlaceholders(ch.ability.desc),
+                variables: (ch.ability.variables || [])
+                  .filter((v) => v && typeof v.name === "string")
+                  .map((v) => ({ name: v.name, value: v.value })),
                 iconPath: ch.ability.icon || null,
                 iconUrl: cdAssetUrlFromGamePath(ch.ability.icon),
               }
@@ -360,6 +367,32 @@ export function resolveSetItemApis(enUs, setNumber) {
   return apis
 }
 
+function normalizeApiNameList(raw) {
+  if (Array.isArray(raw)) {
+    return raw.filter((x) => typeof x === "string" && x.length > 0)
+  }
+  if (raw && typeof raw === "object") {
+    return Object.values(raw).filter((x) => typeof x === "string" && x.length > 0)
+  }
+  return []
+}
+
+/** Set-scoped augment pool from `setData[].augments` (same source as runtime CDN). */
+export function resolveSetAugmentApis(enUs, setNumber) {
+  const blocks = Array.isArray(enUs.setData) ? enUs.setData : []
+  const block =
+    blocks.find((b) => b.number === setNumber) ?? blocks[blocks.length - 1]
+  return normalizeApiNameList(block?.augments)
+}
+
+function buildItemsByApi(enUs) {
+  const m = new Map()
+  for (const item of enUs.items || []) {
+    if (item?.apiName) m.set(item.apiName, item)
+  }
+  return m
+}
+
 export function parseItems(enUs, setNumber, setItemApis = resolveSetItemApis(enUs, setNumber)) {
   const items = enUs.items || []
   const components = []
@@ -448,24 +481,45 @@ export function parseGodBoons(enUs, setNumber) {
   return boons
 }
 
+function pushAugmentRecord(augments, item) {
+  const rawDescription = stripHtmlKeepPlaceholders(item.desc)
+  augments.push({
+    ...baseRecord({
+      apiName: item.apiName,
+      name: item.name,
+      description: item.desc,
+      iconPath: item.icon,
+    }),
+    rawDescription,
+    tier: augmentTier(item),
+    associatedTraits: item.associatedTraits || [],
+    effects: item.effects || {},
+  })
+}
+
 export function parseAugments(enUs, setNumber) {
   const augments = []
-  for (const item of enUs.items || []) {
-    if (!shouldIncludeAugment(item, setNumber)) continue
-    const rawDescription = stripHtmlKeepPlaceholders(item.desc)
-    augments.push({
-      ...baseRecord({
-        apiName: item.apiName,
-        name: item.name,
-        description: item.desc,
-        iconPath: item.icon,
-      }),
-      rawDescription,
-      tier: augmentTier(item),
-      associatedTraits: item.associatedTraits || [],
-      effects: item.effects || {},
-    })
+  const itemsByApi = buildItemsByApi(enUs)
+  const poolApis = resolveSetAugmentApis(enUs, setNumber)
+  const prefix = setPrefix(setNumber)
+
+  if (poolApis.length > 0) {
+    for (const apiName of poolApis) {
+      const item = itemsByApi.get(apiName)
+      if (!item) continue
+      if (!item.apiName?.startsWith(`${prefix}Augment_`) && !item.apiName?.startsWith("TFT_Augment_")) {
+        continue
+      }
+      if (!shouldIncludeAugment(item, setNumber)) continue
+      pushAugmentRecord(augments, item)
+    }
+  } else {
+    for (const item of enUs.items || []) {
+      if (!shouldIncludeAugment(item, setNumber)) continue
+      pushAugmentRecord(augments, item)
+    }
   }
+
   augments.sort((a, b) => a.name.localeCompare(b.name))
   return augments
 }

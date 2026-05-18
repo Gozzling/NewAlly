@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useAppStore } from '@/store/useAppStore'
-import { UNITS } from '@/data/units'
+import { useTFTGameData } from '@/hooks/useTFTData'
 import { Star } from 'lucide-react'
 
 function normalizeName(name: string): string {
@@ -17,13 +17,14 @@ const COST_BG: Record<number, string> = {
 
 export function OverlayMiniBoard() {
   const board = useAppStore((s: any) => s.gameState?.board?.units || [])
+  const { champions } = useTFTGameData()
 
   const enriched = useMemo(() => {
     return board.map((u: any) => {
-      const unitData = UNITS.find((x) => normalizeName(x.name) === normalizeName(u.name))
+      const unitData = champions.find((x) => normalizeName(x.name) === normalizeName(u.name))
       return { ...u, cost: unitData?.cost ?? 1 }
     })
-  }, [board])
+  }, [board, champions])
 
   if (enriched.length === 0) return null
 

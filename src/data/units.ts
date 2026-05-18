@@ -2,6 +2,8 @@ import { traitsForUnit } from "./tftFromRiot.generated"
 // TFT Units data -- Set 17: Space Gods (April 2026)
 export interface Unit {
   id:string;name:string;cost:1|2|3|4|5;traits:string[]
+  /** Riot apiName when known (CDN rows). */
+  apiName?: string
   ability:{name:string;description:string;damage:string}
   stats:{hp:number;ad:number;ap:number;armor:number;mr:number;atkSpeed:number;range:number}
   bestItems:string[];bestComps:string[];tier:'S'|'A'|'B'|'C'|'D'

@@ -1,25 +1,11 @@
 import { CURRENT_TFT_SET_NUMBER } from "@/meta/tftCurrentSet"
 import { unitIconSlug } from "@/utils/unitDisplay"
 import { encodePublicIconFilename } from "@/utils/publicAssetUrl"
+import { CD_GAME_BASE, normalizeCdragonPath } from "@/utils/tftAssetPath"
 
-const CD_BASE = "https://raw.communitydragon.org/latest/game"
+export { normalizeCdragonPath, cdGameAssetUrl } from "@/utils/tftAssetPath"
 
-/**
- * Turn a Riot client path (`ASSETS/Maps/.../*.tex`) into a raw Community Dragon **PNG** URL.
- */
-export function cdGameAssetUrl(assetPath: string | undefined | null): string | undefined {
-  if (!assetPath || typeof assetPath !== "string") return undefined
-  const norm = assetPath.replace(/\\/g, "/")
-  const lower = norm.toLowerCase()
-  const idx = lower.indexOf("/assets/")
-  if (idx === -1) return undefined
-  const rest = norm.slice(idx + "/assets/".length)
-  const urlPath = rest
-    .split("/")
-    .map((s) => s.toLowerCase())
-    .join("/")
-  return `${CD_BASE}/assets/${urlPath}`.replace(/\.tex$/i, ".png")
-}
+const CD_BASE = CD_GAME_BASE
 
 /** TFT trait art on CD: `trait_icon_<set>_<slug>.tft_set<set>.png` (e.g. trait_icon_17_rogue.tft_set17.png). */
 export function traitIconUrl(traitName: string): string {

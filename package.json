@@ -15,7 +15,8 @@
     "data:item-guide-cdn-icons": "node scripts/generate-item-guide-cdn-icon-urls.mjs",
     "data:list-cd-augments": "node scripts/list-cd-augments-set17.mjs",
     "data:tft-riot-sync": "node scripts/generate-tft-from-riot.mjs",
-    "data:parse-tft-static": "node scripts/parse-tft-static-data.mjs"
+    "data:parse-tft-static": "node scripts/parse-tft-static-data.mjs",
+    "sync-all": "node scripts/sync-all.mjs"
   },
   "dependencies": {
     "@ally/shared-types": "file:./packages/shared-types",

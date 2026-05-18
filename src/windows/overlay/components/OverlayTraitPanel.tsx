@@ -1,13 +1,11 @@
 import { useMemo } from 'react'
 import { useAppStore } from '@/store/useAppStore'
-import { BUNDLED_SET_DATA } from '@/services/cdnDataService'
+import { useTFTGameData } from '@/hooks/useTFTData'
 import { Sparkles } from 'lucide-react'
 
 export function OverlayTraitPanel() {
   const board = useAppStore((s: any) => s.gameState?.board?.units || [])
-  const gameData = useAppStore(s => s.gameData)
-  const roster = gameData.champions.length > 0 ? gameData.champions : BUNDLED_SET_DATA.champions
-  const traitRoster = gameData.traits.length > 0 ? gameData.traits : BUNDLED_SET_DATA.traits
+  const { champions: roster, traits: traitRoster } = useTFTGameData()
 
   const traits = useMemo(() => {
     const counts: Record<string, number> = {}

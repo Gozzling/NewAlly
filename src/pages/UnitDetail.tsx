@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { UnitPortrait } from '@/components/UnitPortrait'
+import { resolveUnitIconUrl } from '@/utils/resolveUnitIcon'
 
 /* ─── Design tokens ─── */
 const C = {
@@ -93,6 +94,7 @@ export function UnitDetail({ unitId, onBack }: UnitDetailProps) {
                 name={unit.name}
                 size={80}
                 radius={12}
+                cdnUrl={resolveUnitIconUrl(unit)}
                 style={{
                   boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
                 }}

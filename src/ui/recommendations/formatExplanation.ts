@@ -29,6 +29,10 @@ export type FormattedEntityRecommendation = {
   /** Primary pick = decision-focused; others = comparison context */
   displayRole: 'primary' | 'comparison'
   actionLine?: string
+  /** CDN icon when available */
+  iconUrl?: string
+  /** Full augment description for tooltips / detail */
+  description?: string
 }
 
 export type GameExplanationContext = {
@@ -466,6 +470,17 @@ export function formatEntityRecommendation(
     topReasons = []
   }
 
+  const entityIcon =
+    'iconUrl' in row.entity && typeof row.entity.iconUrl === 'string'
+      ? row.entity.iconUrl
+      : undefined
+  const entityDescription =
+    'formattedDescription' in row.entity && typeof row.entity.formattedDescription === 'string'
+      ? row.entity.formattedDescription
+      : 'rawDescription' in row.entity && typeof row.entity.rawDescription === 'string'
+        ? row.entity.rawDescription
+        : undefined
+
   return {
     canonicalId: row.entity.canonicalId,
     name,
@@ -475,6 +490,8 @@ export function formatEntityRecommendation(
     actionLine: isPrimary ? actionLine : undefined,
     displayRole: isPrimary ? 'primary' : 'comparison',
     hasExplanation: Boolean(row.explanation && (summaryLines.length > 0 || actionLine)),
+    ...(entityIcon ? { iconUrl: entityIcon } : {}),
+    ...(entityDescription ? { description: entityDescription } : {}),
   }
 }
 

@@ -1,7 +1,6 @@
-import { createTFTDataCatalog } from '@/lib/tftStaticData'
+import { FALLBACK_SEED } from '@/services/cdnDataService'
 import { CURRENT_TFT_SET_NUMBER, SET_17_PATCH } from '@/meta/tftCurrentSet'
 import type { CanonicalDataVersion } from '@/types/canonicalCatalog'
-import { catalogVersionKey } from '@/types/canonicalCatalog'
 import { useAppStore } from '@/store/useAppStore'
 
 export type { CanonicalDataVersion } from '@/types/canonicalCatalog'
@@ -9,7 +8,7 @@ export { catalogVersionKey as versionCacheKey, patchCatalogPath } from '@/types/
 
 export function getCurrentCatalogVersion(): CanonicalDataVersion {
   const { gameData } = useAppStore.getState()
-  const staticMeta = createTFTDataCatalog().meta
+  const staticMeta = FALLBACK_SEED.meta
   return {
     set: gameData.setNumber || staticMeta.setNumber || CURRENT_TFT_SET_NUMBER,
     patch: SET_17_PATCH.patch,
@@ -18,7 +17,7 @@ export function getCurrentCatalogVersion(): CanonicalDataVersion {
 }
 
 export function getStaticCatalogVersion(): CanonicalDataVersion {
-  const meta = createTFTDataCatalog().meta
+  const meta = FALLBACK_SEED.meta
   return {
     set: meta.setNumber,
     patch: SET_17_PATCH.patch,

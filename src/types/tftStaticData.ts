@@ -26,9 +26,16 @@ export interface TFTStaticIconFields {
   iconUrl: string | null
 }
 
+export interface TFTAbilityVariable {
+  name: string
+  value: number | number[]
+}
+
 export interface TFTStaticUnitAbility {
   name: string | null
+  /** Raw CD text with @tokens@ (formatted at read time when variables present). */
   description: string
+  variables?: TFTAbilityVariable[]
   iconPath: string | null
   iconUrl: string | null
 }

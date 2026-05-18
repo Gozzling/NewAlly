@@ -42,8 +42,8 @@ describe('perception analytics refinement', () => {
   })
 
   it('triages anomalies into categories', () => {
-    trackRecommendationShown({ canonicalId: 'x', confidence: 0.88 })
-    trackRecommendationIgnored({ canonicalId: 'x' })
+    trackRecommendationShown({ canonicalId: 'x', confidence: 0.88, surface: 'overlay' })
+    trackRecommendationIgnored({ canonicalId: 'x', surface: 'overlay' })
     const events = listRecommendationEvaluationEvents()
     const gap = computePerceptionGap(events)
     const anomalies = detectRecommendationAnomalies(events)
@@ -72,6 +72,54 @@ describe('perception analytics refinement', () => {
     expect(report.categories.length).toBeGreaterThan(0)
     expect(report.interpretationHints.length).toBeGreaterThan(0)
     expect(report.summary.every((line) => !line.includes('undefined'))).toBe(true)
+    expect(report.sections.length).toBe(3)
+    expect(report.sections.map((s) => s.id)).toEqual([
+      'system_behavior',
+      'user_perception',
+      'actionable_insights',
+    ])
+    expect(Array.isArray(report.condensedInsights)).toBe(true)
+    expect(report.crossSessionEvolution).toBeDefined()
+    expect(report.signalStability.length).toBeGreaterThan(0)
+  })
+
+  it('triaged anomalies include interpretability labels and surface', () => {
+    trackRecommendationShown({ canonicalId: 'x', confidence: 0.88, surface: 'overlay' })
+    trackRecommendationIgnored({ canonicalId: 'x', surface: 'overlay' })
+    const report = buildSessionInsightReport()
+    const triaged = report.triagedAnomalies.filter((t) => t.category !== 'noise')
+    expect(triaged.length).toBeGreaterThan(0)
+    expect(triaged.every((t) => t.interpretabilityLabel.length > 0)).toBe(true)
+    expect(triaged.every((t) => t.surface === 'overlay')).toBe(true)
+  })
+
+  it('decision support mode limits verbosity', () => {
+    for (let i = 0; i < 6; i++) {
+      trackRecommendationShown({ canonicalId: `d${i}`, confidence: 0.9, surface: 'overlay' })
+      trackRecommendationIgnored({ canonicalId: `d${i}`, surface: 'overlay' })
+    }
+    const full = getPerceivedIntelligenceReport()
+    const compact = getPerceivedIntelligenceReport(undefined, 0, { decisionSupportMode: true })
+    expect(compact.summary.length).toBeLessThanOrEqual(3)
+    expect(compact.prioritizedFindings.length).toBeLessThanOrEqual(3)
+    expect(compact.categories.length).toBeLessThanOrEqual(full.categories.length)
+    const actionable = compact.sections.find((s) => s.id === 'actionable_insights')
+    expect(actionable?.items.length).toBeLessThanOrEqual(3)
+  })
+
+  it('stability profiles include semi-stable and confidence', () => {
+    trackRecommendationShown({ canonicalId: 't1', surface: 'guide' })
+    buildSessionInsightReport('session-a')
+    trackRecommendationShown({ canonicalId: 't2', surface: 'guide' })
+    trackRecommendationUsed({ canonicalId: 't2', surface: 'guide' })
+    buildSessionInsightReport('session-b')
+
+    const stability = detectStableVsVolatileSignals()
+    for (const profile of stability) {
+      expect(['stable', 'semi_stable', 'volatile']).toContain(profile.classification)
+      expect(profile.stabilityConfidence).toBeGreaterThanOrEqual(0)
+      expect(typeof profile.trendConverging).toBe('boolean')
+    }
   })
 
   it('aggregates trends across recorded sessions', () => {
@@ -88,7 +136,7 @@ describe('perception analytics refinement', () => {
   })
 
   it('classifySessionSignals returns early on low volume', () => {
-    trackRecommendationShown({ canonicalId: 'only', confidence: 0.5 })
+    trackRecommendationShown({ canonicalId: 'only', confidence: 0.5, surface: 'overlay' })
     const report = buildSessionInsightReport()
     const direct = classifySessionSignals(report)
     expect(direct.some((s) => s.kind === 'noise')).toBe(true)

@@ -198,6 +198,9 @@ export {
   prioritizeSessionFindings,
   aggregatePerceptionTrends,
   detectStableVsVolatileSignals,
+  trackCrossSessionInsightEvolution,
+  interpretabilityLabelForCategory,
+  condenseInsightsByCategory,
 } from "./evaluation";
 export type {
   RecommendationSurface,
@@ -214,5 +217,10 @@ export type {
   TriagedAnomaly,
   PrioritizedFinding,
   AggregatedPerceptionTrends,
+  PerceivedIntelligenceReportOptions,
+  ReportSection,
+  CrossSessionInsightEvolution,
+  CondensedInsightGroup,
+  SignalStabilityProfile,
 } from "./evaluation";
 

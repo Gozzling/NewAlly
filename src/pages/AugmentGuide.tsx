@@ -5,9 +5,8 @@ import { augmentIconUrl } from '@/utils/augmentDisplay'
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { useTFTData } from '@/hooks/useTFTData'
-import { listCanonicalAugments } from '@/lib/augmentResolver'
-import { toGuideAugment, type GuideAugment } from '@/lib/augmentProjections'
-import { useAppStore } from '@/store/useAppStore'
+import { useGameDataAugments } from '@/hooks/useGameDataAugments'
+import type { GuideAugment } from '@/lib/augmentProjections'
 import { TFTStaticDataBanner } from '@/components/TFTStaticDataBanner'
 import type { RecommendationIntent } from '@/types/recommendationIntent'
 import { recordRecommendationEvaluation } from '@/engine/recommendations/evaluation'
@@ -46,11 +45,7 @@ interface AugmentGuideProps {
 
 export function AugmentGuide({ query, setQuery, tierFilter, setTierFilter, tagFilter, setTagFilter, onAugmentSelect }: AugmentGuideProps) {
   const tft = useTFTData()
-  const gameDataVersion = useAppStore((s) => s.gameData.lastUpdated)
-  const augments = useMemo(
-    () => listCanonicalAugments().map(toGuideAugment),
-    [gameDataVersion],
-  )
+  const augments = useGameDataAugments()
   const [selectedAugment, setSelectedAugment] = useState<Augment | null>(null)
   const [recoIntent, setRecoIntent] = useState<RecommendationIntent>('stabilization')
 

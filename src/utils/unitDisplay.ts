@@ -2,7 +2,7 @@
  * Lowercase [a-z0-9] only — aligns TFT display names with API/GEP variants
  * (e.g. Kai'Sa vs Kaisa, Master Yi vs MasterYi).
  */
-import { UNITS } from '@/data/units'
+import { getFallbackSetData } from '@/services/cdnDataService'
 import { encodePublicIconFilename } from '@/utils/publicAssetUrl'
 
 export function unitMatchKey(name: string): string {
@@ -20,7 +20,7 @@ const ICON_SLUG_BY_MATCH_KEY: Record<string, string> = {
 /** Resolve to canonical TFT roster name when the string matches a current-set unit. */
 export function resolveCanonicalUnitName(displayName: string): string {
   const key = unitMatchKey(displayName)
-  const hit = UNITS.find((u) => unitMatchKey(u.name) === key)
+  const hit = getFallbackSetData().champions.find((u) => unitMatchKey(u.name) === key)
   return hit?.name ?? displayName
 }
 
@@ -44,10 +44,12 @@ export function ddragonChampionSquareUrl(displayName: string): string {
   return `${DDRAGON_CHAMPION_BASE}/${encodeURIComponent(slug)}.png`
 }
 
-/** Prefer bundled `/unit-icons` for current-set champions; otherwise Data Dragon (handles e.g. Zyra in item guides). */
+/** Prefer CDN/local roster icon; Data Dragon when not in current set. */
 export function unitPortraitPrimaryUrl(displayName: string): string {
   const name = resolveCanonicalUnitName(displayName)
-  const inRoster = UNITS.some((u) => unitMatchKey(u.name) === unitMatchKey(name))
-  if (inRoster) return `/unit-icons/${encodePublicIconFilename(unitIconSlug(name))}.png`
+  const inRoster = getFallbackSetData().champions.some(
+    (u) => unitMatchKey(u.name) === unitMatchKey(name),
+  )
+  if (inRoster) return unitIconUrl(name)
   return ddragonChampionSquareUrl(displayName)
 }

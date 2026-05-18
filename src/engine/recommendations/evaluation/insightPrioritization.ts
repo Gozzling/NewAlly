@@ -1,4 +1,5 @@
 import type {
+  AnomalyTriageCategory,
   ClassifiedSignal,
   PrioritizedFinding,
   SessionInsightReport,
@@ -7,9 +8,12 @@ import type {
   TriagedAnomaly,
 } from './types'
 import { dominantSignalKind, signalsByKind } from './signalClassification'
-import { groupTriagedFindings } from './anomalyTriage'
+import { groupTriagedFindings, telemetrySurfacesForTriagedCategory } from './anomalyTriage'
 
 const REDUNDANT_KEYS = new Set(['gap.sampleSize', 'session.volume', 'perceived.similarity'])
+
+/** Overlay has the least tolerance for ranking/explanation errors — observational weight only. */
+const OVERLAY_ANOMALY_IMPACT_MULTIPLIER = 1.25
 
 function hintForKind(kind: SignalKind): string {
   switch (kind) {
@@ -22,6 +26,33 @@ function hintForKind(kind: SignalKind): string {
     case 'intent_misclassification':
       return 'Overlay intent blend may not match user plan — compare with guide intent picks.'
   }
+}
+
+function overlayMultiplierForCategory(
+  triaged: TriagedAnomaly[],
+  category: AnomalyTriageCategory,
+): number {
+  const hasOverlay = triaged.some((t) => t.category === category && t.surface === 'overlay')
+  return hasOverlay ? OVERLAY_ANOMALY_IMPACT_MULTIPLIER : 1
+}
+
+function applySurfaceImpactMultipliers(
+  findings: PrioritizedFinding[],
+  triaged: TriagedAnomaly[],
+): PrioritizedFinding[] {
+  return findings.map((finding) => {
+    let multiplier = 1
+    if (finding.id === 'ranking-mismatch-group') {
+      multiplier = overlayMultiplierForCategory(triaged, 'ranking_mismatch')
+    } else if (finding.id === 'explain-issue-group') {
+      multiplier = overlayMultiplierForCategory(triaged, 'explanation_issue')
+    }
+    if (multiplier === 1) return finding
+    return {
+      ...finding,
+      impactScore: Math.min(1, finding.impactScore * multiplier),
+    }
+  })
 }
 
 export function prioritizeSessionFindings(
@@ -74,8 +105,9 @@ export function prioritizeSessionFindings(
       title: `${triageGroups.ranking_mismatch.length} ranking perception mismatches`,
       impactScore: 0.65,
       signalKinds: ['structural_ux', 'behavioral'],
-      relatedSurfaces: [],
-      interpretationHint: 'Score display and user choices diverge — review confidence presentation before changing weights.',
+      relatedSurfaces: telemetrySurfacesForTriagedCategory(triaged, 'ranking_mismatch'),
+      interpretationHint:
+        'Score display and user choices diverge — review confidence presentation before changing weights.',
     })
   }
 
@@ -85,7 +117,7 @@ export function prioritizeSessionFindings(
       title: 'Explanation engagement without acceptance',
       impactScore: 0.6,
       signalKinds: ['structural_ux'],
-      relatedSurfaces: ['overlay', 'guide'],
+      relatedSurfaces: telemetrySurfacesForTriagedCategory(triaged, 'explanation_issue'),
       interpretationHint: hintForKind('structural_ux'),
     })
   }
@@ -124,7 +156,7 @@ export function prioritizeSessionFindings(
     })
   }
 
-  return suppressRedundant(findings)
+  return suppressRedundant(applySurfaceImpactMultipliers(findings, triaged))
     .sort((a, b) => b.impactScore - a.impactScore)
     .slice(0, 8)
 }

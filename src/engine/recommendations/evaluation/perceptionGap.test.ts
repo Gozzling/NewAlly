@@ -48,12 +48,12 @@ describe('perceptionGap', () => {
   })
 
   it('computes explanation helpfulness delta from live events', () => {
-    trackRecommendationShown({ canonicalId: 'x', confidence: 0.7 })
+    trackRecommendationShown({ canonicalId: 'x', confidence: 0.7, surface: 'overlay' })
     trackExplanationExpanded({ canonicalId: 'x' })
-    trackRecommendationUsed({ canonicalId: 'x' })
+    trackRecommendationUsed({ canonicalId: 'x', surface: 'overlay' })
 
-    trackRecommendationShown({ canonicalId: 'y', confidence: 0.7 })
-    trackRecommendationUsed({ canonicalId: 'y' })
+    trackRecommendationShown({ canonicalId: 'y', confidence: 0.7, surface: 'overlay' })
+    trackRecommendationUsed({ canonicalId: 'y', surface: 'overlay' })
 
     const gap = computePerceptionGap(listRecommendationEvaluationEvents())
     expect(gap.sampleSize).toBe(2)

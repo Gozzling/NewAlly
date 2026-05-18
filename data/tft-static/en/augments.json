@@ -4,7 +4,8 @@
     "name": "Anima Commander",
     "description": "Gain a Briar, a Jinx, and an Illaoi. Increase your current and max player Health by .",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/AnimaCommander_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/animacommander_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/animacommander_ii.tft_set17.png",
+    "rawDescription": "Gain a Briar, a Jinx, and an Illaoi. Increase your current and max player Health by @PlayerHealth@.",
     "tier": "gold",
     "associatedTraits": [
       "TFT17_AnimaSquad"
@@ -18,7 +19,8 @@
     "name": "Apotheotic Forge",
     "description": "Choose 1 of 4 Divine Artifacts.\n\nArtifacts are more powerful items with a unique effect.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Job_s-Done-II.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/job_s-done-ii.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/job_s-done-ii.png",
+    "rawDescription": "Choose 1 of 4 Divine Artifacts.\n\nArtifacts are more powerful items with a unique effect.",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {}
@@ -28,7 +30,8 @@
     "name": "Backline Blueprint",
     "description": "Gain a 3-cost non-Tank champion and an Emblem that matches their last-listed trait.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BacklineBlueprint_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/backlineblueprint_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/backlineblueprint_ii.tft_set17.png",
+    "rawDescription": "Gain a 3-cost non-Tank champion and an Emblem that matches their last-listed trait.",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {}
@@ -38,7 +41,8 @@
     "name": "Bonk!",
     "description": "Gain a Nasus. Your strongest Nasus becomes an Attack Fighter with a single target Ability that gets stronger with each kill.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Bonk_I.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/bonk_i.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/bonk_i.tft_set17.png",
+    "rawDescription": "Gain a Nasus. Your strongest Nasus becomes an Attack Fighter with a single target Ability that gets stronger with each kill.",
     "tier": "silver",
     "associatedTraits": [],
     "effects": {}
@@ -46,9 +50,10 @@
   {
     "apiName": "TFT_Augment_BoosterPack",
     "name": "Booster Pack",
-    "description": "Gain gold of random champions. (At least one -cost guaranteed!)\n\n(Each champion has a small chance of being holographic!)",
+    "description": "Gain  gold of random champions. (At least one -cost guaranteed!)\n\n(Each champion has a small chance of being holographic!)",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BoosterPack1_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/boosterpack1_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/boosterpack1_ii.tft_set17.png",
+    "rawDescription": "Gain @TotalValue@ gold of random champions. (At least one @GuaranteedCost@-cost guaranteed!)\n\n(Each champion has a small chance of being holographic!)",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {
@@ -59,9 +64,10 @@
   {
     "apiName": "TFT_Augment_BoosterPackPlus",
     "name": "Booster Pack+",
-    "description": "Gain gold of random champions. (At least one -cost guaranteed!)\n\n(Each champion has a small chance of being holographic!)",
+    "description": "Gain  gold of random champions. (At least one -cost guaranteed!)\n\n(Each champion has a small chance of being holographic!)",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BoosterPack1_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/boosterpack1_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/boosterpack1_ii.tft_set17.png",
+    "rawDescription": "Gain @TotalValue@ gold of random champions. (At least one @GuaranteedCost@-cost guaranteed!)\n\n(Each champion has a small chance of being holographic!)",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {
@@ -74,7 +80,8 @@
     "name": "Charge Transfer I",
     "description": "Your team gains Damage Amp. of overkill damage is dealt to the nearest enemy as magic damage.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ChargeTransfer1_I.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/chargetransfer1_i.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/chargetransfer1_i.tft_set17.png",
+    "rawDescription": "Your team gains @DamageAmp@% Damage Amp. @OverkillPercent*100@% of overkill damage is dealt to the nearest enemy as magic damage.",
     "tier": "silver",
     "associatedTraits": [],
     "effects": {
@@ -87,7 +94,8 @@
     "name": "Charge Transfer II",
     "description": "Your team gains Damage Amp. of overkill damage is dealt to the nearest enemy as magic damage.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ChargeTransfer2_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/chargetransfer2_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/chargetransfer2_ii.tft_set17.png",
+    "rawDescription": "Your team gains @DamageAmp@% Damage Amp. @OverkillPercent*100@% of overkill damage is dealt to the nearest enemy as magic damage.",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {
@@ -98,9 +106,10 @@
   {
     "apiName": "TFT_Augment_CognitiveOverload",
     "name": "Cognitive Overload",
-    "description": "Gain gold, 2-star 1-cost champion, 2-cost champion, 3-cost champions, XP, and Shop reroll.",
+    "description": "Gain  gold,  2-star 1-cost champion,  2-cost champion,  3-cost champions,  XP, and  Shop reroll.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/CognitiveOverload_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/cognitiveoverload_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/cognitiveoverload_ii.tft_set17.png",
+    "rawDescription": "Gain @Gold@ gold, @OneCostCount@ 2-star 1-cost champion, @TwoCostCount@ 2-cost champion, @ThreeCostCount@ 3-cost champions, @XP@ XP, and @FreeRolls@ Shop reroll.",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {
@@ -115,9 +124,10 @@
   {
     "apiName": "TFT_Augment_CognitiveTax",
     "name": "Cognitive Tax",
-    "description": "Gain gold and XP.",
+    "description": "Gain  gold and  XP.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/CognitiveTax_I.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/cognitivetax_i.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/cognitivetax_i.tft_set17.png",
+    "rawDescription": "Gain @Gold@ gold and @XP@ XP.",
     "tier": "silver",
     "associatedTraits": [],
     "effects": {
@@ -128,9 +138,10 @@
   {
     "apiName": "TFT_Augment_CognitiveTaxPlus",
     "name": "Cognitive Tax+",
-    "description": "Gain gold and XP.",
+    "description": "Gain  gold and  XP.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/CognitiveTax_I.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/cognitivetax_i.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/cognitivetax_i.tft_set17.png",
+    "rawDescription": "Gain @Gold@ gold and @XP@ XP.",
     "tier": "silver",
     "associatedTraits": [],
     "effects": {
@@ -143,7 +154,8 @@
     "name": "Concentration",
     "description": "Conduit Abilities last to longer, depending on the Ability. Gain a Zoe and a Mordekaiser.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Concentration_II.TFT_17_3.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/concentration_ii.tft_17_3.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/concentration_ii.tft_17_3.png",
+    "rawDescription": "Conduit Abilities last @PowerMin@% to @PowerMax@% longer, depending on the Ability. Gain a Zoe and a Mordekaiser.",
     "tier": "prismatic",
     "associatedTraits": [
       "TFT17_ManaTrait"
@@ -158,7 +170,8 @@
     "name": "Contract Killer",
     "description": "Gain a Pyke. Your strongest Pyke becomes an Attack Fighter, generates gold on team takedown, and gains a reset on-kill Ability.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ContractKiller_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/contractkiller_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/contractkiller_ii.tft_set17.png",
+    "rawDescription": "Gain a Pyke. Your strongest Pyke becomes an Attack Fighter, generates gold on team takedown, and gains a reset on-kill Ability.",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {}
@@ -166,9 +179,10 @@
   {
     "apiName": "TFT_Augment_CosmicRestart",
     "name": "Cosmic Restart",
-    "description": "Call upon the Gods to sell all units on your board and bench. Gain random Emblems and free Shop rerolls.",
+    "description": "Call upon the Gods to sell all units on your board and bench. Gain  random Emblems and  free Shop rerolls.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/CosmicRestart_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/cosmicrestart_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/cosmicrestart_ii.tft_set17.png",
+    "rawDescription": "Call upon the Gods to sell all units on your board and bench. Gain @Emblems@ random Emblems and @Rerolls@ free Shop rerolls.",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {
@@ -181,7 +195,8 @@
     "name": "Divine Amendment",
     "description": "Arbiters add a second effect to their law.\nGain a Leona and a Zoe.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/DivineAmendment_II.TFT_Set17_PostLaunchAugments.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/divineamendment_ii.tft_set17_postlaunchaugments.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/divineamendment_ii.tft_set17_postlaunchaugments.png",
+    "rawDescription": "Arbiters add a second effect to their law.\nGain a Leona and a Zoe.",
     "tier": "gold",
     "associatedTraits": [
       "TFT17_ADMIN"
@@ -189,39 +204,12 @@
     "effects": {}
   },
   {
-    "apiName": "TFT17_Augment_ShieldTank_DivinePaladins",
-    "name": "Divine Paladins",
-    "description": "Vanguard shields are stronger and explode when broken, dealing magic damage split between enemies in a -hex radius.",
-    "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Divine-Paladins.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/divine-paladins.tft_set17.tex",
-    "tier": "unknown",
-    "associatedTraits": [
-      "TFT17_ShieldTank"
-    ],
-    "effects": {
-      "Damage": 500,
-      "Hex": 2,
-      "{78f210fe}": 0.25
-    }
-  },
-  {
-    "apiName": "TFT_Augment_EndlessConflagration",
-    "name": "Endless Conflagration",
-    "description": "Choose a Burn item. Your Burns now stack, increasing the original Burn's damage by .",
-    "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/EndlessConflagration_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/endlessconflagration_ii.tft_set17.tex",
-    "tier": "gold",
-    "associatedTraits": [],
-    "effects": {
-      "BurnIncreasePerStack": 0.11999999731779099
-    }
-  },
-  {
     "apiName": "TFT_Augment_Expedition",
     "name": "Expedition",
-    "description": "At the start of every round, lose the champion in the rightmost bench slot. After losing gold of champions in this way, gain a powerful reward. Gain a 3-cost champion now. @TFTUnitProperty.item:TFT_Augment_Expedition_Tooltip@",
+    "description": "At the start of every round, lose the champion in the rightmost bench slot. After losing  gold of champions in this way, gain a powerful reward. Gain a 3-cost champion now. @TFTUnitProperty.item:TFT_Augment_Expedition_Tooltip@",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Expedition_I.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/expedition_i.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/expedition_i.tft_set17.png",
+    "rawDescription": "At the start of every round, lose the champion in the rightmost bench slot. After losing @CashoutCost@ gold of champions in this way, gain a powerful reward. Gain a 3-cost champion now. @TFTUnitProperty.item:TFT_Augment_Expedition_Tooltip@",
     "tier": "silver",
     "associatedTraits": [],
     "effects": {
@@ -232,9 +220,10 @@
   {
     "apiName": "TFT_Augment_FeelingLucky",
     "name": "Feeling Lucky",
-    "description": "Gain gold, then flip a coin. If heads, gain more gold.\n\n@TFTUnitProperty.item:TFT_Augment_FeelingLucky_Tooltip@",
+    "description": "Gain  gold, then flip a coin. If heads, gain  more gold.\n\n@TFTUnitProperty.item:TFT_Augment_FeelingLucky_Tooltip@",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/FeelingLucky_I.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/feelinglucky_i.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/feelinglucky_i.tft_set17.png",
+    "rawDescription": "Gain @BaseGold@ gold, then flip a coin. If heads, gain @GoldForHeads@ more gold.\n\n@TFTUnitProperty.item:TFT_Augment_FeelingLucky_Tooltip@",
     "tier": "silver",
     "associatedTraits": [],
     "effects": {
@@ -247,7 +236,8 @@
     "name": "Frontline Foundation",
     "description": "Gain a 2-star 1-cost Tank champion and an Emblem that matches their last-listed trait.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/FrontlineFoundation_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/frontlinefoundation_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/frontlinefoundation_ii.tft_set17.png",
+    "rawDescription": "Gain a 2-star 1-cost Tank champion and an Emblem that matches their last-listed trait.",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {}
@@ -255,9 +245,10 @@
   {
     "apiName": "TFT_Augment_GoldenGamble",
     "name": "Golden Gamble",
-    "description": "Gain gold and flip a coin. If heads, gain a Radiant Lucky Item Chest. If tails, gain Completed item anvils.\n\n@TFTUnitProperty.item:TFT_Augment_GoldenGamble_Tooltip@",
+    "description": "Gain  gold and flip a coin. If heads, gain a Radiant Lucky Item Chest. If tails, gain  Completed item anvils.\n\n@TFTUnitProperty.item:TFT_Augment_GoldenGamble_Tooltip@",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/GoldenGamble_III.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/goldengamble_iii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/goldengamble_iii.tft_set17.png",
+    "rawDescription": "Gain @gold@ gold and flip a coin. If heads, gain a Radiant Lucky Item Chest. If tails, gain @CompletedAnvils@ Completed item anvils.\n\n@TFTUnitProperty.item:TFT_Augment_GoldenGamble_Tooltip@",
     "tier": "prismatic",
     "associatedTraits": [],
     "effects": {
@@ -268,9 +259,10 @@
   {
     "apiName": "TFT_Augment_GoldenGamblePlus",
     "name": "Golden Gamble+",
-    "description": "Gain gold and flip a coin. If heads, gain a Radiant Lucky Item Chest. If tails, gain Completed item anvils.\n\n@TFTUnitProperty.item:TFT_Augment_GoldenGamble_Tooltip@",
+    "description": "Gain  gold and flip a coin. If heads, gain a Radiant Lucky Item Chest. If tails, gain  Completed item anvils.\n\n@TFTUnitProperty.item:TFT_Augment_GoldenGamble_Tooltip@",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/GoldenGamble_III.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/goldengamble_iii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/goldengamble_iii.tft_set17.png",
+    "rawDescription": "Gain @gold@ gold and flip a coin. If heads, gain a Radiant Lucky Item Chest. If tails, gain @CompletedAnvils@ Completed item anvils.\n\n@TFTUnitProperty.item:TFT_Augment_GoldenGamble_Tooltip@",
     "tier": "prismatic",
     "associatedTraits": [],
     "effects": {
@@ -281,9 +273,10 @@
   {
     "apiName": "TFT_Augment_GoldenGamblePlusPlus",
     "name": "Golden Gamble++",
-    "description": "Gain gold and flip a coin. If heads, gain a Radiant Lucky Item Chest. If tails, gain Completed item anvils.\n\n@TFTUnitProperty.item:TFT_Augment_GoldenGamble_Tooltip@",
+    "description": "Gain  gold and flip a coin. If heads, gain a Radiant Lucky Item Chest. If tails, gain  Completed item anvils.\n\n@TFTUnitProperty.item:TFT_Augment_GoldenGamble_Tooltip@",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/GoldenGamble_III.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/goldengamble_iii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/goldengamble_iii.tft_set17.png",
+    "rawDescription": "Gain @gold@ gold and flip a coin. If heads, gain a Radiant Lucky Item Chest. If tails, gain @CompletedAnvils@ Completed item anvils.\n\n@TFTUnitProperty.item:TFT_Augment_GoldenGamble_Tooltip@",
     "tier": "prismatic",
     "associatedTraits": [],
     "effects": {
@@ -294,9 +287,10 @@
   {
     "apiName": "TFT_Augment_GroupHug1",
     "name": "Group Hug I",
-    "description": "Combat start: Allies grant other adjacent allies Armor and Magic Resist. This effect stacks.",
+    "description": "Combat start: Allies grant other adjacent allies  Armor and Magic Resist. This effect stacks.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/GroupHug1_I.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/grouphug1_i.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/grouphug1_i.tft_set17.png",
+    "rawDescription": "Combat start: Allies grant other adjacent allies @Resists@ Armor and Magic Resist. This effect stacks.",
     "tier": "silver",
     "associatedTraits": [],
     "effects": {
@@ -306,9 +300,10 @@
   {
     "apiName": "TFT_Augment_GroupHug2",
     "name": "Group Hug II",
-    "description": "Combat start: Allies grant other adjacent allies Armor and Magic Resist. This effect stacks.",
+    "description": "Combat start: Allies grant other adjacent allies  Armor and Magic Resist. This effect stacks.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/GroupHug2_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/grouphug2_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/grouphug2_ii.tft_set17.png",
+    "rawDescription": "Combat start: Allies grant other adjacent allies @Resists@ Armor and Magic Resist. This effect stacks.",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {
@@ -318,9 +313,10 @@
   {
     "apiName": "TFT17_Augment_PrimordianPrismaticAugment",
     "name": "Heart of the Swarm",
-    "description": "All 3-star champions now count towards Swarmling power. At level , while fielding unique 3-star champions, Primordians summon the Apex Primordian. Gain a Briar, Bel'veth, and 2-star Rek'sai.\n\nUnique 3-Star Champions Fielded: @TFTUnitProperty.item:TFT17_Augment_PrimordianPrismaticAugment_TotalStarredUnits@ / \n\nLevels: @TFTUnitProperty.item:TFT17_Augment_PrimordianPrismaticAugment_TotalLevel@ /",
+    "description": "All 3-star champions now count towards Swarmling power. At level , while fielding  unique 3-star champions, Primordians summon the Apex Primordian. Gain a Briar, Bel'veth, and 2-star Rek'sai.\n\nUnique 3-Star Champions Fielded: @TFTUnitProperty.item:TFT17_Augment_PrimordianPrismaticAugment_TotalStarredUnits@ / \n\nLevels: @TFTUnitProperty.item:TFT17_Augment_PrimordianPrismaticAugment_TotalLevel@ /",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/HeartoftheSwarm_III.TFT_Set17_PostLaunchAugments.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/heartoftheswarm_iii.tft_set17_postlaunchaugments.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/heartoftheswarm_iii.tft_set17_postlaunchaugments.png",
+    "rawDescription": "All 3-star champions now count towards Swarmling power. At level @LevelRequirement@, while fielding @Num3StarUnits@ unique 3-star champions, Primordians summon the Apex Primordian. Gain a Briar, Bel'veth, and 2-star Rek'sai.\n\nUnique 3-Star Champions Fielded: @TFTUnitProperty.item:TFT17_Augment_PrimordianPrismaticAugment_TotalStarredUnits@ / @Num3StarUnits@\n\nLevels: @TFTUnitProperty.item:TFT17_Augment_PrimordianPrismaticAugment_TotalLevel@ / @LevelRequirement@",
     "tier": "prismatic",
     "associatedTraits": [],
     "effects": {
@@ -333,7 +329,8 @@
     "name": "Heat Death",
     "description": "Gain a Mordekaiser. Your strongest Mordkaiser becomes a Magic Fighter with a slowly growing aura that deals damage over time.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/StarConqueror_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/starconqueror_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/starconqueror_ii.tft_set17.png",
+    "rawDescription": "Gain a Mordekaiser. Your strongest Mordkaiser becomes a Magic Fighter with a slowly growing aura that deals damage over time.",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {}
@@ -343,7 +340,8 @@
     "name": "Invader Zed",
     "description": "Gain a Spear of Shojin. On Stage -, gain a Zed. After receiving Zed, he can then appear in your shops.\n\nZed is a 5-cost Attack Fighter that creates clones of himself.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/InvaderZed_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/invaderzed_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/invaderzed_ii.tft_set17.png",
+    "rawDescription": "Gain a Spear of Shojin. On Stage @StageNum@-@RoundNum@, gain a Zed. After receiving Zed, he can then appear in your shops.\n\nZed is a 5-cost Attack Fighter that creates clones of himself.",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {
@@ -354,9 +352,10 @@
   {
     "apiName": "TFT_Augment_KickStart",
     "name": "Kick Start",
-    "description": "Gain a random 2-star 2-cost champion and gold.",
+    "description": "Gain a random 2-star 2-cost champion and  gold.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/KickStart_I.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/kickstart_i.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/kickstart_i.tft_set17.png",
+    "rawDescription": "Gain a random 2-star 2-cost champion and @Gold@ gold.",
     "tier": "silver",
     "associatedTraits": [],
     "effects": {
@@ -364,41 +363,12 @@
     }
   },
   {
-    "apiName": "TFT17_MarketOffering_Augment_LevelUp",
-    "name": "Level Up!",
-    "description": "When you buy XP, gain an additional . Gain immediately.",
-    "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/LevelUp3.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/levelup3.tex",
-    "tier": "prismatic",
-    "associatedTraits": [],
-    "effects": {
-      "InitialXP": 12,
-      "XP": 2
-    }
-  },
-  {
-    "apiName": "TFT17_Augment_Weightlifting",
-    "name": "Lift Off",
-    "description": "At the start of each round, if the combined Health of all your unique Brawlers is high enough, gain a reward and increase the threshold (up to four times). Gain a Cho'Gath and a Gragas.\n\n@TFTUnitProperty.item:TFT17_Augment_Weightlifting_RewardName@@TFTUnitProperty.item:TFT17_Augment_Weightlifting_CurrentHealth@ / @TFTUnitProperty.item:TFT17_Augment_Weightlifting_MaxHealth@",
-    "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/LiftingCompetition_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/liftingcompetition_ii.tft_set17.tex",
-    "tier": "gold",
-    "associatedTraits": [
-      "TFT17_HPTank"
-    ],
-    "effects": {
-      "Breakpoint2": 8500,
-      "Breakpoint3": 14000,
-      "Breakpoint4": 36000,
-      "{79f7dcbd}": 3500
-    }
-  },
-  {
     "apiName": "TFT17_Augment_DarkStar_WhiteHole",
     "name": "Loot Singularity",
     "description": "When the Black Hole consumes enemies, it turns them into space matter. After acquiring enough, the Black Hole turns it into loot! Gain a Cho'gath and a Lissandra.\n\nSpace matter and loot quality increase each time. Gain // space matter depending on Dark Star breakpoint.\n\nSpace Matter: @TFTUnitProperty.item:TFT17_Augment_DarkStar_WhiteHole_CurrentStacks@ / @TFTUnitProperty.item:TFT17_Augment_DarkStar_WhiteHole_StacksToNextCashout@",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/WhiteHole_II.TFT_17_3.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/whitehole_ii.tft_17_3.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/whitehole_ii.tft_17_3.png",
+    "rawDescription": "When the Black Hole consumes enemies, it turns them into space matter. After acquiring enough, the Black Hole turns it into loot! Gain a Cho'gath and a Lissandra.\n\nSpace matter and loot quality increase each time. Gain @TwoPiecePoints@/@FourPiecePoints@/@SixPiecePoints@ space matter depending on Dark Star breakpoint.\n\nSpace Matter: @TFTUnitProperty.item:TFT17_Augment_DarkStar_WhiteHole_CurrentStacks@ / @TFTUnitProperty.item:TFT17_Augment_DarkStar_WhiteHole_StacksToNextCashout@",
     "tier": "prismatic",
     "associatedTraits": [
       "TFT17_DarkStar"
@@ -412,9 +382,10 @@
   {
     "apiName": "TFT_Augment_MayTheFoursBeWithYou",
     "name": "May the Fours Be With You",
-    "description": "Your 4-cost champions and Jhin gain Health and Attack Speed. Gain a Jhin.",
+    "description": "Your 4-cost champions and Jhin gain  Health and Attack Speed. Gain a Jhin.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/MayTheFoursBeWithYou_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/maythefoursbewithyou_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/maythefoursbewithyou_ii.tft_set17.png",
+    "rawDescription": "Your 4-cost champions and Jhin gain @Health@ Health and @AttackSpeed*100@% Attack Speed. Gain a Jhin.",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {
@@ -425,9 +396,10 @@
   {
     "apiName": "TFT_Augment_Misfits",
     "name": "Misfits",
-    "description": "Your team gains Health for each active Unique trait. Gain a Rhaast and a Miss Fortune.\n\n@TFTUnitProperty.item:TFT_Augment_Misfits_TotalHealthTooltip@\n\nUnique traits belong to 1 champion and are shown in orange.",
+    "description": "Your team gains  Health for each active Unique trait. Gain a Rhaast and a Miss Fortune.\n\n@TFTUnitProperty.item:TFT_Augment_Misfits_TotalHealthTooltip@\n\nUnique traits belong to 1 champion and are shown in orange.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Misfits_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/misfits_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/misfits_ii.tft_set17.png",
+    "rawDescription": "Your team gains @Health@ Health for each active Unique trait. Gain a Rhaast and a Miss Fortune.\n\n@TFTUnitProperty.item:TFT_Augment_Misfits_TotalHealthTooltip@\n\nUnique traits belong to 1 champion and are shown in orange.",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {
@@ -437,9 +409,10 @@
   {
     "apiName": "TFT_Augment_MoneyHungry",
     "name": "Money Hungry",
-    "description": "Gain gold now, then gold at the start of every stage. Picking up gold makes your Tactician larger.",
+    "description": "Gain  gold now, then  gold at the start of every stage. Picking up gold makes your Tactician larger.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/MoneyHungry1_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/moneyhungry1_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/moneyhungry1_ii.tft_set17.png",
+    "rawDescription": "Gain @InstantGold@ gold now, then @StageGold@ gold at the start of every stage. Picking up gold makes your Tactician larger.",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {
@@ -448,52 +421,12 @@
     }
   },
   {
-    "apiName": "TFT_Augment_MoneyHungryPlus",
-    "name": "Money Hungry+",
-    "description": "Gain gold now, then gold at the start of every stage. Picking up gold makes your Tactician larger.",
-    "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/MoneyHungry2_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/moneyhungry2_ii.tft_set17.tex",
-    "tier": "gold",
-    "associatedTraits": [],
-    "effects": {
-      "InstantGold": 16,
-      "StageGold": 7
-    }
-  },
-  {
-    "apiName": "TFT17_Augment_DarkStar_NeutronStar",
-    "name": "Neutron Star",
-    "description": "Every star level of unique Dark Star units you field increases the execute threshold by . Gain a Cho'gath and Lissandra.\n\nBonus Execute Percent: @TFTUnitProperty.item:TFT17_Augment_DarkStar_NeutronStar_BonusExecutePercent*100@%",
-    "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Missing-T3.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/missing-t3.tex",
-    "tier": "prismatic",
-    "associatedTraits": [
-      "TFT17_DarkStar"
-    ],
-    "effects": {
-      "{b7707881}": 0.009999999776482582
-    }
-  },
-  {
-    "apiName": "TFT17_MarketOffering_Augment_PreciseSmithing",
-    "name": "Precise Smithing",
-    "description": "Reforging items and Artifacts grants an anvil of the same value instead. Gain component and reforger now, and reforgers every stage.\n\nIncludes components and Radiant Items, but does not affect Emblems or Tactician's Items.",
-    "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Forge-I.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/forge-i.tex",
-    "tier": "silver",
-    "associatedTraits": [],
-    "effects": {
-      "NumComponents": 1,
-      "NumReforger": 2,
-      "StageReforger": 1
-    }
-  },
-  {
     "apiName": "TFT17_Augment_JaxCarry",
     "name": "Reach for the Stars",
     "description": "Gain a Jax. Your strongest Jax becomes a Magic Fighter that deal bonus magic damage on attack and gains stacking Attack Speed on cast.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ReachForTheStars_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/reachforthestars_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/reachforthestars_ii.tft_set17.png",
+    "rawDescription": "Gain a Jax. Your strongest Jax becomes a Magic Fighter that deal bonus magic damage on attack and gains stacking Attack Speed on cast.",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {}
@@ -503,32 +436,19 @@
     "name": "Self Destruct",
     "description": "Gain a Gragas. Your strongest Gragas becomes a Magic Fighter with a massive explosion, but also damages himself.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SelfDestruct_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/selfdestruct_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/selfdestruct_ii.tft_set17.png",
+    "rawDescription": "Gain a Gragas. Your strongest Gragas becomes a Magic Fighter with a massive explosion, but also damages himself.",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {}
-  },
-  {
-    "apiName": "TFT17_Augment_ShepherdAugment",
-    "name": "Shepherd's Song",
-    "description": "On Stage -, gain a Sona and a Shepherd Emblem.",
-    "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ShepherdsSong_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/shepherdssong_ii.tft_set17.tex",
-    "tier": "gold",
-    "associatedTraits": [
-      "TFT17_SummonTrait"
-    ],
-    "effects": {
-      "RoundNum": 5,
-      "StageNum": 4
-    }
   },
   {
     "apiName": "TFT17_Augment_LeonaCarry",
     "name": "Shieldmaiden",
     "description": "Gain a Leona. Your strongest Leona becomes an Attack Fighter that dashes through enemies to deal physical damage, stunning the first target hit.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/LeonaHero_I.TFT_Set17_PostLaunchAugments.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/leonahero_i.tft_set17_postlaunchaugments.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/leonahero_i.tft_set17_postlaunchaugments.png",
+    "rawDescription": "Gain a Leona. Your strongest Leona becomes an Attack Fighter that dashes through enemies to deal physical damage, stunning the first target hit.",
     "tier": "silver",
     "associatedTraits": [],
     "effects": {}
@@ -536,9 +456,10 @@
   {
     "apiName": "TFT_Augment_SideEffects",
     "name": "Side Effects",
-    "description": "When an ally is healed, they deal of the healing to their target as magic damage. Every seconds, allies heal for of their max Health.",
+    "description": "When an ally is healed, they deal of the healing to their target as magic damage. Every  seconds, allies heal for of their max Health.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SideEffects_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/sideeffects_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/sideeffects_ii.tft_set17.png",
+    "rawDescription": "When an ally is healed, they deal @HealConversionPct*100@% of the healing to their target as magic damage. Every @HealInterval@ seconds, allies heal for @HealPct*100@% of their max Health.",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {
@@ -550,9 +471,10 @@
   {
     "apiName": "TFT_Augment_SizeMatters",
     "name": "Size Matters",
-    "description": "Gain a Giant's Belt. After a champion starts combat with more than max Health, gain a Warmog's Armor.",
+    "description": "Gain a Giant's Belt. After a champion starts combat with more than  max Health, gain a Warmog's Armor.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SizeMatters_I.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/sizematters_i.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/sizematters_i.tft_set17.png",
+    "rawDescription": "Gain a Giant's Belt. After a champion starts combat with more than @HealthRequired@ max Health, gain a Warmog's Armor.",
     "tier": "silver",
     "associatedTraits": [],
     "effects": {
@@ -560,39 +482,12 @@
     }
   },
   {
-    "apiName": "TFT17_Augment_SnipersNest",
-    "name": "Sniper's Nest",
-    "description": "Snipers gain Damage Amp for each combat fought from the same starting hex, up to . Gain an Ezreal and a Gnar.",
-    "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SnipersNest2.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/snipersnest2.tex",
-    "tier": "gold",
-    "associatedTraits": [
-      "TFT17_RangedTrait"
-    ],
-    "effects": {
-      "DamageAmp": 8,
-      "MaxAmp": 32
-    }
-  },
-  {
-    "apiName": "TFT17_MarketOffering_Augment_StarterKit",
-    "name": "Starter Kit",
-    "description": "Gain a 4-cost champion, a 2-star 1-cost champion that shares a trait with them, and gold.\n\nAt the start of the next stages, gain that 4-cost champion again.",
-    "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Starter-Kit-III.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/starter-kit-iii.tex",
-    "tier": "prismatic",
-    "associatedTraits": [],
-    "effects": {
-      "FutureChampionCount": 2,
-      "Gold": 8
-    }
-  },
-  {
     "apiName": "TFT17_Augment_AatroxCarry",
     "name": "Stellar Combo",
     "description": "Gain an Aatrox. Your strongest Aatrox becomes an Attack Fighter with an ability that swaps between three different strikes.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/AatroxHero_I.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/aatroxhero_i.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/aatroxhero_i.tft_set17.png",
+    "rawDescription": "Gain an Aatrox. Your strongest Aatrox becomes an Attack Fighter with an ability that swaps between three different strikes.",
     "tier": "silver",
     "associatedTraits": [],
     "effects": {}
@@ -602,7 +497,8 @@
     "name": "Termeepnal Velocity",
     "description": "Gain a Poppy. Your strongest Poppy becomes a ranged Attack Caster that flings a high-velocity Meep at her target.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/PoppyHero_I.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/poppyhero_i.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/poppyhero_i.tft_set17.png",
+    "rawDescription": "Gain a Poppy. Your strongest Poppy becomes a ranged Attack Caster that flings a high-velocity Meep at her target.",
     "tier": "silver",
     "associatedTraits": [],
     "effects": {}
@@ -612,31 +508,19 @@
     "name": "The Big Bang",
     "description": "Gain a Meepsie. Your strongest Meepsie becomes a Magic Fighter that leaps to a nearby hex to deal damage in a large radius.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/MeepSpace9_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/meepspace9_ii.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/meepspace9_ii.tft_set17.png",
+    "rawDescription": "Gain a Meepsie. Your strongest Meepsie becomes a Magic Fighter that leaps to a nearby hex to deal damage in a large radius.",
     "tier": "gold",
     "associatedTraits": [],
     "effects": {}
   },
   {
-    "apiName": "TFT_Augment_TheFloorIsLava",
-    "name": "The Floor is Lava",
-    "description": "During combat, ALL units are Burned and Wounded. Your team gains Omnivamp.\n\nBurn: Deals a percent of the target's max Health as true damage every second\nWound: Reduces healing received",
-    "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/TheFloorIsLava_II.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/thefloorislava_ii.tft_set17.tex",
-    "tier": "gold",
-    "associatedTraits": [],
-    "effects": {
-      "BurnPctTooltip": 1,
-      "GrievousWoundsPct": 33,
-      "Omnivamp": 0.20000000298023224
-    }
-  },
-  {
     "apiName": "TFT_Augment_TheTower",
     "name": "The Tower",
-    "description": "Gain a giant Training Dummy with increased Health (increases with Stage). Every seconds, it zaps the nearest enemies dealing max Health true damage.",
+    "description": "Gain a giant Training Dummy with increased Health (increases with Stage). Every  seconds, it zaps the  nearest enemies dealing max Health true damage.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/TheTower_I.TFT_Set17.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/thetower_i.tft_set17.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/thetower_i.tft_set17.png",
+    "rawDescription": "Gain a giant Training Dummy with increased Health (increases with Stage). Every @ZapInterval@ seconds, it zaps the @ZapCount@ nearest enemies dealing @MaxHealthPct*100@% max Health true damage.",
     "tier": "silver",
     "associatedTraits": [],
     "effects": {
@@ -648,9 +532,10 @@
   {
     "apiName": "TFT17_Augment_Timebreaker_Timestream",
     "name": "Timestream",
-    "description": "Timebreakers gain Health and Attack Speed every time you reroll (including free rerolls). Gain an Ezreal and a Pantheon.\n\n(Health: @TFTUnitProperty.:TFT17_Augment_Timebreaker_Timestream_HP@, Attack Speed: @TFTUnitProperty.:TFT17_Augment_Timebreaker_Timestream_AS*100@%)",
+    "description": "Timebreakers gain  Health and Attack Speed every time you reroll (including free rerolls). Gain an Ezreal and a Pantheon.\n\n(Health: @TFTUnitProperty.:TFT17_Augment_Timebreaker_Timestream_HP@, Attack Speed: @TFTUnitProperty.:TFT17_Augment_Timebreaker_Timestream_AS*100@%)",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Timestream_II.TFT_Set17_PostLaunchAugments.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/timestream_ii.tft_set17_postlaunchaugments.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/timestream_ii.tft_set17_postlaunchaugments.png",
+    "rawDescription": "Timebreakers gain @Health@ Health and @AttackSpeed@% Attack Speed every time you reroll (including free rerolls). Gain an Ezreal and a Pantheon.\n\n(Health: @TFTUnitProperty.:TFT17_Augment_Timebreaker_Timestream_HP@, Attack Speed: @TFTUnitProperty.:TFT17_Augment_Timebreaker_Timestream_AS*100@%)",
     "tier": "gold",
     "associatedTraits": [
       "TFT17_Timebreaker"
@@ -663,9 +548,10 @@
   {
     "apiName": "TFT17_Augment_TourOfTheGalaxy",
     "name": "Tour of the Galaxy",
-    "description": "Voyagers gain Health, Attack Damage, and Ability Power, increased by each time you fight a new player. You prefer to fight players you haven't fought recently. Gain a Pyke and a Meepsie.",
+    "description": "Voyagers gain  Health, Attack Damage, and Ability Power, increased by each time you fight a new player. You prefer to fight players you haven't fought recently. Gain a Pyke and a Meepsie.",
     "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/TourOfTheGalaxy_II.TFT_Set17_PostLaunchAugments.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/tourofthegalaxy_ii.tft_set17_postlaunchaugments.tex",
+    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/tourofthegalaxy_ii.tft_set17_postlaunchaugments.png",
+    "rawDescription": "Voyagers gain @HP@ Health, @AD*100@% Attack Damage, and @AP@% Ability Power, increased by @IncPercent*100@% each time you fight a new player. You prefer to fight players you haven't fought recently. Gain a Pyke and a Meepsie.",
     "tier": "gold",
     "associatedTraits": [
       "TFT17_FlexTrait"
@@ -675,18 +561,6 @@
       "AP": 13,
       "HP": 130,
       "IncPercent": 0.10000000149011612
-    }
-  },
-  {
-    "apiName": "TFT17_MarketOffering_Augment_TradeSectorPlus",
-    "name": "Trade Sector",
-    "description": "Gain a free Shop reroll every round. Gain gold.",
-    "iconPath": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Trade2.tex",
-    "iconUrl": "https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/trade2.tex",
-    "tier": "gold",
-    "associatedTraits": [],
-    "effects": {
-      "Gold": 4
     }
   }
 ]

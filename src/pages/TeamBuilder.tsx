@@ -8,9 +8,9 @@ import {
   ShoppingCart,
   Sparkles,
 } from 'lucide-react'
-import { UNITS } from '@/data/units'
+import type { Unit } from '@/data/units'
+import { useTFTGameData } from '@/hooks/useTFTData'
 import { unitIconUrl } from '@/utils/unitDisplay'
-import { SYNERGIES } from '@/data/synergies'
 import {
   buildGameStateFromBoard,
   recommendationsFromGameState,
@@ -110,6 +110,7 @@ function UnitPill({ name, traits, cost, placed, onClick }: {
    TeamBuilder
 ═══════════════════════════════════════════════════════════════ */
 export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp; onNavigate?: (page: string, id?: string) => void }) {
+  const { champions: rosterUnits, traits: rosterTraits } = useTFTGameData()
   const savedComps      = useAppStore(s => s.savedComps)
   const addSavedComp    = useAppStore(s => s.addSavedComp)
   const removeSavedComp = useAppStore(s => s.removeSavedComp)
@@ -310,21 +311,21 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
   const allUnits = useMemo(() => [...pUnits, ...eUnits], [pUnits, eUnits])
 
   const unitMap = useMemo(() => {
-    const m = new Map<string, typeof UNITS[number]>()
-    allUnits.forEach(n => { const u = UNITS.find(x => x.name === n); if (u) m.set(n, u) })
+    const m = new Map<string, Unit>()
+    allUnits.forEach(n => { const u = rosterUnits.find(x => x.name === n); if (u) m.set(n, u) })
     return m
-  }, [allUnits])
+  }, [allUnits, rosterUnits])
 
   const traits = useMemo(() => {
     const c: Record<string, number> = {}
     allUnits.forEach(n => unitMap.get(n)?.traits.forEach(t => { c[t] = (c[t] || 0) + 1 }))
     return Object.entries(c).map(([name, count]) => {
-      const syn = SYNERGIES.find(s => s.name === name)
+      const syn = rosterTraits.find(s => s.name === name)
       const active = !!syn?.thresholds.filter(t => count >= t.count).pop()
       const next   = syn?.thresholds.find(t => count < t.count)
       return { name, count, active, next, effect: syn && count > 0 ? syn.thresholds.filter(t => count >= t.count).pop()?.effect : '' }
     }).sort((a, b) => (b.active ? 1 : 0) - (a.active ? 1 : 0))
-  }, [allUnits, unitMap])
+  }, [allUnits, unitMap, rosterTraits])
 
   const pBoardUnits = pUnits.length
   const pBoardCost  = pUnits.reduce((s, n) => s + (unitMap.get(n)?.cost || 0), 0)
@@ -335,7 +336,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
   const boardSig = pBoard.map((c) => c ?? '').join('|')
   const coachRecs = useMemo(() => {
     return recommendationsFromGameState(
-      buildGameStateFromBoard(pBoard, UNITS),
+      buildGameStateFromBoard(pBoard, rosterUnits),
       [],
       'set17',
     ).slice(0, 5)
@@ -453,7 +454,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
   const HexGlyph = ({
     pos, unit, uData, boardName,
   }: {
-    pos: HexPos; unit: string | null; uData: typeof UNITS[number] | null
+    pos: HexPos; unit: string | null; uData: Unit | null
     boardName: 'player' | 'enemy'
   }) => {
     const isSrc  = dragItem?.board === boardName && dragItem?.idx === HEX_POSITIONS.indexOf(pos)
@@ -555,7 +556,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
 
           {HEX_POSITIONS.map((pos, idx) => {
             const unit  = boardArr[idx]
-            const uData = unit ? UNITS.find(x => x.name === unit) ?? null : null
+            const uData = unit ? rosterUnits.find(x => x.name === unit) ?? null : null
             const isSrc  = dragItem?.board === bName && dragItem?.idx === idx
 
             return (
@@ -724,7 +725,7 @@ export function TeamBuilder({ importComp, onNavigate }: { importComp?: MetaComp;
           )}
           <div className="tb-unit-panel-scroll" style={{ padding: '8px 12px 12px', display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 220, overflowY: 'auto' }}>
             {[5, 4, 3, 2, 1].map(cost => {
-              const costUnits = UNITS.filter(u => u.cost === cost)
+              const costUnits = rosterUnits.filter(u => u.cost === cost)
               if (costUnits.length === 0) return null
               return (
                 <div key={cost}>

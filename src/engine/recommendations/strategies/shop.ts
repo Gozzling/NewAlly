@@ -48,7 +48,11 @@ function shopPriorityToModel(
 }
 
 /** Early board: suggest shop cost focus from trait progress (e.g. Team Builder with no shop snapshot). */
-function traitProgressShopHint(boardUnitNames: string[], nowMs: number): AllyRecommendation | null {
+function traitProgressShopHint(
+  boardUnitNames: string[],
+  history: PlayerMatchHistorySummary,
+  nowMs: number,
+): AllyRecommendation | null {
   const n = boardUnitNames.length;
   if (n === 0 || n >= 4) return null;
 
@@ -94,24 +98,49 @@ function traitProgressShopHint(boardUnitNames: string[], nowMs: number): AllyRec
     .slice(0, 4)
     .map((u) => u.name);
 
-  const detail = `You have ${have} ${top.trait} — add ${top.need} more for the ${top.nextCount}-${top.trait} bonus. In shop rolls, lean toward ${costPhrase} picks${examples.length ? ` (e.g. ${examples.join(", ")})` : ""}.`;
+  let detail = `You have ${have} ${top.trait} — add ${top.need} more for the ${top.nextCount}-${top.trait} bonus. In shop rolls, lean toward ${costPhrase} picks${examples.length ? ` (e.g. ${examples.join(", ")})` : ""}.`;
+
+  const reasoning: string[] = [
+    `Next breakpoint: ${top.nextCount} ${top.trait} (${have} on board).`,
+    ...(examples.length ? [`Examples: ${examples.join(", ")}.`] : []),
+  ];
+  const evidence: AllyRecommendation["evidence"] = [
+    { source: "static_meta", weight: 0.65, note: "Trait thresholds & unit costs" },
+    { source: "heuristic", weight: 0.35, note: "Early board shop planning" },
+  ];
+
+  const shopT = RECOMMENDATION_THRESHOLDS.shop;
+  const historyKey = `${top.trait}:${top.nextCount}`;
+  const traitHist = history.traitThresholdHistory[historyKey];
+  let confidence = 0.52;
+
+  if (history.windowSize >= shopT.historyEvidenceWindowMin && traitHist?.top4Rate != null && traitHist.games > 0) {
+    const top4Pct = Math.round(traitHist.top4Rate * 100);
+    detail += ` Your recent games hit ${top.nextCount} ${top.trait} — top-4 in ${top4Pct}% of those boards.`;
+    reasoning.push(
+      `Personal trend: ${top4Pct}% top-4 when reaching ${top.nextCount} ${top.trait} (${traitHist.games} games).`,
+    );
+    evidence.push({
+      source: "match_history",
+      weight: 0.25,
+      note: `${traitHist.games} boards at ${top.nextCount}+ ${top.trait}`,
+    });
+    confidence = combineEvidenceWeighted([
+      { score: confidence, weight: 1 },
+      { score: traitHist.top4Rate, weight: 0.2 },
+    ]);
+  }
 
   return {
     id: `shop:trait:${top.trait}:${nowMs}`,
     category: "shop",
     title: `Shop focus — ${top.nextCount} ${top.trait}`,
     detail,
-    confidence: 0.52,
+    confidence: clamp01(confidence),
     risk: "low",
     urgency: n <= 2 ? "medium" : "low",
-    reasoning: [
-      `Next breakpoint: ${top.nextCount} ${top.trait} (${have} on board).`,
-      ...(examples.length ? [`Examples: ${examples.join(", ")}.`] : []),
-    ],
-    evidence: [
-      { source: "static_meta", weight: 0.65, note: "Trait thresholds & unit costs" },
-      { source: "heuristic", weight: 0.35, note: "Early board shop planning" },
-    ],
+    reasoning,
+    evidence,
     createdAtMs: nowMs,
   };
 }
@@ -170,17 +199,8 @@ export function shopRecommendations(input: RecommendationEngineInput, nowMs = Da
   if (!signals.inGame) return [];
 
   const out: AllyRecommendation[] = [];
-  const traitHint = traitProgressShopHint(signals.boardUnitNames, nowMs);
-  if (traitHint) {
-    // Augment with personal match‑history stats when available
-    if (matchHistory && matchHistory.windowSize > 0) {
-      const topRate = Math.round((matchHistory.top4Rate ?? 0) * 100);
-      const personalReason = `Personal trend: top-4 in ${topRate}% of recent games`;
-      traitHint.reasoning = [...traitHint.reasoning, personalReason];
-      traitHint.evidence = [...traitHint.evidence, { source: "match_history", weight: 0.1, note: "Personal match‑history stats" }];
-    }
-    out.push(traitHint);
-  }
+  const traitHint = traitProgressShopHint(signals.boardUnitNames, matchHistory, nowMs);
+  if (traitHint) out.push(traitHint);
 
   if (signals.shopUnitNames.length === 0) return out;
 

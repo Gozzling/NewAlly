@@ -1,13 +1,22 @@
 /**
  * Fetches Community Dragon bundled TFT JSON (`cdragon/tft/en_us.json`), maps it to Ally reference
- * types, and caches the result in IndexedDB for 24h.
+ * types, and caches the result in IndexedDB (1h TTL, key `cdn-augments-v1`).
  */
-import { UNITS, type Unit } from "@/data/units"
-import { SYNERGIES, type Synergy } from "@/data/synergies"
-import { AUGMENTS, type Augment } from "@/data/augments"
+import fallbackSeedJson from "@/data/fallback-seed.json"
+import type { Augment } from "@/data/augments"
 import { ITEM_GUIDE_ENTRIES, type ItemGuideEntry } from "@/data/itemGuideCatalog"
+import type { Synergy } from "@/data/synergies"
+import type { Unit } from "@/data/units"
+import type { FallbackSeed } from "@/types/fallbackSeed"
 import { CURRENT_TFT_SET_NUMBER } from "@/meta/tftCurrentSet"
-import { cdGameAssetUrl } from "@/utils/cdnIcons"
+import { isPlayableRosterUnit } from "@/lib/unitRosterFilter"
+import { enrichChampionIcons } from "@/utils/resolveUnitIcon"
+import {
+  abilityDamageLine,
+  formatUnitAbilityDescription,
+  mapCdragonAbilityVariables,
+} from "@/utils/unitAbilityText"
+import { normalizeCdragonPath } from "@/utils/tftAssetPath"
 import { formatTftText, roundTftWhole } from "@/utils/formatTftText"
 import { buildItemStatsFromEffects } from "@/utils/itemStatsFromEffects"
 
@@ -17,9 +26,9 @@ const CD_DRAGON_TFT_BASE = "https://raw.communitydragon.org/latest/cdragon/tft"
 
 const DB_NAME = "tft-ally-cache"
 const STORE_NAME = "set-data"
-const CACHE_DURATION_MS = 24 * 60 * 60 * 1000
-/** Bump when cached payload shape / decoding logic changes (forces miss on first read). */
-const CACHE_KEY = "current-set-v11"
+const CACHE_DURATION_MS = 60 * 60 * 1000
+/** Set payload cache (1h TTL). Bump when CDN mapping or icon URL logic changes. */
+const CACHE_KEY = "cdn-unified-v6"
 
 export type Item = ItemGuideEntry
 
@@ -137,48 +146,15 @@ function clampCost(n: number): 1 | 2 | 3 | 4 | 5 {
   return (Math.min(5, Math.max(1, c)) || 1) as 1 | 2 | 3 | 4 | 5
 }
 
-function abilityDamagePreview(champ: CDragonChampion): string {
-  const vars = champ.ability?.variables
-  if (!Array.isArray(vars) || vars.length === 0) return ""
-
-  // Try to find a variable that looks like primary damage/scaling
-  const dmgVar = vars.find(v => {
-    const name = (v as any)?.name?.toLowerCase() || ""
-    return name.includes("damage") || name.includes("healing") || name.includes("shield") || name.includes("value")
-  }) || vars[0]
-
-  const val = (dmgVar as any)?.value
-  if (Array.isArray(val)) {
-    const filtered = val.filter((v) => v !== 0)
-    const src = filtered.length > 0 ? filtered : val
-    return src.map((x: number) => roundTftWhole(Number(x))).join("/")
-  }
-  if (typeof val === "number" && Number.isFinite(val)) return String(roundTftWhole(val))
-  if (val != null) return String(val)
-  return ""
-}
-
-function champVariableMap(champ: CDragonChampion): Record<string, unknown> {
-  const out: Record<string, unknown> = {}
-  const vars = champ.ability?.variables
-  if (Array.isArray(vars)) {
-    for (const v of vars) {
-      if (v && typeof v === "object") {
-        const name = (v as any).name
-        const val = (v as any).value
-        if (typeof name === "string") out[name] = val
-      }
-    }
-  }
-  return out
-}
-
 interface CDragonChampion {
   apiName?: string
   name?: string
   characterName?: string
   cost?: number
   traits?: string[]
+  tileIcon?: string
+  squareIcon?: string
+  icon?: string
   ability?: { name?: string; desc?: string; variables?: unknown[] }
   stats?: {
     hp?: number
@@ -212,6 +188,7 @@ interface CDragonItemRow {
   name?: string
   desc?: string
   icon?: string
+  tier?: string
   tags?: unknown[]
   associatedTraits?: string[]
   composition?: unknown[]
@@ -234,6 +211,33 @@ interface CDragonBundle {
 
 function isAugmentRow(row: CDragonItemRow): boolean {
   return /\/Augments\//i.test(String(row.icon || ""))
+}
+
+function tierFromCdnField(raw: unknown): Augment["tier"] | undefined {
+  if (raw === "prismatic" || raw === "gold" || raw === "silver") return raw
+  return undefined
+}
+
+/** Icon filename/path tier when CDN row has no `tier` field. */
+function augmentTierFromIcon(row: CDragonItemRow): Augment["tier"] {
+  const icon = String(row.icon || "")
+  const file = icon.split("/").pop() || ""
+  if (
+    /_III\b|[-_]III\.|_3\.|Tier3|Missing-T3|LevelUp3|Prismatic|Kit-III/i.test(icon)
+  ) {
+    return "prismatic"
+  }
+  if (
+    /_II\b|[-_]II\.|_2\.|Tier2|Missing-T2|_Gold\b|Trade2|Nest2|Spotlight2/i.test(
+      icon + file,
+    )
+  ) {
+    return "gold"
+  }
+  if (/_I\b|[-_]I\.|_1\.|Tier1|Missing-T1|_Bronze\b|Forge-I/i.test(icon + file)) {
+    return "silver"
+  }
+  return "gold"
 }
 
 function isJunkItemApi(api: string): boolean {
@@ -262,13 +266,6 @@ function humanizeAugmentApiName(api: string): string {
     .replace(/_/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase())
     .trim()
-}
-
-function inferAugmentTier(apiName: string, displayName: string): Augment["tier"] {
-  const s = `${apiName} ${displayName}`.toLowerCase()
-  if (/prismatic|godaugment|\biii\b|portal/i.test(s)) return "prismatic"
-  if (/silver/i.test(s)) return "silver"
-  return "gold"
 }
 
 function pickSetBlock(raw: CDragonBundle, setNumber: number): CDragonSetBlock | undefined {
@@ -300,19 +297,26 @@ export function transformChampions(setBlock: CDragonSetBlock): Unit[] {
     if (typeof api === "string" && api.length > 0 && !api.startsWith(setPrefix)) continue
     if (/dummy|practice|bluegolem|shop|carousel/i.test(api)) continue
     const name = champ.name || champ.characterName || "Unknown"
+    if (!isPlayableRosterUnit(api, name)) continue
+    const isElderDragon = /_PVE_ElderDragon$/i.test(api)
     const traits = Array.isArray(champ.traits) ? champ.traits : []
-    const dmg = abilityDamagePreview(champ)
-    const varMap = champVariableMap(champ)
+    if (!isElderDragon && traits.length === 0) continue
+    const abilityVars = mapCdragonAbilityVariables(champ.ability?.variables)
+    const description = formatUnitAbilityDescription(champ.ability?.desc ?? "", abilityVars)
+    const dmg = abilityDamageLine(abilityVars)
     const s = champ.stats || {}
+    const portraitPath = champ.tileIcon ?? champ.squareIcon ?? champ.icon
+    const iconUrl = normalizeCdragonPath(portraitPath)
 
     out.push({
       id: `u_${api.replace(new RegExp(`^${setPrefix}`, 'i'), "").toLowerCase().replace(/[^a-z0-9]+/g, "_")}`,
+      apiName: api,
       name,
       cost: clampCost(champ.cost ?? 1),
       traits,
       ability: {
         name: champ.ability?.name ?? "Ability",
-        description: formatTftText(champ.ability?.desc ?? "", varMap),
+        description,
         damage: dmg || "—",
       },
       stats: {
@@ -327,6 +331,7 @@ export function transformChampions(setBlock: CDragonSetBlock): Unit[] {
       bestItems: [],
       bestComps: [],
       tier: "B",
+      ...(iconUrl ? { iconUrl } : {}),
     })
   }
   out.sort((a, b) => a.name.localeCompare(b.name))
@@ -355,7 +360,7 @@ export function transformTraits(setBlock: CDragonSetBlock): Synergy[] {
       thresholds.push({ count: 1, effect: thresholdEffectLine(tr, { minUnits: 1 }) })
     }
 
-    const iconUrl = cdGameAssetUrl(tr.icon)
+    const iconUrl = normalizeCdragonPath(tr.icon)
     const varMap = traitVariableMap(tr)
     const description = formatTftText(tr.desc || tr.name, varMap)
 
@@ -412,7 +417,7 @@ export function transformItems(setItemApis: string[], itemsByApi: Map<string, CD
     if (!displayName || /@/.test(displayName)) continue
     if (seen.has(displayName)) continue
     seen.add(displayName)
-    const iconUrl = cdGameAssetUrl(row.icon)
+    const iconUrl = normalizeCdragonPath(row.icon)
     const category = inferCdnItemCategory(row)
     const curated = ITEM_GUIDE_ENTRIES.find((e) => e.name === displayName)
 
@@ -434,12 +439,18 @@ export function transformItems(setItemApis: string[], itemsByApi: Map<string, CD
   return out
 }
 
-export function transformAugments(augmentApiNames: string[], itemsByApi: Map<string, CDragonItemRow>): Augment[] {
+/**
+ * Maps Set `augments` API list from Community Dragon (already scoped to the set pool).
+ * Resolves name/desc/icon from the global items table by apiName.
+ */
+export function transformSetAugmentsFromCdn(
+  setBlock: CDragonSetBlock,
+  itemsByApi: Map<string, CDragonItemRow>,
+): Augment[] {
   const out: Augment[] = []
-  for (const apiName of augmentApiNames) {
+  for (const apiName of normalizeStringList(setBlock.augments)) {
     const row = itemsByApi.get(apiName)
     if (!row) continue
-    if (!isAugmentRow(row)) continue
     const id = `aug_${apiName.replace(/[^a-zA-Z0-9]+/g, "_").toLowerCase()}`
     const rawDescription = row.desc || row.name || ""
     const effects = row.effects as Record<string, number> | undefined
@@ -448,12 +459,13 @@ export function transformAugments(augmentApiNames: string[], itemsByApi: Map<str
     if (!name || /@/.test(name)) name = formatTftText(row.desc || "", effects)
     if (!name || /@/.test(name)) name = humanizeAugmentApiName(apiName)
     const effect = (description || name).slice(0, 160)
-    const iconUrl = cdGameAssetUrl(row.icon)
+    const iconUrl = normalizeCdragonPath(row.icon)
+    const tier = tierFromCdnField(row.tier) ?? augmentTierFromIcon(row)
     out.push({
       id,
       apiName,
       name,
-      tier: inferAugmentTier(apiName, name),
+      tier,
       description: description || name,
       rawDescription,
       effects,
@@ -462,7 +474,9 @@ export function transformAugments(augmentApiNames: string[], itemsByApi: Map<str
       pickRate: 0,
       winRate: 0,
       avgPlacement: 0,
-      synergies: [],
+      synergies: Array.isArray(row.associatedTraits)
+        ? row.associatedTraits.filter((t): t is string => typeof t === "string" && t.length > 0)
+        : [],
       counters: [],
       tags: ["cdn"],
       ...(iconUrl ? { iconUrl } : {}),
@@ -472,7 +486,16 @@ export function transformAugments(augmentApiNames: string[], itemsByApi: Map<str
   return out
 }
 
-export async function fetchLatestSetData(): Promise<TFTSetData> {
+/** @deprecated Use transformSetAugmentsFromCdn — kept for unit tests. */
+export function transformAugments(
+  augmentApiNames: string[],
+  itemsByApi: Map<string, CDragonItemRow>,
+): Augment[] {
+  return transformSetAugmentsFromCdn({ augments: augmentApiNames }, itemsByApi)
+}
+
+/** Live Community Dragon fetch → normalized {@link TFTSetData}. */
+export async function fetchLatest(): Promise<TFTSetData> {
   const response = await fetch(`${CD_DRAGON_TFT_BASE}/en_us.json`)
   if (!response.ok) throw new Error(`CDN fetch failed: ${response.status}`)
 
@@ -483,19 +506,27 @@ export async function fetchLatestSetData(): Promise<TFTSetData> {
 
   const itemsByApi = buildItemsByApi(raw.items)
   const setItemApis = normalizeStringList(setBlock.items)
-  const augmentApis = normalizeStringList(setBlock.augments)
 
   return {
     setNumber: setBlock.number ?? setNumber,
-    champions: transformChampions(setBlock),
+    champions: enrichChampionIcons(transformChampions(setBlock)),
     traits: transformTraits(setBlock),
     items: transformItems(setItemApis, itemsByApi),
-    augments: transformAugments(augmentApis, itemsByApi),
+    augments: transformSetAugmentsFromCdn(setBlock, itemsByApi),
   }
 }
 
+/** @deprecated Use {@link fetchLatest}. */
+export const fetchLatestSetData = fetchLatest
+
 function isStale(cached: CachedSetData): boolean {
   return Date.now() - cached.fetchedAt > CACHE_DURATION_MS
+}
+
+function cacheMissingUnitIcons(data: TFTSetData): boolean {
+  if (data.champions.length === 0) return true
+  const missing = data.champions.filter((c) => !c.iconUrl?.trim()).length
+  return missing > data.champions.length * 0.1
 }
 
 function openDB(): Promise<IDBDatabase> {
@@ -510,6 +541,34 @@ function openDB(): Promise<IDBDatabase> {
       }
     }
   })
+}
+
+const LEGACY_CACHE_KEYS = [
+  "cdn-augments-v1",
+  "cdn-unified-v2",
+  "cdn-unified-v3",
+  "cdn-unified-v4",
+  "cdn-unified-v5",
+]
+
+/** Remove pre-v2 IndexedDB entries that may contain broken `.tex` icon URLs. */
+export async function purgeLegacyGameDataCache(): Promise<void> {
+  try {
+    const db = await openDB()
+    const store = db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME)
+    await Promise.all(
+      LEGACY_CACHE_KEYS.map(
+        (key) =>
+          new Promise<void>((resolve, reject) => {
+            const r = store.delete(key)
+            r.onsuccess = () => resolve()
+            r.onerror = () => reject(r.error)
+          }),
+      ),
+    )
+  } catch {
+    /* ignore */
+  }
 }
 
 export async function getCachedSetData(): Promise<CachedSetData | null> {
@@ -542,35 +601,48 @@ export async function cacheSetData(data: TFTSetData): Promise<void> {
   })
 }
 
-export const BUNDLED_SET_DATA: TFTSetData = {
-  setNumber: CURRENT_TFT_SET_NUMBER,
-  champions: UNITS,
-  traits: SYNERGIES,
-  items: ITEM_GUIDE_ENTRIES,
-  augments: AUGMENTS,
+export const FALLBACK_SEED = fallbackSeedJson as unknown as FallbackSeed
+
+export function getFallbackSetData(): TFTSetData {
+  return {
+    setNumber: FALLBACK_SEED.setNumber,
+    champions: enrichChampionIcons(FALLBACK_SEED.champions),
+    traits: FALLBACK_SEED.traits,
+    items: FALLBACK_SEED.items,
+    augments: FALLBACK_SEED.augments,
+  }
 }
+
+/** @deprecated Use {@link getFallbackSetData}. */
+export const BUNDLED_SET_DATA: TFTSetData = getFallbackSetData()
 
 export async function getSetData(): Promise<{ data: TFTSetData; source: "cdn" | "bundled" }> {
   try {
     const cached = await getCachedSetData()
-    if (cached && !isStale(cached)) {
-      return { data: cached.data, source: "cdn" }
+    if (cached && !isStale(cached) && !cacheMissingUnitIcons(cached.data)) {
+      return {
+        data: {
+          ...cached.data,
+          champions: enrichChampionIcons(cached.data.champions),
+        },
+        source: "cdn",
+      }
     }
   } catch (e) {
     console.warn("CDN Cache read failed", e)
   }
 
   try {
-    const fresh = await fetchLatestSetData()
+    const fresh = await fetchLatest()
     try {
       await cacheSetData(fresh)
     } catch {
       /* ignore cache write failures */
     }
-    return { data: fresh, source: "cdn" }
+    return { data: { ...fresh, champions: enrichChampionIcons(fresh.champions) }, source: "cdn" }
   } catch (e) {
-    console.error("CDN fetch failed, falling back to bundled data", e)
-    return { data: BUNDLED_SET_DATA, source: "bundled" }
+    console.error("CDN fetch failed, falling back to seed data", e)
+    return { data: getFallbackSetData(), source: "bundled" }
   }
 }
 

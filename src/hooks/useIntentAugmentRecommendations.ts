@@ -10,6 +10,10 @@ import {
   type FormattedEntityRecommendation,
   type GameExplanationContext,
 } from '@/ui/recommendations/formatExplanation'
+import {
+  enrichFormattedAugmentsFromStore,
+  rankStoreAugmentsForIntent,
+} from '@/lib/gameDataAugmentRecommendations'
 import { useAppStore } from '@/store/useAppStore'
 import {
   RECOMMENDATION_INTENTS,
@@ -204,6 +208,7 @@ export function useIntentAugmentRecommendations(
   options: UseIntentAugmentRecommendationsOptions = {},
 ): IntentAugmentRecommendationsResult {
   const gameDataVersion = useAppStore((s) => s.gameData.lastUpdated)
+  const storeAugments = useAppStore((s) => s.gameData.augments)
   const limit = options.limit ?? 5
   const minConfidence = options.minConfidence ?? 0.35
   const enabled = options.enabled !== false
@@ -236,13 +241,30 @@ export function useIntentAugmentRecommendations(
       })
 
       const rationaleOk = hasUsableRationale(result.rationale)
-      const formatted = formatRecommendationList(result.entities, result.rationale, {
+      let formatted = formatRecommendationList(result.entities, result.rationale, {
         intent: queryIntent,
         listLimit: limit,
         compressionMode,
         gameContext,
         blendedIntent: blended ?? undefined,
       })
+
+      formatted = enrichFormattedAugmentsFromStore(formatted, storeAugments)
+
+      if (formatted.length < limit && storeAugments.length > 0) {
+        const seen = new Set(formatted.map((f) => f.canonicalId))
+        const supplemental = rankStoreAugmentsForIntent(
+          storeAugments,
+          queryIntent,
+          limit - formatted.length,
+          seen,
+        )
+        formatted = [...formatted, ...supplemental].slice(0, limit)
+      }
+
+      if (formatted.length === 0 && storeAugments.length > 0) {
+        formatted = rankStoreAugmentsForIntent(storeAugments, queryIntent, limit)
+      }
 
       return {
         entities: result.entities,
@@ -254,7 +276,18 @@ export function useIntentAugmentRecommendations(
     } catch {
       return { ...empty, blendedIntent: blended }
     }
-  }, [queryIntent, intent, limit, minConfidence, enabled, gameDataVersion, compressionMode, contextKey, blended])
+  }, [
+    queryIntent,
+    intent,
+    limit,
+    minConfidence,
+    enabled,
+    gameDataVersion,
+    storeAugments,
+    compressionMode,
+    contextKey,
+    blended,
+  ])
 }
 
 /** @internal Test-only */

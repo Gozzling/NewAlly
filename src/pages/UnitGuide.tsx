@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react'
 import { GameIcon } from '@/components/GameIcon'
-import { unitIconUrl } from '@/utils/unitDisplay'
+import { resolveUnitIconUrl } from '@/utils/resolveUnitIcon'
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { useTFTData } from '@/hooks/useTFTData'
@@ -271,8 +271,7 @@ function UnitCard({ unit, index, onClick }: { unit: UnitGuideEntry; index: numbe
         }}
       >
         <GameIcon
-          src={unit.iconUrl}
-          fallbackSrc={unitIconUrl(unit.name)}
+          src={resolveUnitIconUrl({ name: unit.name, apiName: unit.apiName, iconUrl: unit.iconUrl, id: unit.id })}
           alt={unit.name}
           width={120}
           height={120}
@@ -370,8 +369,7 @@ function UnitDetail({ unit, onBack }: { unit: UnitGuideEntry; onBack: () => void
           }}
         >
           <GameIcon
-            src={unit.iconUrl}
-            fallbackSrc={unitIconUrl(unit.name)}
+            src={resolveUnitIconUrl({ name: unit.name, apiName: unit.apiName, iconUrl: unit.iconUrl, id: unit.id })}
             alt={unit.name}
             width={120}
             height={120}
@@ -415,12 +413,12 @@ function UnitDetail({ unit, onBack }: { unit: UnitGuideEntry; onBack: () => void
       {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-3 mb-8">
         {[
-          { label: 'HP', value: '550' },
-          { label: 'AD', value: '55' },
-          { label: 'AP', value: '0' },
-          { label: 'AS', value: '0.75' },
-          { label: 'Armor', value: '20' },
-          { label: 'MR', value: '20' },
+          { label: 'HP', value: String(unit.stats.hp) },
+          { label: 'AD', value: String(unit.stats.ad) },
+          { label: 'AP', value: String(unit.stats.ap) },
+          { label: 'AS', value: String(unit.stats.atkSpeed) },
+          { label: 'Armor', value: String(unit.stats.armor) },
+          { label: 'MR', value: String(unit.stats.mr) },
         ].map((stat, i) => (
           <div
             key={stat.label}
@@ -444,9 +442,11 @@ function UnitDetail({ unit, onBack }: { unit: UnitGuideEntry; onBack: () => void
           Ability
         </div>
         <div style={{ padding: '16px', borderRadius: '8px', background: '#1a1a1a', border: '1px solid #2a2a2a' }}>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-ally-accent)', marginBottom: '8px' }}>{unit.name}'s Ability</div>
-          <div style={{ fontSize: '13px', color: '#ccc', marginBottom: '8px' }}>Deals damage to enemies based on {unit.cost} cost.</div>
-          <div style={{ fontSize: '11px', color: '#555' }}>Damage: {unit.cost * 10}</div>
+          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-ally-accent)', marginBottom: '8px' }}>
+            {unit.ability.name}
+          </div>
+          <div style={{ fontSize: '13px', color: '#ccc', marginBottom: '8px', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{unit.ability.description}</div>
+          <div style={{ fontSize: '11px', color: '#555' }}>{unit.ability.damage ? `Scaling: ${unit.ability.damage}` : ''}</div>
         </div>
       </div>
 
@@ -456,7 +456,7 @@ function UnitDetail({ unit, onBack }: { unit: UnitGuideEntry; onBack: () => void
           Best Items
         </div>
         <div className="flex flex-wrap gap-2">
-          {['Bloodthirster', 'Infinity Edge', 'Guardian Angel'].map((item, i) => (
+          {(unit.bestItems.length > 0 ? unit.bestItems : ['—']).map((item, i) => (
             <span
               key={item}
               style={{
@@ -482,7 +482,7 @@ function UnitDetail({ unit, onBack }: { unit: UnitGuideEntry; onBack: () => void
           Best Comps
         </div>
         <div className="flex flex-wrap gap-2">
-          {['Divine Ascension', 'Arbiter Court', 'Space Groove'].map((comp, i) => (
+          {(unit.bestComps.length > 0 ? unit.bestComps : ['—']).map((comp, i) => (
             <span
               key={comp}
               style={{

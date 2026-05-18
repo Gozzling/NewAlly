@@ -2,6 +2,14 @@ import type { RecommendationIntent } from '@/types/recommendationIntent'
 
 export type RecommendationSurface = 'overlay' | 'guide' | 'coach' | 'team_builder'
 
+/** Surface on triaged anomalies — maps telemetry `guide` → `augment_guide`. */
+export type TriagedAnomalySurface =
+  | 'overlay'
+  | 'augment_guide'
+  | 'coach'
+  | 'team_builder'
+  | 'unknown'
+
 export type RecommendationEvaluationEventType =
   | 'recommendation_shown'
   | 'recommendation_used'
@@ -74,12 +82,23 @@ export type AnomalyTriageCategory =
   | 'intent_misalignment'
   | 'noise'
 
+/** Product-facing label for triage category (interpretability). */
+export type TriageInterpretabilityLabel =
+  | 'user experience friction'
+  | 'recommendation quality gap'
+  | 'communication clarity problem'
+  | 'context inference error'
+  | 'insufficient signal'
+
 export type TriagedAnomaly = {
   category: AnomalyTriageCategory
   canonicalId?: string
   summary: string
+  /** Human-readable failure mode for product decisions */
+  interpretabilityLabel: TriageInterpretabilityLabel
   confidence?: number
-  surface?: RecommendationSurface
+  /** Derived from telemetry event surface; `unknown` when absent on source events */
+  surface: TriagedAnomalySurface
 }
 
 export type PrioritizedFinding = {
@@ -118,6 +137,21 @@ export type ReportCategory = {
   hints: string[]
 }
 
+export type ReportSectionId = 'system_behavior' | 'user_perception' | 'actionable_insights'
+
+export type ReportSection = {
+  id: ReportSectionId
+  title: string
+  items: string[]
+}
+
+export type CondensedInsightGroup = {
+  category: AnomalyTriageCategory | 'finding'
+  interpretabilityLabel: string
+  items: string[]
+  count: number
+}
+
 export type SessionInsightReport = {
   sessionId: string
   generatedAtMs: number
@@ -135,10 +169,30 @@ export type SessionInsightReport = {
   delayedFollowThroughCount: number
 }
 
+export type PerceivedIntelligenceReportOptions = {
+  /** Surfaces only top actionable findings; hides low-signal categories */
+  decisionSupportMode?: boolean
+  /** When false (default), raw metric keys are omitted from section items */
+  includeRawMetrics?: boolean
+}
+
 export type PerceivedIntelligenceReport = SessionInsightReport & {
   summary: string[]
   categories: ReportCategory[]
   interpretationHints: string[]
+  /** Curated narrative sections for product review */
+  sections: ReportSection[]
+  condensedInsights: CondensedInsightGroup[]
+  crossSessionEvolution: CrossSessionInsightEvolution
+  signalStability: SignalStabilityProfile[]
+}
+
+export type CrossSessionInsightEvolution = {
+  sessionCount: number
+  recurringAnomalies: string[]
+  emergingIssues: string[]
+  fadingIssues: string[]
+  longTermDriftIndicators: string[]
 }
 
 export type PerceptionTrendPoint = {
@@ -154,8 +208,14 @@ export type AggregatedPerceptionTrends = {
   trends: PerceptionTrendPoint[]
 }
 
+export type SignalStabilityClassification = 'stable' | 'semi_stable' | 'volatile'
+
 export type SignalStabilityProfile = {
   metricKey: string
-  classification: 'stable' | 'volatile'
+  classification: SignalStabilityClassification
   coefficientOfVariation: number
+  /** Confidence in stability classification (0–1), rises with more sessions */
+  stabilityConfidence: number
+  /** True when recent sessions trend toward the historical mean */
+  trendConverging: boolean
 }

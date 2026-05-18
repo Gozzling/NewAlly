@@ -25,7 +25,8 @@ Overwolf Native app for Teamfight Tactics. 3 windows: background (controller), o
 
 ## Game Data & Architecture
 - **Single Source of Truth**: All game data (units, traits, items, augments) is managed by `src/store/useAppStore.ts` in the `gameData` state.
-- **Loading Flow**: Data is loaded at startup in `src/services/backgroundController.ts` via `loadGameData()`. The priority is CDN (Community Dragon) → IndexedDB Cache → Bundled Fallback (`src/services/cdnDataService.ts`).
+- **Loading Flow**: `GameDataHydrator` calls `loadGameData()` on desktop/overlay startup. Priority: seed hydrate (`src/data/fallback-seed.json`) → CDN (`cdnDataService.fetchLatest`) → IndexedDB (1h TTL) → seed on failure. Regenerate seed: `npm run sync-all`.
+- **UI data access**: Use `useTFTData()` / `useTFTGameData()` — all guides and overlays read unified Zustand `gameData`, not `src/data/*.ts` directly.
 - **Icon Resolution**: Use `UnitPortrait` component or `resolveIconUrl` helpers from `src/utils/iconResolver.ts`. This ensures correct fallbacks from CDN to local assets.
 - **Pages**: UI pages should NEVER import from `src/data/*.ts`. They must consume data from the store hooks.
 

@@ -1,7 +1,7 @@
 import { listCanonicalAugments } from '@/lib/augmentResolver'
 import { toSearchAugment } from '@/lib/augmentProjections'
 import { useAppStore } from '@/store/useAppStore'
-import { BUNDLED_SET_DATA } from '@/services/cdnDataService'
+import { getFallbackSetData } from '@/services/cdnDataService'
 import {
   ITEM_RECIPES,
   EMBLEM_RECIPES,
@@ -53,9 +53,10 @@ export function invalidateSearchCorpus(): void {
 
 function buildCorpus(): SearchSuggestion[] {
   const { gameData } = useAppStore.getState()
-  const champions = gameData.champions.length > 0 ? gameData.champions : BUNDLED_SET_DATA.champions
-  const traits = gameData.traits.length > 0 ? gameData.traits : BUNDLED_SET_DATA.traits
-  const guideItems = gameData.items.length > 0 ? gameData.items : BUNDLED_SET_DATA.items
+  const seed = getFallbackSetData()
+  const champions = gameData.champions.length > 0 ? gameData.champions : seed.champions
+  const traits = gameData.traits.length > 0 ? gameData.traits : seed.traits
+  const guideItems = gameData.items.length > 0 ? gameData.items : seed.items
 
   const out: SearchSuggestion[] = []
   const seen = new Set<string>()

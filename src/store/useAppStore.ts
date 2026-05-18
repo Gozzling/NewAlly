@@ -7,7 +7,12 @@ import type { Unit } from "../data/units";
 import type { Synergy } from "../data/synergies";
 import type { Augment } from "../data/augments";
 import type { ItemGuideEntry } from "../data/itemGuideCatalog";
-import { getSetData, type TFTSetData } from "../services/cdnDataService";
+import {
+  getFallbackSetData,
+  getSetData,
+  purgeLegacyGameDataCache,
+  type TFTSetData,
+} from "../services/cdnDataService";
 import { resetAugmentResolverCache } from "../lib/augmentResolver";
 import { invalidateSearchCorpus } from "../utils/searchSuggestions";
 import { CURRENT_TFT_SET_NUMBER } from "../meta/tftCurrentSet";
@@ -481,13 +486,28 @@ export const useAppStore = create<AppState>(
       })),
 
     loadGameData: async () => {
-      const { setGameDataLoading, setGameData } = useAppStore.getState();
+      const state = useAppStore.getState();
+      const { setGameDataLoading, setGameData } = state;
+      const empty =
+        state.gameData.champions.length === 0 &&
+        state.gameData.traits.length === 0 &&
+        state.gameData.items.length === 0 &&
+        state.gameData.augments.length === 0;
+
+      if (empty) {
+        setGameData(getFallbackSetData(), "bundled");
+      }
+
       setGameDataLoading(true);
       try {
+        await purgeLegacyGameDataCache();
         const { data, source } = await getSetData();
         setGameData(data, source);
       } catch (e) {
         console.error("Failed to load game data", e);
+        if (empty) {
+          setGameData(getFallbackSetData(), "bundled");
+        }
         setGameDataLoading(false);
       }
     },

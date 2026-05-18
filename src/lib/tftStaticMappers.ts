@@ -14,9 +14,14 @@ import { findGuideItem } from '@/data/itemGuideCatalog'
 import { augmentIconUrl } from '@/utils/augmentDisplay'
 import { gameIconDisplayUrl } from '@/utils/cdIconDisplay'
 import { formatTftText } from '@/utils/formatTftText'
+import {
+  abilityDamageLine,
+  formatUnitAbilityDescription,
+  type TFTAbilityVariable,
+} from '@/utils/unitAbilityText'
 import { buildItemStatsFromEffects } from '@/utils/itemStatsFromEffects'
 import { itemIconUrl } from '@/utils/itemDisplay'
-import { unitIconUrl } from '@/utils/unitDisplay'
+import { resolveUnitIconUrl } from '@/utils/resolveUnitIcon'
 
 export interface UnitGuideEntry {
   id: string
@@ -97,6 +102,34 @@ function mapUnitStats(
   }
 }
 
+function resolveUnitAbility(
+  su: TFTStaticUnit,
+  curated: Unit | undefined,
+): UnitGuideEntry['ability'] {
+  const vars = (su.ability?.variables ?? []) as TFTAbilityVariable[]
+  const raw = su.ability?.description ?? su.description ?? ''
+  const name = su.ability?.name ?? curated?.ability.name ?? 'Ability'
+
+  if (vars.length > 0) {
+    return {
+      name,
+      description: formatUnitAbilityDescription(raw, vars),
+      damage: abilityDamageLine(vars),
+    }
+  }
+
+  const needsCurated = /@\w+@/.test(raw) || /\(\s*\)/.test(raw)
+  const description = needsCurated
+    ? curated?.ability.description ?? formatTftText(raw, {})
+    : raw || curated?.ability.description || ''
+
+  return {
+    name,
+    description,
+    damage: curated?.ability.damage ?? '',
+  }
+}
+
 export function buildUnitGuideEntries(catalog: TFTDataCatalog): UnitGuideEntry[] {
   const curatedByName = new Map(UNITS.map((u) => [u.name.toLowerCase(), u]))
 
@@ -108,17 +141,17 @@ export function buildUnitGuideEntries(catalog: TFTDataCatalog): UnitGuideEntry[]
       name: su.name,
       cost: clampCost(su.cost),
       traits: su.traits,
-      ability: {
-        name: su.ability?.name ?? curated?.ability.name ?? 'Ability',
-        description:
-          su.ability?.description || su.description || curated?.ability.description || '',
-        damage: curated?.ability.damage ?? '',
-      },
+      ability: resolveUnitAbility(su, curated),
       stats: mapUnitStats(su.stats, curated?.stats),
       bestItems: curated?.bestItems ?? [],
       bestComps: curated?.bestComps ?? [],
       tier: curated?.tier ?? 'B',
-      iconUrl: gameIconDisplayUrl(su.iconUrl, unitIconUrl(su.name)),
+      iconUrl: resolveUnitIconUrl({
+        name: su.name,
+        apiName: su.apiName,
+        iconUrl: su.iconUrl,
+        id: su.apiName,
+      }),
     }
   })
 }

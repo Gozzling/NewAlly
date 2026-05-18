@@ -1,5 +1,6 @@
 import { useAppStore } from '@/store/useAppStore'
-import { UNITS } from '@/data/units'
+import { useTFTGameData } from '@/hooks/useTFTData'
+import type { Unit } from '@/data/units'
 import { Hammer } from 'lucide-react'
 
 function normalizeName(name: string): string {
@@ -7,11 +8,11 @@ function normalizeName(name: string): string {
 }
 
 // Helper to compute trait counts from a list of unit names (assuming units are on board)
-function computeTraitCounts(unitNames: string[]) {
+function computeTraitCounts(unitNames: string[], units: Unit[]) {
   const traitCounts: Record<string, number> = {}
   unitNames.forEach((name) => {
     const normalized = normalizeName(name)
-    const unit = UNITS.find((u) => normalizeName(u.name) === normalized)
+    const unit = units.find((u) => normalizeName(u.name) === normalized)
     if (unit) {
       unit.traits.forEach((trait) => {
         traitCounts[trait] = (traitCounts[trait] || 0) + 1
@@ -25,6 +26,7 @@ export function OverlayShopGuide() {
   const guideModeEnabled = useAppStore((s) => s.guideModeEnabled);
 const activeGuideComp = useAppStore((s) => s.activeGuideComp);
   const { board, shopUnits } = useAppStore((s) => s.gameState)
+  const { champions } = useTFTGameData()
 
   if (!guideModeEnabled || !activeGuideComp) {
     return null
@@ -45,7 +47,7 @@ const activeGuideComp = useAppStore((s) => s.activeGuideComp);
     normalizedGuideUnits.filter((unit) => normalizedBoard.has(unit))
   )
 
-  const traitCountsOnBoard = computeTraitCounts(boardUnitNames)
+  const traitCountsOnBoard = computeTraitCounts(boardUnitNames, champions)
   const traitProgress = guideTraits.map((trait) => {
     const countOnBoard = traitCountsOnBoard[trait] || 0
     return { trait, count: countOnBoard }

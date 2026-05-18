@@ -6,6 +6,7 @@ import type {
 } from './types'
 import type { RecommendationEvaluationEvent } from './types'
 import { triageAnomalies } from './anomalyTriage'
+import { mergeRelatedFindings, reduceRedundantAnomalies } from './insightCondensation'
 import { computeExplanationUsefulness } from './explanationUsefulness'
 import { detectOverconfidentRecommendations, detectRecommendationAnomalies } from './anomalyDetection'
 import { computePerceptionGap } from './perceptionGap'
@@ -140,7 +141,9 @@ export function buildSessionInsightReport(
   const anomalies = detectRecommendationAnomalies(events, sid)
   const overconfidentRecommendationIds = detectOverconfidentRecommendations(events, sid)
   const delayedFollowThroughCount = countDelayedFollowThrough(sid)
-  const triagedAnomalies = triageAnomalies(anomalies, perceptionGap, effectiveness.intentAccuracyProxy)
+  const triagedAnomalies = reduceRedundantAnomalies(
+    triageAnomalies(anomalies, perceptionGap, effectiveness.intentAccuracyProxy, events),
+  )
 
   const draft: SessionInsightReport = {
     sessionId: sid,
@@ -160,11 +163,13 @@ export function buildSessionInsightReport(
   }
 
   const classifiedSignals = classifySessionSignals(draft)
-  const prioritizedFindings = prioritizeSessionFindings(
-    draft,
-    classifiedSignals,
-    triagedAnomalies,
-    surfaceInsights,
+  const prioritizedFindings = mergeRelatedFindings(
+    prioritizeSessionFindings(
+      draft,
+      classifiedSignals,
+      triagedAnomalies,
+      surfaceInsights,
+    ),
   )
 
   const report: SessionInsightReport = {

@@ -7,17 +7,17 @@ import {
 } from '@/lib/canonicalDataVersion'
 import { mergeAugmentSources, type CdnAugmentRow } from '@/lib/mergeAugments'
 import { registerPatchCatalog } from '@/lib/canonicalPatchCatalogStore'
-import { createTFTDataCatalog } from '@/lib/tftStaticData'
+import { catalogFromGameData } from '@/lib/gameDataCatalog'
 import type { CanonicalDataVersion, MergedAugmentCatalog } from '@/types/canonicalAugment'
 import { catalogVersionKey, patchCatalogPath } from '@/types/canonicalCatalog'
 import { useAppStore } from '@/store/useAppStore'
-import { BUNDLED_SET_DATA } from '@/services/cdnDataService'
+import { FALLBACK_SEED, getFallbackSetData } from '@/services/cdnDataService'
 
 const mergedCache = new Map<string, MergedAugmentCatalog>()
 
 function loadCdnAugmentRows(): CdnAugmentRow[] {
   const { gameData } = useAppStore.getState()
-  return gameData.augments.length > 0 ? gameData.augments : BUNDLED_SET_DATA.augments
+  return gameData.augments.length > 0 ? gameData.augments : getFallbackSetData().augments
 }
 
 function cacheMergedCatalog(merged: MergedAugmentCatalog, scope: string): MergedAugmentCatalog {
@@ -37,7 +37,7 @@ export function buildStaticAugmentCatalog(): MergedAugmentCatalog {
   const cached = mergedCache.get(key)
   if (cached) return cached
 
-  const catalog = createTFTDataCatalog()
+  const catalog = catalogFromGameData(useAppStore.getState().gameData, FALLBACK_SEED)
   const merged = mergeAugmentSources({
     version,
     staticAugments: catalog.augments,
@@ -68,7 +68,7 @@ export function buildMergedAugmentCatalog(version?: CanonicalDataVersion): Merge
   const cached = mergedCache.get(key)
   if (cached) return cached
 
-  const catalog = createTFTDataCatalog()
+  const catalog = catalogFromGameData(useAppStore.getState().gameData, FALLBACK_SEED)
   const merged = mergeAugmentSources({
     version: resolvedVersion,
     staticAugments: catalog.augments,

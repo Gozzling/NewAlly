@@ -16,8 +16,7 @@ import { Settings } from '@/pages/Settings';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { SearchInputWithSuggestions } from '@/components/SearchInputWithSuggestions';
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder';
-import { UNITS } from '@/data/units';
-import { AUGMENTS } from '@/data/augments';
+import { useTFTGameData } from '@/hooks/useTFTData';
 import { ITEM_RECIPES } from '@/data/itemRecipes';
 import { EXAMPLE_SUMMONERS } from '@/data/exampleSummoners';
 import type { SearchSuggestion } from '@/utils/searchSuggestions';
@@ -470,6 +469,7 @@ function InGamePage() {
 }
 
 export function DesktopApp() {
+  const { champions, augments: rosterAugments } = useTFTGameData();
   const state = useAppStore((s: any) => s.gameState);
   const accentColor = useAppStore((s: any) => s.settings.accentColor) ?? '#35c3e7';
   const lastRawRef = useRef<string>('');
@@ -515,15 +515,15 @@ export function DesktopApp() {
     const items = Object.keys(ITEM_RECIPES)
     const summoners = [...EXAMPLE_SUMMONERS]
     const out: string[] = []
-    const rounds = Math.max(items.length, UNITS.length, AUGMENTS.length, summoners.length)
+    const rounds = Math.max(items.length, champions.length, rosterAugments.length, summoners.length)
     for (let i = 0; i < rounds; i++) {
       out.push(items[i % items.length])
-      out.push(UNITS[i % UNITS.length].name)
-      out.push(AUGMENTS[i % AUGMENTS.length].name)
+      out.push(champions[i % champions.length].name)
+      out.push(rosterAugments[i % rosterAugments.length].name)
       out.push(summoners[i % summoners.length])
     }
     return out
-  }, [])
+  }, [champions, rosterAugments])
 
   const { placeholderAnimated: headerPlaceholderAnimated } = useTypewriterPlaceholder(
     headerTypewriterWords,
@@ -538,7 +538,7 @@ export function DesktopApp() {
     switch (s.kind) {
       case 'unit': {
         setActivePage('units')
-        const u = UNITS.find((x) => x.name === s.label)
+        const u = champions.find((x) => x.name === s.label)
         setSelectedUnitId(u ? u.name : s.label)
         setUnitQuery(s.label)
         break

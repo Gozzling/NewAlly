@@ -58,7 +58,7 @@ function AugmentPickRow({
         )}
       >
         <GameIcon
-          src={augmentIconUrl(pick.name)}
+          src={pick.iconUrl ?? augmentIconUrl(pick.name)}
           fallbackSrc={augmentIconUrl(pick.name)}
           width={compact ? 28 : 32}
           height={compact ? 28 : 32}
